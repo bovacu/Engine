@@ -11,6 +11,7 @@ namespace engine {
         this->textureCoords[1] = { _topRight.x  , _bottomLeft.y };
         this->textureCoords[2] = { _topRight.x  , _topRight.y   };
         this->textureCoords[3] = { _bottomLeft.x, _topRight.y   };
+
     }
 
     std::shared_ptr<TextureRegion> TextureRegion::createTextureRegion(const std::shared_ptr<Texture2D> &_texture, const Vec2f& _coordinates, const Size &_regionSize, const Vec2f &_numberOfRegions) {
