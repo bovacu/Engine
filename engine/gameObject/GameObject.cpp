@@ -1,0 +1,40 @@
+#include "GameObject.h"
+
+namespace engine {
+
+    GameObject::GameObject() {  }
+
+    GameObject::GameObject(const Transform2D& _transform) : transform(_transform) {  }
+
+    GameObject::GameObject(const Vec2f& _position, float _rotation, const Vec2f _scale) : transform(_position, _rotation, _scale) {  }
+
+    Ptr::ComponentPtr GameObject::addComponent(Ptr::ComponentPtr _component) {
+        _component->gameObject = this;
+        this->components.emplace_back(_component);
+        return _component;
+    }
+
+    Ptr::BoxColliderPtr GameObject::addBoxCollider(const Size& _size, bool _isGhost) {
+        Ptr::BoxColliderPtr _boxCollider = std::make_shared<BoxCollider>(this, this->transform.position, _size, _isGhost);
+        this->components.emplace_back(_boxCollider);
+        return _boxCollider;
+    }
+
+    Ptr::CircleColliderPtr GameObject::addCircleCollider(float _radius, bool _isGhost) {
+        Ptr::CircleColliderPtr _circleCollider = std::make_shared<CircleCollider>(this, this->transform.position, _radius, _isGhost);
+        this->components.emplace_back(_circleCollider);
+        return _circleCollider;
+    }
+
+    Ptr::PolygonColliderPtr GameObject::addPolygonCollider(const std::vector<Vec2f> _vertices, bool _isGhost) {
+        Ptr::PolygonColliderPtr _polygonCollider = std::make_shared<PolygonCollider>(this, this->transform.position, _vertices, _isGhost);
+        this->components.emplace_back(_polygonCollider);
+        return _polygonCollider;
+    }
+
+    Ptr::PhysicsBodyPtr GameObject::addPhysicsBody() {
+        Ptr::PhysicsBodyPtr _physicsBody = std::make_shared<PhysicsBody>(this, this->transform.position);
+        this->components.emplace_back(_physicsBody);
+        return _physicsBody;
+    }
+}

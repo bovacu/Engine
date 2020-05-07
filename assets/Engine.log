@@ -1,0 +1,7 @@
+[17:24:36] [warning] Engine: Running in debug mode
+[17:24:36] [info] Engine: Creating window Engine:  (1280, 640)
+[17:24:38] [info] Engine: OpenGL Info:
+[17:24:38] [info] Engine:   Vendor: NVIDIA Corporation
+[17:24:38] [info] Engine:   Renderer: GeForce GTX 1060/PCIe/SSE2
+[17:24:38] [info] Engine:   Version: 4.6.0 NVIDIA 432.18
+[17:24:38] [error] Engine: Assertion Failed: Shader link failure!
