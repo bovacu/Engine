@@ -2,6 +2,12 @@
 
 namespace engine {
 
+    BoxCollider *BoxCollider::create(GameObject* _gameObject, const Vec2f& _center, const Size& _size, bool _isGhost) {
+        return std::make_shared<BoxCollider>(_gameObject, _center, _size, _isGhost).get();
+    }
+
+    /// ----------------------------------------------------------------------------------------------------------------
+
     BoxCollider::BoxCollider(GameObject* _gameObject, const Vec2f& _center, const Size& _size, bool _isGhost) : 
     Collider(_gameObject, ComponentType::BOX_COLLIDER, _isGhost) {
         Collider::vertices.emplace_back(Vec2f(_center.x - _size.width / 2, _center.y - _size.height / 2));

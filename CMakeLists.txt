@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 project(Engine)
 
-set(CMAKE_CXX_STANDARD_LIBRARIES "-static-libgcc -static-libstdc++ -lwsock32 -lws2_32 ${CMAKE_CXX_STANDARD_LIBRARIES}")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-Bstatic,--whole-archive -lwinpthread -Wl,--no-whole-archive")
 set(CMAKE_CXX_STANDARD 17)
 add_definitions(-std=c++17)
 
@@ -54,9 +52,11 @@ add_executable( Engine engine/main/Application.cpp engine/util/EngineUtil.cpp
                 engine/util/Timestep.h Tests/Test.cpp Tests/TestGame.cpp Tests/TestGame.h
                 engine/render/camera/OrthographicCameraController.cpp engine/render/camera/OrthographicCameraController.h
                 engine/input/Input.cpp engine/render/layer/ImGuiLayer.h engine/render/layer/ImGuiLayer.cpp
+                engine/util/Clock.cpp engine/util/Clock.h engine/render/elements/TextureRegion.cpp engine/render/elements/TextureRegion.h
+                engine/components/sprite/Sprite.cpp engine/components/sprite/Sprite.h
 
-        lib/imgui-docking/imgui.cpp lib/imgui-docking/imgui_draw.cpp lib/imgui-docking/imgui_widgets.cpp
-                lib/imgui-docking/examples/imgui_impl_glfw.cpp lib/imgui-docking/examples/imgui_impl_opengl3.cpp engine/util/Clock.cpp engine/util/Clock.h engine/render/elements/TextureRegion.cpp engine/render/elements/TextureRegion.h)
+                lib/imgui-docking/imgui.cpp lib/imgui-docking/imgui_draw.cpp lib/imgui-docking/imgui_widgets.cpp
+                lib/imgui-docking/examples/imgui_impl_glfw.cpp lib/imgui-docking/examples/imgui_impl_opengl3.cpp )
 
 target_link_libraries ( Engine spdlog)
 target_link_libraries ( ${PROJECT_NAME} "glfw" "${GLFW_LIBRARIES}")

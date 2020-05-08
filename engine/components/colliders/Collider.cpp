@@ -43,7 +43,7 @@ namespace engine {
                                             _maximumProjectionOfBodyA - _minimumProjectionOfBodyB);
 
                 if(_distance < _minimumDistance) {
-                    _minimumDistance = _distance;
+                    _minimumDistance = (float)_distance;
                     _smallestAxis = _axis;
                 }  
             }
@@ -81,7 +81,7 @@ namespace engine {
                                             _maximumProjectionOfBodyA - _minimumProjectionOfBodyB);
 
                 if(_distance < _minimumDistance) {
-                    _minimumDistance = _distance;
+                    _minimumDistance = (float)_distance;
                     _smallestAxis = _axis;
                 }  
             }
@@ -144,7 +144,7 @@ namespace engine {
     }
 
     void Collider::rotate(float _alpha) {
-        this->rotateRadians(TO_RAD(_alpha));
+        this->rotateRadians((float)TO_RAD(_alpha));
     }
 
     void Collider::rotateRadians(float _alpha) {

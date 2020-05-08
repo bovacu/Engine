@@ -301,4 +301,40 @@ namespace engine {
         return data.stats;
     }
 
+    void Render2D::draw(const Ptr::GameObjectPtr& _gameObject, float _tilingFactor, const glm::vec4& _tintColor) {
+        Ptr::SpritePtr _sprite = _gameObject->getComponentOfType<Sprite>();
+        ENGINE_CORE_ASSERT(_sprite, "CAN'T DRAW A GAME OBJECT WITHOUT A SPRITE AS COMPONENT");
+
+        if(_sprite->getRotation() > 0)
+            Render2D::drawRotated(_sprite, _sprite->getRotation(), _tilingFactor, _tintColor);
+
+        constexpr size_t        _quadVertexCount = 4;
+        const float             _textureIndex = 0.0f; // White Texture
+        const Vec2f*            _textureCoords = _sprite->getTexture()->getTextureCoords();
+        constexpr glm::vec4 _color = { 1.0f, 1.0f, 1.0f, 1.0f };
+
+        if (data.quadIndexCount >= Render2DData::maxIndices)
+            Render2D::flushAndReset();
+
+        glm::vec3 _position = {_sprite->getPosition().x, _sprite->getPosition().y, 0.0f};
+        glm::mat4 _transform = glm::translate(glm::mat4(1.0f), _position)
+                               * glm::scale(glm::mat4(1.0f), { _sprite->getScale().width, _sprite->getScale().height, 1.0f });
+
+        for (size_t _i = 0; _i < _quadVertexCount; _i++) {
+            data.quadVertexBufferPtr->position = _transform * data.quadVertexPositions[_i];
+            data.quadVertexBufferPtr->color = _color;
+            data.quadVertexBufferPtr->texCoord = { _textureCoords[_i].x, _textureCoords[_i].y };
+            data.quadVertexBufferPtr->texIndex = _textureIndex;
+            data.quadVertexBufferPtr->tilingFactor = _tilingFactor;
+            data.quadVertexBufferPtr++;
+        }
+
+        data.quadIndexCount += 6;
+        data.stats.quadCount++;
+    }
+
+    void Render2D::drawRotated(const Ptr::SpritePtr& _sprite, float _rotation, float _tilingFactor, const glm::vec4& _tintColor) {
+        LOG_CRITICAL_CORE("DRAW GAME OBJECT ROTATED NOT IMPLEMENTED YET");
+    }
+
 }

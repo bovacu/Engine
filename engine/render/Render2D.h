@@ -6,6 +6,7 @@
 #include "engine/render/camera/OrthographicCamera.h"
 #include "engine/render/elements/Texture.h"
 #include <glm/glm.hpp>
+#include <engine/gameObject/GameObject.h>
 
 namespace engine {
 
@@ -39,11 +40,14 @@ namespace engine {
             static void drawRotatedRect(const Vec2f& _position, const Size& _size, float rotation, const std::shared_ptr<Texture2D>& _texture, float _tilingFactor = 1.0f, const glm::vec4& _tintColor = glm::vec4(1.0f));
             static void drawRotatedRect(const glm::vec3& _position, const glm::vec2& _size, float rotation, const std::shared_ptr<Texture2D>& _texture, float _tilingFactor = 1.0f, const glm::vec4& _tintColor = glm::vec4(1.0f));
 
+            static void draw(const Ptr::GameObjectPtr& _gameObject, float _tilingFactor = 1.0f, const glm::vec4& _tintColor = glm::vec4(1.0f));
+
             static void resetStats();
             static Statistics getStats();
 
         private:
             static void flushAndReset();
+            static void drawRotated(const Ptr::SpritePtr & _sprite, float _rotation, float _tilingFactor = 1.0f, const glm::vec4& _tintColor = glm::vec4(1.0f));
         };
 
 }

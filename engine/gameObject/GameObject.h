@@ -3,14 +3,13 @@
 #ifndef GAME_OBJECT_H
 #define GAME_OBJECT_H
 
-#include "pch.h"
-
-#include "engine/components/transform/Transform2D.h"
-#include "engine/components/Component.h"
-#include "engine/components/colliders/BoxCollider.h"
-#include "engine/components/colliders/CircleCollider.h"
-#include "engine/components/colliders/PolygonCollider.h"
-#include "engine/components/physics/PhysicsBody.h"
+#include <engine/components/transform/Transform2D.h>
+#include <engine/components/Component.h>
+#include <engine/components/colliders/BoxCollider.h>
+#include <engine/components/colliders/CircleCollider.h>
+#include <engine/components/colliders/PolygonCollider.h>
+#include <engine/components/physics/PhysicsBody.h>
+#include <engine/components/sprite/Sprite.h>
 
 #define TAG_SIZE 30
 
@@ -26,25 +25,30 @@ namespace engine {
 
         public:
             GameObject();
-            GameObject(const Transform2D& _transform);
-            GameObject(const Vec2f& _position, float _rotation = 0, const Vec2f _scale = {0, 0});
+            explicit GameObject(const Transform2D& _transform);
+            explicit GameObject(const Vec2f& _position, float _rotation = 0, const Vec2f& _scale = {1, 1});
 
             char* getTag() { return this->tag; }
-            void setTag(char* _tag) { strcpy(this->tag, _tag); }
+            void setTag(char* _tag) { strcpy_s(this->tag, _tag); }
 
             Ptr::ComponentPtr addComponent(Ptr::ComponentPtr _component);
             Ptr::ComponentPtr removeComponent(const Ptr::ComponentPtr& _component);
 
             Ptr::BoxColliderPtr     addBoxCollider(const Size& _size, bool _isGhost = false);
             Ptr::CircleColliderPtr  addCircleCollider(float _radius, bool _isGhost = false);
-            Ptr::PolygonColliderPtr addPolygonCollider(const std::vector<Vec2f> _vertices, bool _isGhost = false);
+            Ptr::PolygonColliderPtr addPolygonCollider(const std::vector<Vec2f>& _vertices, bool _isGhost = false);
             Ptr::PhysicsBodyPtr     addPhysicsBody();
+            Ptr::SpritePtr          addSprite(const std::shared_ptr<TextureRegion>& = nullptr);
             
             template<class T>
             std::shared_ptr<T> getComponentOfType();
 
             template<class T>
             std::vector<std::shared_ptr<T>> getComponentsOfType();
+
+        public:
+            static GameObject* create(const Transform2D& _transform);
+            static GameObject* create(const Vec2f& _position, float _rotation = 0, const Vec2f& _scale = {1, 1});
     };
 
     template<class T>

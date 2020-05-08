@@ -41,6 +41,7 @@ namespace engine {
     class BoxCollider : public Collider {
         public:
             BoxCollider(GameObject* _gameObject, const Vec2f& _center, const Size& _size, bool _isGhost = false);
+            static BoxCollider* create(GameObject* _gameObject, const Vec2f& _center, const Size& _size, bool _isGhost = false);
 
         protected:
             virtual Mtv isColliding(Collider& _collider, float _push = 0.0f) override;

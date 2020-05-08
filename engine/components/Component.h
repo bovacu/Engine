@@ -6,7 +6,7 @@
 
 namespace engine {
     class GameObject;
-    enum ComponentType { COLLIDER, BOX_COLLIDER, CIRCLE_COLLIDER, POLYGON_COLLIDER, PHYSICS_BODY, NONE };
+    enum ComponentType { COLLIDER, BOX_COLLIDER, CIRCLE_COLLIDER, POLYGON_COLLIDER, PHYSICS_BODY, SPRITE,NONE };
 
     class Component;
     namespace Ptr {
