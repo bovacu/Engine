@@ -119,6 +119,9 @@ namespace engine {
             explicit PhysicsBody(GameObject* _gameObject, const Vec2f& _position, const BodyType& _bodyType = BodyType::STATIC, const Vec2f& _gravity = Vec2f(),
              const MovementType& _movementType = MovementType::APPROACH);
 
+            static PhysicsBody* create(GameObject* _gameObject, const Vec2f& _position, const BodyType& _bodyType = BodyType::STATIC, const Vec2f& _gravity = Vec2f(),
+                                       const MovementType& _movementType = MovementType::APPROACH);
+
         public:
             void update(float _dt)    override;
             void fixUpdate(float _fixDt) override;

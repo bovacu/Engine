@@ -1,7 +1,13 @@
 #include "PhysicsBody.h"
-#include "../../gameObject/GameObject.h"
+#include <engine/gameObject/GameObject.h>
 
 namespace engine {
+
+    PhysicsBody* PhysicsBody::create(GameObject* _gameObject, const Vec2f& _position, const BodyType& _bodyType, const Vec2f& _gravity, const MovementType& _movementType) {
+        return std::make_shared<PhysicsBody>(_gameObject, _position, _bodyType, _gravity, _movementType).get();
+    }
+
+    /// ----------------------------------------------------------------------------------------------------------------
 
     PhysicsBody::PhysicsBody(GameObject* _gameObject, const Vec2f& _position, const BodyType& _bodyType, const Vec2f& _gravity, const MovementType& _movementType) :
     Component(_gameObject, ComponentType::PHYSICS_BODY), position(_position), gravity(_gravity), bodyType(_bodyType), movementType(_movementType) {

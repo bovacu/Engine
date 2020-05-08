@@ -33,6 +33,9 @@ namespace engine {
         public:
             PolygonCollider(GameObject* _gameObject, const Vec2f& _center, const std::vector<Vec2f>& _vertices, bool _isGhost = false);
             PolygonCollider(GameObject* _gameObject, const std::vector<Vec2f>& _vertices, bool _isGhost = false);
+
+            static PolygonCollider* create(GameObject* _gameObject, const Vec2f& _center, const std::vector<Vec2f>& _vertices, bool _isGhost = false);
+
             virtual Mtv isColliding(Collider& _collider, float _push = 0.0f) override;
 
         private:

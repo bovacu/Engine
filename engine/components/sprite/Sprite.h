@@ -19,6 +19,8 @@ namespace engine {
         public:
             explicit Sprite(GameObject* _gameObject, const std::shared_ptr<TextureRegion>& _texture = nullptr);
 
+            static Sprite* create(GameObject* _gameObject, const std::shared_ptr<TextureRegion>& _texture = nullptr);
+
             void setVisible(bool _visible);
             bool isVisible() const { return this->visible; }
 

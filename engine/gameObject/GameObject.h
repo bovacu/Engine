@@ -31,20 +31,20 @@ namespace engine {
             char* getTag() { return this->tag; }
             void setTag(char* _tag) { strcpy_s(this->tag, _tag); }
 
-            Ptr::ComponentPtr addComponent(Ptr::ComponentPtr _component);
-            Ptr::ComponentPtr removeComponent(const Ptr::ComponentPtr& _component);
+            Component*              addComponent(Component* _component);
+            Component*              removeComponent(Component* _component);
 
-            Ptr::BoxColliderPtr     addBoxCollider(const Size& _size, bool _isGhost = false);
-            Ptr::CircleColliderPtr  addCircleCollider(float _radius, bool _isGhost = false);
-            Ptr::PolygonColliderPtr addPolygonCollider(const std::vector<Vec2f>& _vertices, bool _isGhost = false);
-            Ptr::PhysicsBodyPtr     addPhysicsBody();
-            Ptr::SpritePtr          addSprite(const std::shared_ptr<TextureRegion>& = nullptr);
+            BoxCollider*            addBoxCollider(const Size& _size, bool _isGhost = false);
+            CircleCollider*         addCircleCollider(float _radius, bool _isGhost = false);
+            PolygonCollider*        addPolygonCollider(const std::vector<Vec2f>& _vertices, bool _isGhost = false);
+            PhysicsBody*            addPhysicsBody();
+            Sprite*                 addSprite(const std::shared_ptr<TextureRegion>& = nullptr);
             
             template<class T>
-            std::shared_ptr<T> getComponentOfType();
+            T* getComponentOfType();
 
             template<class T>
-            std::vector<std::shared_ptr<T>> getComponentsOfType();
+            std::vector<T*> getComponentsOfType();
 
         public:
             static GameObject* create(const Transform2D& _transform);
@@ -52,8 +52,8 @@ namespace engine {
     };
 
     template<class T>
-    std::shared_ptr<T> GameObject::getComponentOfType() {
-        std::shared_ptr<T> _componentCasted = nullptr;
+    T* GameObject::getComponentOfType() {
+        T* _componentCasted = nullptr;
         for(int _c = 0; _c < this->components.size(); _c++) {
             if((_componentCasted = std::dynamic_pointer_cast<T>(this->components[_c])) != nullptr) {
                 return _componentCasted;
@@ -64,8 +64,8 @@ namespace engine {
     }
 
     template<class T>
-    std::vector<std::shared_ptr<T>> GameObject::getComponentsOfType() {
-        std::vector<std::shared_ptr<T>> _components;
+    std::vector<T*> GameObject::getComponentsOfType() {
+        std::vector<T*> _components;
 
         std::shared_ptr<T> _componentCasted = nullptr;
         for(int _c = 0; _c < this->components.size(); _c++)

@@ -2,6 +2,12 @@
 
 namespace engine {
 
+    CircleCollider* CircleCollider::create(GameObject* _gameObject, const Vec2f& _center, float _radius, bool _isGhost) {
+        return std::make_shared<CircleCollider>(_gameObject, _center, _radius, _isGhost).get();
+    }
+
+    /// ----------------------------------------------------------------------------------------------------------------
+
     CircleCollider::CircleCollider(GameObject* _gameObject, const Vec2f& _center, float _radious, bool _isGhost) : 
     Collider(_gameObject, ComponentType::CIRCLE_COLLIDER, _isGhost) { 
         Collider::size.width        = _radious;

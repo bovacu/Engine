@@ -4,6 +4,11 @@
 
 namespace engine {
 
+    Sprite* Sprite::create(GameObject* _gameObject, const std::shared_ptr<TextureRegion>& _texture) {
+        return std::make_shared<Sprite>(_gameObject, _texture).get();
+    }
+
+    /// ----------------------------------------------------------------------------------------------------------------
 
     Sprite::Sprite(GameObject *_gameObject, const std::shared_ptr<TextureRegion>& _texture) : Component(_gameObject, ComponentType::SPRITE)
     , texture(_texture) {
@@ -23,4 +28,6 @@ namespace engine {
     void Sprite::setTexture(const std::shared_ptr<TextureRegion>& _texture) {
         this->texture = _texture;
     }
+
+
 }

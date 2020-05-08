@@ -28,7 +28,9 @@ namespace engine {
 
     class CircleCollider : public Collider {
         public:
-            CircleCollider(GameObject* _gameObject, const Vec2f& _center, float _radious, bool _isGhost = false);
+            CircleCollider(GameObject* _gameObject, const Vec2f& _center, float _radius, bool _isGhost = false);
+            static CircleCollider* create(GameObject* _gameObject, const Vec2f& _center, float _radius, bool _isGhost = false);
+
             virtual Mtv isColliding(Collider& _collider, float _push = 0.0f) override;
 
         private:
