@@ -3,7 +3,6 @@
 #ifndef TIMESTEP_H
 #define TIMESTEP_H
 
-
 namespace engine {
 
     class Timestep {

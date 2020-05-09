@@ -10,10 +10,14 @@
 #include <engine/components/colliders/PolygonCollider.h>
 #include <engine/components/physics/PhysicsBody.h>
 #include <engine/components/sprite/Sprite.h>
+#include <engine/util/Timestep.h>
 
 #define TAG_SIZE 30
 
 namespace engine {
+
+    class GameObject;
+    typedef std::shared_ptr<GameObject> GameObjectPtr;
 
     class GameObject {
         private:
@@ -21,7 +25,7 @@ namespace engine {
         
         public:
             Transform2D transform;
-            std::vector<Ptr::ComponentPtr> components;
+            std::vector<ComponentPtr> components;
 
         public:
             GameObject();
@@ -31,29 +35,32 @@ namespace engine {
             char* getTag() { return this->tag; }
             void setTag(char* _tag) { strcpy_s(this->tag, _tag); }
 
-            Component*              addComponent(Component* _component);
-            Component*              removeComponent(Component* _component);
+            ComponentPtr            addComponent(const ComponentPtr& _component);
+            ComponentPtr            removeComponent(const ComponentPtr& _component);
 
-            BoxCollider*            addBoxCollider(const Size& _size, bool _isGhost = false);
-            CircleCollider*         addCircleCollider(float _radius, bool _isGhost = false);
-            PolygonCollider*        addPolygonCollider(const std::vector<Vec2f>& _vertices, bool _isGhost = false);
-            PhysicsBody*            addPhysicsBody();
-            Sprite*                 addSprite(const std::shared_ptr<TextureRegion>& = nullptr);
+            BoxColliderPtr          addBoxCollider(const Size& _size, bool _isGhost = false);
+            CircleColliderPtr       addCircleCollider(float _radius, bool _isGhost = false);
+            PolygonColliderPtr      addPolygonCollider(const std::vector<Vec2f>& _vertices, bool _isGhost = false);
+            PhysicsBodyPtr          addPhysicsBody();
+            SpritePtr               addSprite(const std::shared_ptr<TextureRegion>& = nullptr);
+
+            void update(Timestep _dt);
+            void fixUpdate(Timestep _dt);
             
             template<class T>
-            T* getComponentOfType();
+            std::shared_ptr<T> getComponentOfType();
 
             template<class T>
-            std::vector<T*> getComponentsOfType();
+            std::vector<std::shared_ptr<T>> getComponentsOfType();
 
         public:
-            static GameObject* create(const Transform2D& _transform);
-            static GameObject* create(const Vec2f& _position, float _rotation = 0, const Vec2f& _scale = {1, 1});
+            static GameObjectPtr create(const Transform2D& _transform);
+            static GameObjectPtr create(const Vec2f& _position, float _rotation = 0, const Vec2f& _scale = {1, 1});
     };
 
     template<class T>
-    T* GameObject::getComponentOfType() {
-        T* _componentCasted = nullptr;
+    std::shared_ptr<T> GameObject::getComponentOfType() {
+        std::shared_ptr<T> _componentCasted = nullptr;
         for(int _c = 0; _c < this->components.size(); _c++) {
             if((_componentCasted = std::dynamic_pointer_cast<T>(this->components[_c])) != nullptr) {
                 return _componentCasted;
@@ -64,8 +71,8 @@ namespace engine {
     }
 
     template<class T>
-    std::vector<T*> GameObject::getComponentsOfType() {
-        std::vector<T*> _components;
+    std::vector<std::shared_ptr<T>> GameObject::getComponentsOfType() {
+        std::vector<std::shared_ptr<T>> _components;
 
         std::shared_ptr<T> _componentCasted = nullptr;
         for(int _c = 0; _c < this->components.size(); _c++)
@@ -73,10 +80,6 @@ namespace engine {
                 _components.push_back(_componentCasted);
 
         return _components;
-    }
-
-    namespace Ptr {
-        typedef std::shared_ptr<GameObject> GameObjectPtr;
     }
 }
 

@@ -1,20 +1,19 @@
 #pragma once
 
-#ifndef IMGUILAYER_H
-#define IMGUILAYER_H
+#ifndef IMGUI_LAYER_H
+#define IMGUI_LAYER_H
 
-#include "engine/render/layer/Layer.h"
-
-#include "engine/event/WindowEvent.h"
-#include "engine/event/KeyEvent.h"
-#include "engine/event/MouseEvent.h"
+#include <engine/render/layer/Layer.h>
+#include <engine/event/WindowEvent.h>
+#include <engine/event/KeyEvent.h>
+#include <engine/event/MouseEvent.h>
 
 namespace engine {
 
     class ImGuiLayer : public Layer {
         public:
             ImGuiLayer();
-            ~ImGuiLayer() override = default;
+            ~ImGuiLayer()                       override = default;
 
             void onInit()                       override;
             void onEvent(Event& _e)             override;
@@ -36,4 +35,4 @@ namespace engine {
 
 }
 
-#endif //IMGUILAYER_H
+#endif //IMGUI_LAYER_H

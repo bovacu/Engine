@@ -26,10 +26,13 @@
 
 namespace engine {
 
+    class CircleCollider;
+    typedef std::shared_ptr<engine::CircleCollider> CircleColliderPtr;
+
     class CircleCollider : public Collider {
         public:
             CircleCollider(GameObject* _gameObject, const Vec2f& _center, float _radius, bool _isGhost = false);
-            static CircleCollider* create(GameObject* _gameObject, const Vec2f& _center, float _radius, bool _isGhost = false);
+            static CircleColliderPtr create(GameObject* _gameObject, const Vec2f& _center, float _radius, bool _isGhost = false);
 
             virtual Mtv isColliding(Collider& _collider, float _push = 0.0f) override;
 
@@ -38,10 +41,6 @@ namespace engine {
             Mtv collidingWithAABB(Collider& _collider, float _push);
             Mtv collidingWithPolygon(Collider& _collider, float _push);
     };
-
-    namespace Ptr {
-        typedef std::shared_ptr<engine::CircleCollider> CircleColliderPtr;
-    }
 }
 
 #endif //CIRCLE_COLLIDER_H

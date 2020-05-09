@@ -3,12 +3,12 @@
 #ifndef MOUSE_EVENT_H
 #define MOUSE_EVENT_H
 
-#include "engine/event/Event.h"
-#include "engine/input/MouseKeys.h"
+#include <engine/event/Event.h>
+#include <engine/input/MouseKeys.h>
 
 namespace engine {
 
-    class MouseMovedEvent : public Event {
+    class MouseMovedEvent           : public Event {
         private:
             float xPos, yPos;
 
@@ -27,7 +27,7 @@ namespace engine {
             EVENT_CLASS_CATEGORY(EventCategoryInput | EventCategoryMouse);
     };
 
-    class MouseScrolledEvent : public Event {
+    class MouseScrolledEvent        : public Event {
         private:
             float xScrolled, yScrolled;
 
@@ -46,7 +46,7 @@ namespace engine {
             EVENT_CLASS_CATEGORY(EventCategoryInput | EventCategoryMouse);
     };
 
-    class MouseButtonEvent : public Event {
+    class MouseButtonEvent          : public Event {
         protected:
             MouseCode mouseButton;
 
@@ -58,7 +58,7 @@ namespace engine {
             EVENT_CLASS_CATEGORY(EventCategoryMouseButton | EventCategoryInput);
     };
 
-    class MouseButtonPressedEvent : public MouseButtonEvent {
+    class MouseButtonPressedEvent   : public MouseButtonEvent {
         private:
             int repeatedTimes = 1;
 
@@ -75,7 +75,7 @@ namespace engine {
             EVENT_CLASS_TYPE(MouseButtonPressed);
     };
 
-    class MouseButtonReleasedEvent : public MouseButtonEvent {
+    class MouseButtonReleasedEvent  : public MouseButtonEvent {
         public:
             explicit MouseButtonReleasedEvent(MouseCode _mouseButton) : MouseButtonEvent(_mouseButton) {}
 

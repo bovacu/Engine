@@ -5,7 +5,7 @@
 
 namespace engine {
 
-    std::shared_ptr<GraphicsContext> GraphicsContext::create(void* window) {
+    GraphicsContextPtr GraphicsContext::create(void* window) {
         switch (Renderer::getAPI()) {
             case RenderAPI::API::None:    ENGINE_CORE_ASSERT(false, "RendererAPI::None is currently not supported!"); return nullptr;
             case RenderAPI::API::OpenGL:  return std::make_shared<OpenGLGraphicsContext>(static_cast<GLFWwindow*>(window));

@@ -147,7 +147,7 @@ Install drivers from the computer manufacturer or graphics card manufacturer
 fix this.
 
 __Note:__ AMD only supports OpenGL ES on Windows via EGL.  See the
-[GLFW\_CONTEXT\_CREATION\_API](https://www.glfw.org/docs/latest/window_guide.html#window_hints_ctx)
+[GLFW\_CONTEXT\_CREATION\api](https://www.glfw.org/docs/latest/window_guide.html#window_hints_ctx)
 hint for how to select EGL.
 
 Please verify that context creation also fails with the `glfwinfo` tool before

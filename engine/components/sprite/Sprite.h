@@ -8,39 +8,39 @@
 
 namespace engine {
 
+    class Sprite;
+    typedef std::shared_ptr<Sprite> SpritePtr;
+
     class Sprite : public Component {
         private:
-            std::shared_ptr<TextureRegion> texture;
+            TextureRegionPtr texture;
             Vec2f position;
             bool visible;
             float rotation;
             Size scale = {1, 1};
 
         public:
-            explicit Sprite(GameObject* _gameObject, const std::shared_ptr<TextureRegion>& _texture = nullptr);
+            explicit Sprite(GameObject* _gameObject, const TextureRegionPtr& _texture = nullptr);
 
-            static Sprite* create(GameObject* _gameObject, const std::shared_ptr<TextureRegion>& _texture = nullptr);
+            static SpritePtr create(GameObject* _gameObject, const TextureRegionPtr& _texture = nullptr);
 
             void setVisible(bool _visible);
             bool isVisible() const { return this->visible; }
 
-            std::shared_ptr<TextureRegion> getTexture() { return this->texture; }
-            void setTexture(const std::shared_ptr<TextureRegion>& _texture);
+            TextureRegionPtr getTexture() { return this->texture; }
+            void setTexture(const TextureRegionPtr& _texture);
 
             float getRotation() const { return this->rotation; }
             void setRotation(float _rotation) { this->rotation = _rotation; }
 
             Vec2f getPosition() const { return this->position; }
+            void setPosition(const Vec2f& _position) { this->position = _position; }
 
             Size getScale() const { return this->scale; }
             void setScale(const Size& _scale) { this->scale = _scale; }
 
             void update(float _dt) override;
     };
-
-    namespace Ptr {
-        typedef std::shared_ptr<Sprite> SpritePtr;
-    }
 }
 
 #endif //ENGINE_SPRITE_H

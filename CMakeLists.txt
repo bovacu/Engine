@@ -2,7 +2,10 @@ cmake_minimum_required(VERSION 3.10)
 project(Engine)
 
 set(CMAKE_CXX_STANDARD 17)
-add_definitions(-std=c++17)
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+endif()
+#add_definitions(-std=c++17)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -40,7 +43,7 @@ add_executable( Engine engine/main/Application.cpp engine/util/EngineUtil.cpp
                 engine/input/KeyboardKeys.h engine/input/MouseKeys.h engine/event/Event.h engine/event/WindowEvent.h
                 engine/event/KeyEvent.h engine/event/MouseEvent.h engine/input/GamePadKeys.h
                 engine/render/Window.cpp engine/render/Window.h  engine/api/openGL/OpenGLShader.cpp engine/api/openGL/OpenGLShader.h
-                lib/stb/stb_image.cpp engine/util/Logger.cpp engine/main/Core.h pch.cpp pch.h engine/platform/Windows/WindowsWindow.cpp
+                lib/stb/stb_image.cpp engine/util/Logger.cpp engine/main/Core.h engine/platform/Windows/WindowsWindow.cpp
                 engine/platform/Windows/WindowsWindow.h engine/render/Renderer.cpp engine/render/Renderer.h
                 engine/render/RenderAPI.cpp engine/render/RenderAPI.h engine/render/RenderCommand.cpp
                 engine/render/RenderCommand.h engine/render/Render2D.cpp engine/render/Render2D.h

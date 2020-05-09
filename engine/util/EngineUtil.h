@@ -24,7 +24,6 @@
 */
 
 #define BIT(x) (1 << x)
-#define BIND_EVENT_FUNC(fn) std::bind(&fn, this, std::placeholders::_1)
 
 namespace engine {
 
@@ -52,16 +51,6 @@ namespace engine {
 			this->x = _p.x;
 			this->y = _p.y;
 		}
-
-		// inline void operator=(const sf::Vector2f& _p) {
-		// 	this->x = _p.x;
-		// 	this->y = _p.y;
-		// }
-
-		// inline void operator=(const std::vector<float>& _v) {
-		// 	this->x = _v[0];
-		// 	this->y = _v[1];
-		// }
 
 		inline Vec2f operator-(const Vec2f& _p) {
 			return Vec2f(this->x - _p.x, this->y - _p.y);

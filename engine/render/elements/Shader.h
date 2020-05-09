@@ -10,6 +10,9 @@
 
 namespace engine {
 
+    class Shader;
+    typedef std::shared_ptr<Shader> ShaderPtr;
+
     class Shader {
         public:
             virtual ~Shader() = default;
@@ -24,26 +27,28 @@ namespace engine {
             virtual void setFloat4(const std::string& _name, const glm::vec4& _value) = 0;
             virtual void setMat4(const std::string& _name, const glm::mat4& _value) = 0;
 
-            virtual const std::string& getName() const = 0;
+            [[nodiscard]] virtual const std::string& getName() const = 0;
 
-            static std::shared_ptr<Shader> create(const std::string& _filepath);
-            static std::shared_ptr<Shader> create(const std::string& _name, const std::string& _vertexSrc,
-                    const std::string& _fragmentSrc);
+            static ShaderPtr create(const std::string& _filepath);
+            static ShaderPtr create(const std::string& _name, const std::string& _vertexSrc, const std::string& _fragmentSrc);
     };
+
+    class ShaderLibrary;
+    typedef std::shared_ptr<ShaderLibrary> ShaderLibraryPtr;
 
     class ShaderLibrary {
         private:
-            std::unordered_map<std::string, std::shared_ptr<Shader>> shaders;
+            std::unordered_map<std::string, ShaderPtr> shaders;
 
         public:
-            void add(const std::string& _name, const std::shared_ptr<Shader>& _shader);
-            void add(const std::shared_ptr<Shader>& _shader);
-            std::shared_ptr<Shader> load(const std::string& _filepath);
-            std::shared_ptr<Shader> load(const std::string& _name, const std::string& _filepath);
+            void add(const std::string& _name, const ShaderPtr& _shader);
+            void add(const ShaderPtr& _shader);
+            ShaderPtr load(const std::string& _filepath);
+            ShaderPtr load(const std::string& _name, const std::string& _filepath);
 
-            std::shared_ptr<Shader> get(const std::string& _name);
+            ShaderPtr get(const std::string& _name);
 
-            bool exists(const std::string& _name) const;
+            [[nodiscard]] bool exists(const std::string& _name) const;
     };
 }
 

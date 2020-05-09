@@ -3,10 +3,13 @@
 #ifndef RENDER_API_H
 #define RENDER_API_H
 
-#include "engine/render/elements/VertexArray.h"
+#include <engine/render/elements/VertexArray.h>
 #include <glm/glm.hpp>
 
 namespace engine {
+
+    class RenderAPI;
+    typedef std::unique_ptr<RenderAPI> RenderAPIPtr;
 
     class RenderAPI {
         public:
@@ -15,7 +18,7 @@ namespace engine {
             };
 
         private:
-            static API _API;
+            static API api;
 
         public:
             virtual void init() = 0;
@@ -23,10 +26,10 @@ namespace engine {
             virtual void setClearColor(const glm::vec4& _color) = 0;
             virtual void clear() = 0;
 
-            virtual void drawIndexed(const std::shared_ptr<VertexArray>& _vertexArray, uint32_t _indexCount = 0) = 0;
+            virtual void drawIndexed(const VertexArrayPtr& _vertexArray, uint32_t _indexCount = 0) = 0;
 
-            static API getAPI() { return _API; }
-            static std::unique_ptr<RenderAPI> create();
+            static API getAPI() { return api; }
+            static RenderAPIPtr create();
 
     };
 

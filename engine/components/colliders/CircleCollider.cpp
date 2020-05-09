@@ -2,8 +2,8 @@
 
 namespace engine {
 
-    CircleCollider* CircleCollider::create(GameObject* _gameObject, const Vec2f& _center, float _radius, bool _isGhost) {
-        return std::make_shared<CircleCollider>(_gameObject, _center, _radius, _isGhost).get();
+    CircleColliderPtr CircleCollider::create(GameObject* _gameObject, const Vec2f& _center, float _radius, bool _isGhost) {
+        return std::make_shared<CircleCollider>(_gameObject, _center, _radius, _isGhost);
     }
 
     /// ----------------------------------------------------------------------------------------------------------------
@@ -96,7 +96,7 @@ namespace engine {
         float penetration = _r - _d;
         _normal = Vec2f::normalize(_normal);
         _mtv.collision = true; 
-        _mtv.translation = _normal * penetration * (_inside ? -1 : 1);
+        _mtv.translation = _normal * penetration * (_inside ? -1.0f : 1.0f);
         
         return _mtv;
     }

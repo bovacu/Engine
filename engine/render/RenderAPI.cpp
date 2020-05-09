@@ -1,14 +1,14 @@
 #include "pch.h"
 #include "RenderAPI.h"
 
-#include "engine/api/openGL/OpenGLRenderAPI.h"
+#include <engine/api/openGL/OpenGLRenderAPI.h>
 
 namespace engine {
 
-    RenderAPI::API RenderAPI::_API = RenderAPI::API::OpenGL;
+    RenderAPI::API RenderAPI::api = RenderAPI::API::OpenGL;
 
-    std::unique_ptr<RenderAPI> RenderAPI::create() {
-        switch (_API) {
+    RenderAPIPtr RenderAPI::create() {
+        switch (api) {
             case RenderAPI::API::None:    ENGINE_CORE_ASSERT(false, "RendererAPI::None is currently not supported!"); return nullptr;
             case RenderAPI::API::OpenGL:  return std::make_unique<OpenGLRenderAPI>();
         }

@@ -3,13 +3,13 @@
 #ifndef KEY_EVENT_H
 #define KEY_EVENT_H
 
-#include "Event.h"
-#include "engine/input/KeyboardKeys.h"
+#include <engine/event/Event.h>
+#include <engine/input/KeyboardKeys.h>
 
 
 namespace engine {
-    /// ------------------------------------------------ KEY EVENT -------------------------------------------------
-    class KeyEvent : public Event {
+
+    class KeyEvent          : public Event {
         protected:
             KeyCode keyCode;
 
@@ -20,11 +20,8 @@ namespace engine {
             inline KeyCode getKeyCode() const { return this->keyCode; }
             EVENT_CLASS_CATEGORY(EventCategory::EventCategoryKeyboard | EventCategory::EventCategoryInput);
     };
-    /// ------------------------------------------------ KEY EVENT END ---------------------------------------------
 
-
-    /// ------------------------------------------------ KEY PRESSED -----------------------------------------------
-    class KeyPressedEvent : public KeyEvent {
+    class KeyPressedEvent   : public KeyEvent {
         private:
             int repeatedTimes;
 
@@ -40,11 +37,8 @@ namespace engine {
 
             EVENT_CLASS_TYPE(KeyPressed);
     };
-    /// ------------------------------------------------ KEY PRESSED END ------------------------------------------
 
-
-    /// ------------------------------------------------ KEY TYPED ------------------------------------------------
-    class KeyTypedEvent : public KeyEvent {
+    class KeyTypedEvent     : public KeyEvent {
         public:
             explicit KeyTypedEvent(KeyCode _keyCode) : KeyEvent(_keyCode) {  }
 
@@ -56,11 +50,8 @@ namespace engine {
 
             EVENT_CLASS_TYPE(KeyTyped);
     };
-    /// ------------------------------------------------ KEY TYPED END -------------------------------------------
 
-
-    /// ------------------------------------------------ KEY RELEASED ---------------------------------------------
-    class KeyReleasedEvent : public KeyEvent {
+    class KeyReleasedEvent  : public KeyEvent {
         public:
             explicit KeyReleasedEvent(KeyCode _keyCode) : KeyEvent(_keyCode) {}
 
@@ -72,7 +63,7 @@ namespace engine {
 
             EVENT_CLASS_TYPE(KeyReleased);
     };
-    /// ------------------------------------------------ KEY RELEASED END -----------------------------------------
+
 }
 
 #endif //KEY_EVENT_H

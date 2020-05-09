@@ -1,7 +1,7 @@
 #include "pch.h"
-
 #include "Application.h"
-#include "engine/render/Renderer.h"
+
+#include <engine/render/Renderer.h>
 #include <GLFW/glfw3.h>
 
 namespace engine {

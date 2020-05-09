@@ -2,7 +2,7 @@
 #include "Window.h"
 
 #ifdef ENGINE_PLATFORM_WINDOWS
-    #include "engine/platform/Windows/WindowsWindow.h"
+    #include <engine/platform/Windows/WindowsWindow.h>
 #endif
 
 namespace engine {

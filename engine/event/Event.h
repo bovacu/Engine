@@ -3,8 +3,7 @@
 #ifndef EVENT_H
 #define EVENT_H
 
-#include "pch.h"
-
+#include <sstream>
 
 namespace engine {
 

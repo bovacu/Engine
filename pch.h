@@ -15,10 +15,10 @@
 
 #include <cmath>
 
-#include "engine/main/Core.h"
-#include "engine/util/Logger.h"
-#include "engine/util/EngineUtil.h"
+#include <engine/main/Core.h>
+#include <engine/util/Logger.h>
+#include <engine/util/EngineUtil.h>
 
-#ifdef HZ_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_WINDOWS
     #include <Windows.h>
 #endif

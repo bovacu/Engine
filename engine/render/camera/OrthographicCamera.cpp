@@ -6,8 +6,9 @@
 namespace engine {
 
     OrthographicCamera::OrthographicCamera(float _left, float _right, float _bottom, float _top)
-            : projectionMatrix(glm::ortho(_left, _right, _bottom, _top, -1.0f, 1.0f)), viewMatrix(1.0f) {
-        this->viewProjectionMatrix = this->projectionMatrix * this->viewMatrix;
+            : projectionMatrix(glm::ortho(_left, _right, _bottom, _top, -1.0f, 1.0f)), viewMatrix(1.0f),
+            viewProjectionMatrix(this->projectionMatrix * this->viewMatrix) {
+//        this->viewProjectionMatrix = this->projectionMatrix * this->viewMatrix;
     }
 
     void OrthographicCamera::setProjection(float _left, float _right, float _bottom, float _top) {

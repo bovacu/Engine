@@ -1,15 +1,18 @@
 #pragma once
 
-#ifndef ORTHOGRAPHICCAMERACONTROLLER_H
-#define ORTHOGRAPHICCAMERACONTROLLER_H
+#ifndef ORTHOGRAPHIC_CAMERA_CONTROLLER_H
+#define ORTHOGRAPHIC_CAMERA_CONTROLLER_H
 
-#include "engine/render/camera/OrthographicCamera.h"
-#include "engine/util/Timestep.h"
+#include <engine/render/camera/OrthographicCamera.h>
+#include <engine/util/Timestep.h>
 
-#include "engine/event/WindowEvent.h"
-#include "engine/event/MouseEvent.h"
+#include <engine/event/WindowEvent.h>
+#include <engine/event/MouseEvent.h>
 
 namespace engine {
+
+    class OrthographicCameraController;
+    typedef std::shared_ptr<OrthographicCameraController> OrthographicCameraControllerPtr;
 
     class OrthographicCameraController {
         private:
@@ -19,21 +22,27 @@ namespace engine {
 
             bool rotation;
 
-            glm::vec3 cameraPosition = { 0.0f, 0.0f, 0.0f };
+            Vec2f cameraPosition = { 0.0f, 0.0f};
             float cameraRotation = 0.0f; //In degrees, in the anti-clockwise direction
             float cameraTranslationSpeed = 5.0f, cameraRotationSpeed = 180.0f;
 
         public:
-            OrthographicCameraController(float _aspectRatio, bool _rotation = false);
+            explicit OrthographicCameraController(float _aspectRatio = 1, bool _rotation = false);
 
             void onUpdate(Timestep _ts);
             void onEvent(Event& _e);
 
             OrthographicCamera& getCamera() { return this->camera; }
-            const OrthographicCamera& getCamera() const { return this->camera; }
+            [[nodiscard]] const OrthographicCamera& getCamera() const { return this->camera; }
 
-            float getZoomLevel() const { return this->zoomLevel; }
+            [[nodiscard]] float getZoomLevel() const { return this->zoomLevel; }
             void setZoomLevel(float _level) { this->zoomLevel = _level; }
+
+            [[nodiscard]] float getAspectRatio() const { return this->aspectRatio; }
+            void setAspectRatio(float _aspectRatio) { this->aspectRatio = _aspectRatio; }
+
+            void setCameraPosition(const Vec2f& _position) { this->cameraPosition = _position; }
+            [[nodiscard]] Vec2f getCameraPosition() const { return this->cameraPosition; }
 
         private:
             bool onMouseScrolled(MouseScrolledEvent& e);
@@ -42,4 +51,4 @@ namespace engine {
 
 }
 
-#endif //ORTHOGRAPHICCAMERACONTROLLER_H
+#endif //ORTHOGRAPHIC_CAMERA_CONTROLLER_H

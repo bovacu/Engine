@@ -61,7 +61,7 @@
 	#endif
 	#define ENGINE_ENABLE_ASSERTS
 #else
-#define ENGINE_DEBUGBREAK()
+    #define ENGINE_DEBUGBREAK()
 #endif
 
 #ifdef ENGINE_ENABLE_ASSERTS

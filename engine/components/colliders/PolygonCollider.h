@@ -29,22 +29,21 @@
 
 namespace engine {
 
+    class PolygonCollider;
+    typedef std::shared_ptr<engine::PolygonCollider> PolygonColliderPtr;
+
     class PolygonCollider : public Collider {
         public:
             PolygonCollider(GameObject* _gameObject, const Vec2f& _center, const std::vector<Vec2f>& _vertices, bool _isGhost = false);
             PolygonCollider(GameObject* _gameObject, const std::vector<Vec2f>& _vertices, bool _isGhost = false);
 
-            static PolygonCollider* create(GameObject* _gameObject, const Vec2f& _center, const std::vector<Vec2f>& _vertices, bool _isGhost = false);
+            static PolygonColliderPtr create(GameObject* _gameObject, const Vec2f& _center, const std::vector<Vec2f>& _vertices, bool _isGhost = false);
 
             virtual Mtv isColliding(Collider& _collider, float _push = 0.0f) override;
 
         private:
             Mtv collidingWithCircle(Collider& _collider, float _push);
     };
-
-    namespace Ptr {
-        typedef std::shared_ptr<engine::PolygonCollider> PolygonColliderPtr;
-    }
 }
 
 #endif //POLYGON_COLLIDER_H

@@ -1,15 +1,20 @@
 #include "pch.h"
 #include "OrthographicCameraController.h"
 
-#include "engine/input/Input.h"
-#include "engine/input/KeyboardKeys.h"
+#include <engine/input/Input.h>
+#include <engine/main/Application.h>
 
 namespace engine {
 
     OrthographicCameraController::OrthographicCameraController(float _aspectRatio, bool _rotation)
             : aspectRatio(_aspectRatio),
             camera(-this->aspectRatio * this->zoomLevel, this->aspectRatio * this->zoomLevel, -this->zoomLevel, this->zoomLevel),
-            rotation(_rotation) {  }
+            rotation(_rotation) {
+        // Auto updates the aspect ratio directly to the screen size, this way, there's no need to pass it as an argument.
+        auto& _app = Application::get();
+        this->aspectRatio = _app.getWindowSize().x / _app.getWindowSize().y;
+        this->camera.setProjection(-this->aspectRatio * this->zoomLevel, this->aspectRatio * this->zoomLevel, -this->zoomLevel, this->zoomLevel);
+    }
 
     void OrthographicCameraController::onUpdate(Timestep _ts) {
         if (Input::isKeyPressed(KEY_A)) {
@@ -44,7 +49,7 @@ namespace engine {
             this->camera.setRotation(this->cameraRotation);
         }
 
-        this->camera.setPosition(this->cameraPosition);
+        this->camera.setPosition({this->cameraPosition.x, this->cameraPosition.y, 0.0f});
 
         this->cameraTranslationSpeed = this->zoomLevel;
     }

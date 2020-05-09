@@ -2,8 +2,8 @@
 
 namespace engine {
 
-    PolygonCollider* PolygonCollider::create(GameObject* _gameObject, const Vec2f& _center, const std::vector<Vec2f>& _vertices, bool _isGhost) {
-        return std::make_shared<PolygonCollider>(_gameObject, _center, _vertices, _isGhost).get();
+    PolygonColliderPtr PolygonCollider::create(GameObject* _gameObject, const Vec2f& _center, const std::vector<Vec2f>& _vertices, bool _isGhost) {
+        return std::make_shared<PolygonCollider>(_gameObject, _center, _vertices, _isGhost);
     }
 
     /// ----------------------------------------------------------------------------------------------------------------
@@ -11,7 +11,7 @@ namespace engine {
     PolygonCollider::PolygonCollider(GameObject* _gameObject, const Vec2f& _center, const std::vector<Vec2f>& _vertices, bool _isGhost) : 
     Collider(_gameObject, ComponentType::POLYGON_COLLIDER, _isGhost) {
         Collider::vertices          = _vertices;
-        Collider::numberOfVertices  = _vertices.size();
+        Collider::numberOfVertices  = (int)_vertices.size();
         Collider::center            = _center;
 
         for(int _v = 0; _v < _vertices.size(); _v++) {
@@ -23,7 +23,7 @@ namespace engine {
     PolygonCollider::PolygonCollider(GameObject* _gameObject, const std::vector<Vec2f>& _vertices, bool _isGhost) : 
     Collider(_gameObject, ComponentType::POLYGON_COLLIDER, _isGhost) {
         Collider::vertices          = _vertices;
-        Collider::numberOfVertices  = _vertices.size();
+        Collider::numberOfVertices  = (int)_vertices.size();
         Collider::center            = Collider::getCentroid();
     }
 

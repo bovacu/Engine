@@ -1,11 +1,14 @@
 #pragma once
 
-#ifndef ENGINE_TEXTUREREGION_H
-#define ENGINE_TEXTUREREGION_H
+#ifndef ENGINE_TEXTURE_REGION_H
+#define ENGINE_TEXTURE_REGION_H
 
 #include <engine/render/elements/Texture.h>
 
 namespace engine {
+
+    class TextureRegion;
+    typedef std::shared_ptr<TextureRegion> TextureRegionPtr;
 
     class TextureRegion {
         private:
@@ -13,13 +16,13 @@ namespace engine {
             Vec2f textureCoords[4];
 
         public:
-            TextureRegion(const std::shared_ptr<Texture2D>& _texture, const Vec2f& _bottomLeft, const Vec2f& _topRight);
-            const std::shared_ptr<Texture2D> getTexture() { return this->texture; }
+            TextureRegion(const Texture2DPtr& _texture, const Vec2f& _bottomLeft, const Vec2f& _topRight);
+            Texture2DPtr getTexture() { return this->texture; }
             const Vec2f* getTextureCoords() { return this->textureCoords; }
 
-            static std::shared_ptr<TextureRegion> createTextureRegion(const std::shared_ptr<Texture2D>& _texture, const Vec2f& _coordinates, const Size& _regionSize, const Vec2f& _numberOfRegions = {1, 1});
+            static TextureRegionPtr create(const Texture2DPtr& _texture, const Vec2f& _coordinates, const Size& _regionSize, const Vec2f& _numberOfRegions = {1, 1});
     };
 
 }
 
-#endif //ENGINE_TEXTUREREGION_H
+#endif //ENGINE_TEXTURE_REGION_H

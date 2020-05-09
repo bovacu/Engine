@@ -3,6 +3,6 @@
 
 namespace engine {
 
-    std::unique_ptr<RenderAPI> RenderCommand::renderAPI = RenderAPI::create();
+    RenderAPIPtr RenderCommand::renderAPI = RenderAPI::create();
 
 }

@@ -3,11 +3,11 @@
 #ifndef WINDOW_EVENT_H
 #define WINDOW_EVENT_H
 
-#include "Event.h"
+#include <engine/event/Event.h>
 
 namespace engine {
 
-    class WindowResizedEvent : public Event {
+    class WindowResizedEvent    : public Event {
         private:
             unsigned int width, height;
 
@@ -26,25 +26,25 @@ namespace engine {
             EVENT_CLASS_CATEGORY(EventCategoryGame);
     };
 
-    class WindowClosedEvent : public Event {
+    class WindowClosedEvent     : public Event {
         public:
             EVENT_CLASS_TYPE(WindowClosed);
             EVENT_CLASS_CATEGORY(EventCategoryGame);
     };
 
-    class WindowFrameEvent : public Event {
+    class WindowFrameEvent      : public Event {
         public:
             EVENT_CLASS_TYPE(GameFrame);
             EVENT_CLASS_CATEGORY(EventCategoryGame);
     };
 
-    class WindowUpdateEvent : public Event {
+    class WindowUpdateEvent     : public Event {
         public:
             EVENT_CLASS_TYPE(GameUpdate);
             EVENT_CLASS_CATEGORY(EventCategoryGame);
     };
 
-    class WindowRenderEvent : public Event {
+    class WindowRenderEvent     : public Event {
         public:
             EVENT_CLASS_TYPE(GameRender);
             EVENT_CLASS_CATEGORY(EventCategoryGame);

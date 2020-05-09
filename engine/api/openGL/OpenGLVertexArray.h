@@ -3,29 +3,29 @@
 #ifndef OPENGL_VERTEX_ARRAY_H
 #define OPENGL_VERTEX_ARRAY_H
 
-#include "engine/render/elements/VertexArray.h"
+#include <engine/render/elements/VertexArray.h>
 
 namespace engine {
 
     class OpenGLVertexArray : public VertexArray {
         private:
-            uint32_t rendererID;
-            uint32_t vertexBufferIndex = 0;
-            std::vector<std::shared_ptr<VertexBuffer>> vertexBuffers;
-            std::shared_ptr<IndexBuffer> indexBuffer;
+            uint32_t                        rendererID;
+            uint32_t                        vertexBufferIndex = 0;
+            std::vector<VertexBufferPtr>    vertexBuffers;
+            IndexBufferPtr                  indexBuffer;
 
         public:
             OpenGLVertexArray();
-            virtual ~OpenGLVertexArray();
+            ~OpenGLVertexArray()                                                        override;
 
-            virtual void bind() const override;
-            virtual void unbind() const override;
+            void bind() const                                                           override;
+            void unbind() const                                                         override;
 
-            virtual void addVertexBuffer(const std::shared_ptr<VertexBuffer>& _vertexBuffer) override;
-            virtual void setIndexBuffer(const std::shared_ptr<IndexBuffer>& _indexBuffer) override;
+            void addVertexBuffer(const VertexBufferPtr& _vertexBuffer)                  override;
+            void setIndexBuffer(const IndexBufferPtr& _indexBuffer)                     override;
 
-            virtual const std::vector<std::shared_ptr<VertexBuffer>>& getVertexBuffers() const { return this->vertexBuffers; }
-            virtual const std::shared_ptr<IndexBuffer>& getIndexBuffer() const { return this->indexBuffer; }
+            [[nodiscard]] const std::vector<VertexBufferPtr>& getVertexBuffers() const  override { return this->vertexBuffers; }
+            [[nodiscard]] const IndexBufferPtr& getIndexBuffer() const                  override { return this->indexBuffer; }
     };
 
 }

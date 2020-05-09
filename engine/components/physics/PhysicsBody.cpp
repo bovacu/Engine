@@ -3,8 +3,8 @@
 
 namespace engine {
 
-    PhysicsBody* PhysicsBody::create(GameObject* _gameObject, const Vec2f& _position, const BodyType& _bodyType, const Vec2f& _gravity, const MovementType& _movementType) {
-        return std::make_shared<PhysicsBody>(_gameObject, _position, _bodyType, _gravity, _movementType).get();
+    PhysicsBodyPtr PhysicsBody::create(GameObject* _gameObject, const Vec2f& _position, const BodyType& _bodyType, const Vec2f& _gravity, const MovementType& _movementType) {
+        return std::make_shared<PhysicsBody>(_gameObject, _position, _bodyType, _gravity, _movementType);
     }
 
     /// ----------------------------------------------------------------------------------------------------------------
@@ -21,10 +21,10 @@ namespace engine {
                 this->position.x += this->velocity.x * _dt;
                 this->position.y += this->velocity.y * _dt;
             } else if(this->movementType == MovementType::APPROACH) {
-                this->velocity.x = this->approach(this->gaolVelocity.x, this->velocity.x, _dt * 65);
-                this->velocity.y = this->approach(this->gaolVelocity.y, this->velocity.y, _dt * 65);
+                this->velocity.x = this->approach(this->gaolVelocity.x, this->velocity.x, _dt);
+                this->velocity.y = this->approach(this->gaolVelocity.y, this->velocity.y, _dt);
 
-                this->position += this->velocity * _dt * 65;
+                this->position += this->velocity * _dt;
             } else {
                 this->velocity += this->acceleration * _dt;
                 this->position += this->velocity * _dt;

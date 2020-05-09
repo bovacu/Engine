@@ -3,7 +3,7 @@
 #ifndef WINDOWS_INPUT_H
 #define WINDOWS_INPUT_H
 
-#include "engine/input/Input.h"
+#include <engine/input/Input.h>
 
 namespace engine {
 

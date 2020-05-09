@@ -7,6 +7,9 @@
 
 namespace engine {
 
+    class OrthographicCamera;
+    typedef std::shared_ptr<OrthographicCamera> OrthographicCameraPtr;
+
     class OrthographicCamera {
 
         private:
@@ -22,22 +25,20 @@ namespace engine {
 
             void setProjection(float _left, float _right, float _bottom, float _top);
 
-            const glm::vec3& getPosition() const { return this->position; }
+            [[nodiscard]] const glm::vec3& getPosition() const { return this->position; }
             void setPosition(const glm::vec3& _position) { this->position = _position; this->recalculateViewMatrix(); }
 
-            float getRotation() const { return this->rotation; }
+            [[nodiscard]] float getRotation() const { return this->rotation; }
             void setRotation(float _rotation) { this->rotation = _rotation; this->recalculateViewMatrix(); }
 
-            const glm::mat4& getProjectionMatrix() const { return this->projectionMatrix; }
-            const glm::mat4& getViewMatrix() const { return this->viewMatrix; }
-            const glm::mat4& getViewProjectionMatrix() const { return this->viewProjectionMatrix; }
+            [[nodiscard]] const glm::mat4& getProjectionMatrix() const { return this->projectionMatrix; }
+            [[nodiscard]] const glm::mat4& getViewMatrix() const { return this->viewMatrix; }
+            [[nodiscard]] const glm::mat4& getViewProjectionMatrix() const { return this->viewProjectionMatrix; }
+
         private:
             void recalculateViewMatrix();
     };
 
 }
-
-
-
 
 #endif // ORTHOGRAPHIC_CAMERA_H

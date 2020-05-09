@@ -4,7 +4,7 @@
 #define BUFFER_H
 
 #include "pch.h"
-#include "engine/main/Core.h"
+#include <engine/main/Core.h>
 #include <cstdint>
 
 namespace engine {
@@ -75,13 +75,13 @@ namespace engine {
             BufferLayout(const std::initializer_list<BufferElement>& _elements)
                     : elements(_elements) { this->calculateOffsetsAndStride(); }
 
-            uint32_t getStride() const { return this->stride; }
-            const std::vector<BufferElement>& getElements() const { return this->elements; }
+            [[nodiscard]] uint32_t getStride() const { return this->stride; }
+            [[nodiscard]] const std::vector<BufferElement>& getElements() const { return this->elements; }
 
             std::vector<BufferElement>::iterator begin() { return this->elements.begin(); }
             std::vector<BufferElement>::iterator end() { return this->elements.end(); }
-            std::vector<BufferElement>::const_iterator begin() const { return this->elements.begin(); }
-            std::vector<BufferElement>::const_iterator end() const { return this->elements.end(); }
+            [[nodiscard]] std::vector<BufferElement>::const_iterator begin() const { return this->elements.begin(); }
+            [[nodiscard]] std::vector<BufferElement>::const_iterator end() const { return this->elements.end(); }
 
         private:
             void calculateOffsetsAndStride() {
@@ -95,6 +95,9 @@ namespace engine {
             }
     };
 
+    class VertexBuffer;
+    typedef std::shared_ptr<VertexBuffer> VertexBufferPtr;
+
     class VertexBuffer {
         public:
             virtual ~VertexBuffer() = default;
@@ -107,11 +110,14 @@ namespace engine {
             virtual const BufferLayout& getLayout() const = 0;
             virtual void setLayout(const BufferLayout& _layout) = 0;
 
-            static std::shared_ptr<VertexBuffer> create(uint32_t _size);
-            static std::shared_ptr<VertexBuffer> create(float* _vertices, uint32_t _size);
+            static VertexBufferPtr create(uint32_t _size);
+            static VertexBufferPtr create(float* _vertices, uint32_t _size);
     };
 
-    // Currently Hazel only supports 32-bit index buffers
+    // Currently the engine only supports 32-bit index buffers
+    class IndexBuffer;
+    typedef std::shared_ptr<IndexBuffer> IndexBufferPtr;
+
     class IndexBuffer {
         public:
             virtual ~IndexBuffer() = default;
@@ -121,7 +127,7 @@ namespace engine {
 
             virtual uint32_t getCount() const = 0;
 
-            static std::shared_ptr<IndexBuffer> create(uint32_t* _indices, uint32_t _count);
+            static IndexBufferPtr create(uint32_t* _indices, uint32_t _count);
     };
 
 }

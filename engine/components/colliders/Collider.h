@@ -11,8 +11,8 @@
 #include <vector>
 #include <memory>
 #include <iostream>
-#include "engine/components/transform/Transform2D.h"
-#include "engine/components/Component.h"
+#include <engine/components/transform/Transform2D.h>
+#include <engine/components/Component.h>
 
 #define BIG_NUM 9999999
 #define TO_RAD(alpha) ((alpha) * M_PI / 180.0)
@@ -77,6 +77,7 @@ namespace engine {
 
         Manifold(Collider* _otherCollider, const Mtv& _mtv) : otherCollider(_otherCollider), mtv(_mtv) {  }
     };
+    typedef std::shared_ptr<Collider> ColliderPtr;
 
     class Collider : public Component {
         typedef std::function<void (engine::Collider& )> ColliderFunction;
@@ -120,15 +121,8 @@ namespace engine {
             virtual Mtv isColliding(Collider& _collider, float _push = 0.0f) = 0;
             
             Vec2f getCentroid();
-            Vec2f getClosestVertexToCircleCenter(std::vector<Vec2f>& _verteces, const Vec2f& _center); 
-
-        private:
-            Vec2f getMinimumOfVectors(std::vector<Vec2f>& _vectors);
+            Vec2f getClosestVertexToCircleCenter(std::vector<Vec2f>& _vertices, const Vec2f& _center);
     };
-
-    namespace Ptr {
-        typedef std::shared_ptr<Collider> ColliderPtr;
-    }
 }
 
 #endif //COLLIDER_H

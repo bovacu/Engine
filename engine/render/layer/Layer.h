@@ -3,9 +3,9 @@
 #ifndef LAYER_H
 #define LAYER_H
 
-#include "engine/main/Core.h"
-#include "engine/util/Timestep.h"
-#include "engine/event/Event.h"
+#include <engine/main/Core.h>
+#include <engine/util/Timestep.h>
+#include <engine/event/Event.h>
 
 namespace engine {
 
@@ -25,7 +25,7 @@ namespace engine {
             virtual void onImGuiRender(Timestep _dt)    {  }
             virtual void onEnd()                        {  }
 
-            const std::string& getName() const { return this->debugName; }
+            [[nodiscard]] const std::string& getName() const { return this->debugName; }
     };
 
 }

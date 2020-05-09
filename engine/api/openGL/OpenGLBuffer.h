@@ -3,42 +3,42 @@
 #ifndef OPENGL_BUFFER_H
 #define OPENGL_BUFFER_H
 
-#include "engine/render/elements/Buffer.h"
+#include <engine/render/elements/Buffer.h>
 
 namespace engine {
 
     class OpenGLVertexBuffer : public VertexBuffer {
         private:
-            uint32_t rendererID;
-            BufferLayout layout;
+            uint32_t            rendererID;
+            BufferLayout        layout;
 
         public:
             OpenGLVertexBuffer(uint32_t _size);
             OpenGLVertexBuffer(float* _vertices, uint32_t _size);
-            virtual ~OpenGLVertexBuffer();
+            ~OpenGLVertexBuffer()                                   override;
 
-            virtual void bind() const override;
-            virtual void unbind() const override;
+            void bind() const                                       override;
+            void unbind() const                                     override;
 
-            virtual void setData(const void* _data, uint32_t _size) override;
+            void setData(const void* _data, uint32_t _size)         override;
 
-            virtual const BufferLayout& getLayout() const override { return this->layout; }
-            virtual void setLayout(const BufferLayout& _layout) override { this->layout = _layout; }
+            const BufferLayout& getLayout() const                   override { return this->layout; }
+            void setLayout(const BufferLayout& _layout)             override { this->layout = _layout; }
     };
 
     class OpenGLIndexBuffer : public IndexBuffer {
         private:
-            uint32_t rendererID;
-            uint32_t count;
+            uint32_t            rendererID;
+            uint32_t            count;
 
         public:
             OpenGLIndexBuffer(uint32_t* _indices, uint32_t _count);
-            virtual ~OpenGLIndexBuffer();
+            ~OpenGLIndexBuffer()                                    override;
 
-            virtual void bind() const;
-            virtual void unbind() const;
+            void bind() const                                       override;
+            void unbind() const                                     override;
 
-            virtual uint32_t getCount() const { return this->count; }
+            uint32_t getCount() const                               override { return this->count; }
     };
 
 }

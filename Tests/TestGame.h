@@ -10,12 +10,15 @@ class TestGame : public engine::Layer {
         engine::OrthographicCameraController cameraController;
 
         // Temp
-        std::shared_ptr<engine::VertexArray> squareVA;
+        engine::VertexArrayPtr squareVA;
         std::shared_ptr<engine::Shader> flatColorShader;
 
         std::shared_ptr<engine::Texture2D> checkerboardTexture;
 
         glm::vec4 squareColor = { 0.2f, 0.3f, 0.8f, 1.0f };
+
+        engine::Texture2DPtr cherries;
+        engine::GameObjectPtr gameObject;
 
     public:
         TestGame();

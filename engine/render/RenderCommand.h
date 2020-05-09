@@ -3,13 +3,13 @@
 #ifndef RENDER_COMMAND_H
 #define RENDER_COMMAND_H
 
-#include "engine/render/RenderAPI.h"
+#include <engine/render/RenderAPI.h>
 
 namespace engine {
 
     class RenderCommand {
         private:
-            static std::unique_ptr<RenderAPI> renderAPI;
+            static RenderAPIPtr renderAPI;
 
         public:
             static void init() {
@@ -20,9 +20,9 @@ namespace engine {
                 renderAPI->setViewport(_x, _y, _width, _height);
             }
 
-        static void setClearColor(const Color& _color) {
-            renderAPI->setClearColor({_color.r, _color.g, _color.b, _color.a});
-        }
+            static void setClearColor(const Color& _color) {
+                renderAPI->setClearColor({_color.r, _color.g, _color.b, _color.a});
+            }
 
             static void setClearColor(const glm::vec4& _color) {
                 renderAPI->setClearColor(_color);
@@ -32,7 +32,7 @@ namespace engine {
                 renderAPI->clear();
             }
 
-            static void drawIndexed(const std::shared_ptr<VertexArray>& _vertexArray, uint32_t _count = 0) {
+            static void drawIndexed(const VertexArrayPtr& _vertexArray, uint32_t _count = 0) {
                 renderAPI->drawIndexed(_vertexArray, _count);
             }
     };

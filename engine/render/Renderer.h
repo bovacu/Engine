@@ -3,9 +3,9 @@
 #ifndef RENDERER_H
 #define RENDERER_H
 
-#include "engine/render/RenderCommand.h"
-#include "engine/render/elements/Shader.h"
-#include "engine/render/camera/OrthographicCamera.h"
+#include <engine/render/RenderCommand.h>
+#include <engine/render/elements/Shader.h>
+#include <engine/render/camera/OrthographicCamera.h>
 
 namespace engine {
 
@@ -26,7 +26,7 @@ namespace engine {
             static void beginRender(OrthographicCamera& _camera);
             static void endRender();
 
-            static void submit(const std::shared_ptr<Shader>& _shader, const std::shared_ptr<VertexArray>& _vertexArray,
+            static void submit(const ShaderPtr& _shader, const VertexArrayPtr& _vertexArray,
                     const glm::mat4& _transform = glm::mat4(1.0f));
 
             static RenderAPI::API getAPI() { return RenderAPI::getAPI(); }

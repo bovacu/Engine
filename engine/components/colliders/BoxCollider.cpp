@@ -2,8 +2,8 @@
 
 namespace engine {
 
-    BoxCollider *BoxCollider::create(GameObject* _gameObject, const Vec2f& _center, const Size& _size, bool _isGhost) {
-        return std::make_shared<BoxCollider>(_gameObject, _center, _size, _isGhost).get();
+    BoxColliderPtr BoxCollider::create(GameObject* _gameObject, const Vec2f& _center, const Size& _size, bool _isGhost) {
+        return std::make_shared<BoxCollider>(_gameObject, _center, _size, _isGhost);
     }
 
     /// ----------------------------------------------------------------------------------------------------------------
@@ -74,7 +74,7 @@ namespace engine {
         float penetration = _r - _d;
         _normal = Vec2f::normalize(_normal);
         _mtv.collision = true; 
-        _mtv.translation = _normal * penetration * (_inside ? -1 : 1);
+        _mtv.translation = _normal * penetration * (_inside ? -1.0f : 1.0f);
         
         return _mtv;
     }

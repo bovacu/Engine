@@ -4,13 +4,13 @@
 
 namespace engine {
 
-    Sprite* Sprite::create(GameObject* _gameObject, const std::shared_ptr<TextureRegion>& _texture) {
-        return std::make_shared<Sprite>(_gameObject, _texture).get();
+    SpritePtr Sprite::create(GameObject* _gameObject, const TextureRegionPtr& _texture) {
+        return std::make_shared<Sprite>(_gameObject, _texture);
     }
 
     /// ----------------------------------------------------------------------------------------------------------------
 
-    Sprite::Sprite(GameObject *_gameObject, const std::shared_ptr<TextureRegion>& _texture) : Component(_gameObject, ComponentType::SPRITE)
+    Sprite::Sprite(GameObject* _gameObject, const TextureRegionPtr& _texture) : Component(_gameObject, ComponentType::SPRITE)
     , texture(_texture) {
         this->position = _gameObject->transform.position;
         this->rotation = _gameObject->transform.rotation;
@@ -25,7 +25,7 @@ namespace engine {
         this->visible = _visible;
     }
 
-    void Sprite::setTexture(const std::shared_ptr<TextureRegion>& _texture) {
+    void Sprite::setTexture(const TextureRegionPtr& _texture) {
         this->texture = _texture;
     }
 

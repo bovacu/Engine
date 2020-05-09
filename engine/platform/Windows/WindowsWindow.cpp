@@ -184,10 +184,15 @@ namespace engine {
         }
         else {
             // restore last window size and position
-            glfwSetWindowMonitor( this->window, nullptr,  this->windowPosition.x, this->windowPosition.y
+            glfwSetWindowMonitor( this->window, nullptr,  (int)this->windowPosition.x, (int)this->windowPosition.y
                     , this->data.width, this->data.height, 0 );
             this->setWindowSize(this->data.width, this->data.height);
         }
+    }
+
+    bool WindowsWindow::isFullscreen() const {
+        LOG_CRITICAL_CORE("isFullscreen from WindowsWindow not implemented yet");
+        return false;
     }
 
 }

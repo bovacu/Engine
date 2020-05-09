@@ -10,25 +10,28 @@
 
 namespace engine {
 
+    class Input;
+    typedef std::unique_ptr<Input> InputPtr;
+
     class Input {
         private:
-            static std::unique_ptr<Input> inputInstance;
+            static InputPtr inputInstance;
 
         public:
-            static bool isKeyPressed(KeyCode _keyCode) { return inputInstance->isKeyPressed_v(_keyCode); }
-            static bool isKeyDown(KeyCode _keyCode) { return inputInstance->isKeyDown_v(_keyCode); }
-            static bool isKeyReleased(KeyCode _keyCode) { return inputInstance->isKeyReleased_v(_keyCode); }
+            static bool isKeyPressed(KeyCode _keyCode)              { return inputInstance->isKeyPressed_v(_keyCode); }
+            static bool isKeyDown(KeyCode _keyCode)                 { return inputInstance->isKeyDown_v(_keyCode); }
+            static bool isKeyReleased(KeyCode _keyCode)             { return inputInstance->isKeyReleased_v(_keyCode); }
 
-            static bool isMousePressed(MouseCode _mouseButton) { return inputInstance->isMousePressed_v(_mouseButton); }
-            static bool isMouseDown(MouseCode _mouseButton) { return inputInstance->isMouseDown_v(_mouseButton); }
-            static bool isMouseReleased(MouseCode _mouseButton) { return inputInstance->isMouseReleased_v(_mouseButton); }
+            static bool isMousePressed(MouseCode _mouseButton)      { return inputInstance->isMousePressed_v(_mouseButton); }
+            static bool isMouseDown(MouseCode _mouseButton)         { return inputInstance->isMouseDown_v(_mouseButton); }
+            static bool isMouseReleased(MouseCode _mouseButton)     { return inputInstance->isMouseReleased_v(_mouseButton); }
 
-            static Vec2f getMousePosition() { return inputInstance->getMousePosition_v(); }
-            static float getMouseX() { return inputInstance->getMouseX_v(); }
-            static float getMouseY() { return inputInstance->getMouseY_v(); }
+            static Vec2f getMousePosition()                         { return inputInstance->getMousePosition_v(); }
+            static float getMouseX()                                { return inputInstance->getMouseX_v(); }
+            static float getMouseY()                                { return inputInstance->getMouseY_v(); }
 
             virtual ~Input() = default;
-            static std::unique_ptr<Input> create();
+            static InputPtr create();
 
         protected:
             virtual bool isKeyPressed_v(KeyCode _keyCode)           = 0;

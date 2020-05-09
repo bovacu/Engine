@@ -81,16 +81,19 @@
     =============================================================================================
 */
 
-#include "engine/components/colliders/Collider.h"
-#include "engine/components/colliders/BoxCollider.h"
-#include "engine/components/colliders/CircleCollider.h"
-#include "engine/components/colliders/PolygonCollider.h"
-#include "engine/components/Component.h"
+#include <engine/components/colliders/Collider.h>
+#include <engine/components/colliders/BoxCollider.h>
+#include <engine/components/colliders/CircleCollider.h>
+#include <engine/components/colliders/PolygonCollider.h>
+#include <engine/components/Component.h>
 
 #define INFINTE_MASS -1
 #define NO_MASS      0
 
 namespace engine {
+
+    class PhysicsBody;
+    typedef std::shared_ptr<PhysicsBody> PhysicsBodyPtr;
 
     enum BodyType { DYNAMIC, KNINEMATIC, STATIC };
     enum MovementType { LINEAR, APPROACH, ACCELERATED };
@@ -113,13 +116,13 @@ namespace engine {
             BodyType bodyType;
             MovementType movementType;
 
-            std::vector<Ptr::ColliderPtr> colliders;
+            std::vector<ColliderPtr> colliders;
 
         public:
             explicit PhysicsBody(GameObject* _gameObject, const Vec2f& _position, const BodyType& _bodyType = BodyType::STATIC, const Vec2f& _gravity = Vec2f(),
              const MovementType& _movementType = MovementType::APPROACH);
 
-            static PhysicsBody* create(GameObject* _gameObject, const Vec2f& _position, const BodyType& _bodyType = BodyType::STATIC, const Vec2f& _gravity = Vec2f(),
+            static PhysicsBodyPtr create(GameObject* _gameObject, const Vec2f& _position, const BodyType& _bodyType = BodyType::STATIC, const Vec2f& _gravity = Vec2f(),
                                        const MovementType& _movementType = MovementType::APPROACH);
 
         public:
@@ -132,11 +135,6 @@ namespace engine {
             void move(float _dt);
             void applyGravity(float _dt);
     };
-
-    namespace Ptr {
-        typedef std::shared_ptr<PhysicsBody> PhysicsBodyPtr;
-    }
-
 }
 
 #endif //PHYSICS_BODY_H

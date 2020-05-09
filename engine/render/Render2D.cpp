@@ -1,9 +1,9 @@
 #include "pch.h"
 #include "Render2D.h"
 
-#include "engine/render/elements/VertexArray.h"
-#include "engine/render/elements/Shader.h"
-#include "engine/render/RenderCommand.h"
+#include <engine/render/elements/VertexArray.h>
+#include <engine/render/elements/Shader.h>
+#include <engine/render/RenderCommand.h>
 
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -26,13 +26,13 @@ namespace engine {
         std::shared_ptr<VertexArray> quadVertexArray;
         std::shared_ptr<VertexBuffer> quadVertexBuffer;
         std::shared_ptr<Shader> textureShader;
-        std::shared_ptr<Texture2D> whiteTexture;
+        Texture2DPtr whiteTexture;
 
         uint32_t quadIndexCount = 0;
         QuadVertex* quadVertexBufferBase = nullptr;
         QuadVertex* quadVertexBufferPtr = nullptr;
 
-        std::array<std::shared_ptr<Texture2D>, maxTextureSlots> textureSlots;
+        std::array<Texture2DPtr, maxTextureSlots> textureSlots;
         uint32_t textureSlotIndex = 1; // 0 = white texture
 
         glm::vec4 quadVertexPositions[4];
@@ -169,11 +169,11 @@ namespace engine {
         data.stats.quadCount++;
     }
 
-    void Render2D::drawRect(const Vec2f& _position, const Size& _size, const std::shared_ptr<Texture2D>& _texture, float _tilingFactor, const glm::vec4& _tintColor) {
+    void Render2D::drawTextureRect(const Vec2f& _position, const Size& _size, const Texture2DPtr& _texture, float _tilingFactor, const glm::vec4& _tintColor) {
         Render2D::drawRect({_position.x, _position.y, 0.0f}, {_size.width, _size.height}, _texture, _tilingFactor, _tintColor);
     }
 
-    void Render2D::drawRect(const glm::vec3& _position, const glm::vec2& _size, const std::shared_ptr<Texture2D>& _texture, float _tilingFactor, const glm::vec4& _tintColor) {
+    void Render2D::drawRect(const glm::vec3& _position, const glm::vec2& _size, const Texture2DPtr& _texture, float _tilingFactor, const glm::vec4& _tintColor) {
         constexpr size_t _quadVertexCount = 4;
         constexpr glm::vec4 _color = { 1.0f, 1.0f, 1.0f, 1.0f };
         constexpr glm::vec2 _textureCoords[] = { { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f } };
@@ -245,12 +245,12 @@ namespace engine {
         data.stats.quadCount++;
     }
 
-    void Render2D::drawRotatedRect(const Vec2f& _position, const Size& _size, float _rotation, const std::shared_ptr<Texture2D>& _texture, float _tilingFactor, const glm::vec4& _tintColor) {
-        Render2D::drawRotatedRect({_position.x, _position.y, 0.0f}, {_size.width, _size.height}, _rotation, _texture, _tilingFactor,
+    void Render2D::drawRotatedTextureRect(const Vec2f& _position, const Size& _size, float rotation, const Texture2DPtr& _texture, float _tilingFactor, const glm::vec4& _tintColor) {
+        Render2D::drawRotatedRect({_position.x, _position.y, 0.0f}, {_size.width, _size.height}, rotation, _texture, _tilingFactor,
                                   _tintColor);
     }
 
-    void Render2D::drawRotatedRect(const glm::vec3& _position, const glm::vec2& _size, float rotation, const std::shared_ptr<Texture2D>& _texture, float _tilingFactor, const glm::vec4& _tintColor) {
+    void Render2D::drawRotatedRect(const glm::vec3& _position, const glm::vec2& _size, float rotation, const Texture2DPtr& _texture, float _tilingFactor, const glm::vec4& _tintColor) {
         constexpr size_t        _quadVertexCount = 4;
         constexpr glm::vec4     _color = { 1.0f, 1.0f, 1.0f, 1.0f };
         constexpr glm::vec2     _textureCoords[] = { { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f } };
@@ -260,7 +260,7 @@ namespace engine {
 
         float _textureIndex = 0.0f;
         for (uint32_t _i = 1; _i < data.textureSlotIndex; _i++) {
-            if (*data.textureSlots[_i].get() == *_texture.get()) {
+            if (*data.textureSlots[_i] == *_texture) {
                 _textureIndex = (float)_i;
                 break;
             }
@@ -301,40 +301,99 @@ namespace engine {
         return data.stats;
     }
 
-    void Render2D::draw(const Ptr::GameObjectPtr& _gameObject, float _tilingFactor, const glm::vec4& _tintColor) {
-//        auto _sprite = _gameObject->getComponentOfType<Sprite>();
-//        ENGINE_CORE_ASSERT(_sprite, "CAN'T DRAW A GAME OBJECT WITHOUT A SPRITE AS COMPONENT");
-//
-//        if(_sprite->getRotation() > 0)
-//            Render2D::drawRotated(_sprite, _sprite->getRotation(), _tilingFactor, _tintColor);
-//
-//        constexpr size_t        _quadVertexCount = 4;
-//        const float             _textureIndex = 0.0f; // White Texture
-//        const Vec2f*            _textureCoords = _sprite->getTexture()->getTextureCoords();
-//        constexpr glm::vec4 _color = { 1.0f, 1.0f, 1.0f, 1.0f };
-//
-//        if (data.quadIndexCount >= Render2DData::maxIndices)
-//            Render2D::flushAndReset();
-//
-//        glm::vec3 _position = {_sprite->getPosition().x, _sprite->getPosition().y, 0.0f};
-//        glm::mat4 _transform = glm::translate(glm::mat4(1.0f), _position)
-//                               * glm::scale(glm::mat4(1.0f), { _sprite->getScale().width, _sprite->getScale().height, 1.0f });
-//
-//        for (size_t _i = 0; _i < _quadVertexCount; _i++) {
-//            data.quadVertexBufferPtr->position = _transform * data.quadVertexPositions[_i];
-//            data.quadVertexBufferPtr->color = _color;
-//            data.quadVertexBufferPtr->texCoord = { _textureCoords[_i].x, _textureCoords[_i].y };
-//            data.quadVertexBufferPtr->texIndex = _textureIndex;
-//            data.quadVertexBufferPtr->tilingFactor = _tilingFactor;
-//            data.quadVertexBufferPtr++;
-//        }
-//
-//        data.quadIndexCount += 6;
-//        data.stats.quadCount++;
+    void Render2D::draw(const GameObjectPtr& _gameObject, float _tilingFactor, const glm::vec4& _tintColor) {
+        auto _sprite = _gameObject->getComponentOfType<Sprite>();
+        ENGINE_CORE_ASSERT(_sprite, "CAN'T DRAW A GAME OBJECT WITHOUT A SPRITE AS COMPONENT");
+
+        if(_sprite->getRotation() != 0) {
+            Render2D::drawRotated(_sprite, _sprite->getRotation(), _tilingFactor, _tintColor);
+            return;
+        }
+
+        constexpr size_t        _quadVertexCount = 4;
+        const Vec2f*            _textureCoords = _sprite->getTexture()->getTextureCoords();
+        constexpr glm::vec4 _color = { 1.0f, 1.0f, 1.0f, 1.0f };
+        const Texture2DPtr _texture = _sprite->getTexture()->getTexture();
+
+        if (data.quadIndexCount >= Render2DData::maxIndices)
+            Render2D::flushAndReset();
+
+        float _textureIndex = 0.0f;
+        for (uint32_t i = 1; i < data.textureSlotIndex; i++) {
+            if (*data.textureSlots[i] == *_texture.get()) {
+                _textureIndex = (float)i;
+                break;
+            }
+        }
+
+        if (_textureIndex == 0.0f) {
+            if (data.textureSlotIndex >= Render2DData::maxTextureSlots)
+                Render2D::flushAndReset();
+
+            _textureIndex = (float)data.textureSlotIndex;
+            data.textureSlots[data.textureSlotIndex] = _texture;
+            data.textureSlotIndex++;
+        }
+
+        glm::vec3 _position = {_sprite->getPosition().x, _sprite->getPosition().y, 0.0f};
+        glm::mat4 _transform = glm::translate(glm::mat4(1.0f), _position)
+                               * glm::scale(glm::mat4(1.0f), { _sprite->getScale().width, _sprite->getScale().height, 1.0f });
+
+        for (size_t _i = 0; _i < _quadVertexCount; _i++) {
+            data.quadVertexBufferPtr->position = _transform * data.quadVertexPositions[_i];
+            data.quadVertexBufferPtr->color = _color;
+            data.quadVertexBufferPtr->texCoord = { _textureCoords[_i].x, _textureCoords[_i].y };
+            data.quadVertexBufferPtr->texIndex = _textureIndex;
+            data.quadVertexBufferPtr->tilingFactor = _tilingFactor;
+            data.quadVertexBufferPtr++;
+        }
+
+        data.quadIndexCount += 6;
+        data.stats.quadCount++;
     }
 
-    void Render2D::drawRotated(const Ptr::SpritePtr& _sprite, float _rotation, float _tilingFactor, const glm::vec4& _tintColor) {
-        LOG_CRITICAL_CORE("DRAW GAME OBJECT ROTATED NOT IMPLEMENTED YET");
+    void Render2D::drawRotated(const SpritePtr& _sprite, float _rotation, float _tilingFactor, const glm::vec4& _tintColor) {
+        constexpr size_t        _quadVertexCount = 4;
+        const Vec2f*            _textureCoords = _sprite->getTexture()->getTextureCoords();
+        constexpr glm::vec4 _color = { 1.0f, 1.0f, 1.0f, 1.0f };
+        const Texture2DPtr _texture = _sprite->getTexture()->getTexture();
+
+        if (data.quadIndexCount >= Render2DData::maxIndices)
+            Render2D::flushAndReset();
+
+        float _textureIndex = 0.0f;
+        for (uint32_t i = 1; i < data.textureSlotIndex; i++) {
+            if (*data.textureSlots[i] == *_texture.get()) {
+                _textureIndex = (float)i;
+                break;
+            }
+        }
+
+        if (_textureIndex == 0.0f) {
+            if (data.textureSlotIndex >= Render2DData::maxTextureSlots)
+                Render2D::flushAndReset();
+
+            _textureIndex = (float)data.textureSlotIndex;
+            data.textureSlots[data.textureSlotIndex] = _texture;
+            data.textureSlotIndex++;
+        }
+
+        glm::vec3 _position = {_sprite->getPosition().x, _sprite->getPosition().y, 0.0f};
+        glm::mat4 _transform = glm::translate(glm::mat4(1.0f), _position)
+                               * glm::rotate(glm::mat4(1.0f), glm::radians(_sprite->getRotation()), {0.0f, 0.0f, 1.0f })
+                               * glm::scale(glm::mat4(1.0f), { _sprite->getScale().width, _sprite->getScale().height, 1.0f });
+
+        for (size_t _i = 0; _i < _quadVertexCount; _i++) {
+            data.quadVertexBufferPtr->position = _transform * data.quadVertexPositions[_i];
+            data.quadVertexBufferPtr->color = _color;
+            data.quadVertexBufferPtr->texCoord = { _textureCoords[_i].x, _textureCoords[_i].y };
+            data.quadVertexBufferPtr->texIndex = _textureIndex;
+            data.quadVertexBufferPtr->tilingFactor = _tilingFactor;
+            data.quadVertexBufferPtr++;
+        }
+
+        data.quadIndexCount += 6;
+        data.stats.quadCount++;
     }
 
 }
