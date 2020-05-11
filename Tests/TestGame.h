@@ -11,14 +11,16 @@ class TestGame : public engine::Layer {
 
         // Temp
         engine::VertexArrayPtr squareVA;
-        std::shared_ptr<engine::Shader> flatColorShader;
+        engine::ShaderPtr flatColorShader;
 
-        std::shared_ptr<engine::Texture2D> checkerboardTexture;
+        engine::Texture2DPtr checkerboardTexture;
 
         glm::vec4 squareColor = { 0.2f, 0.3f, 0.8f, 1.0f };
 
-        engine::Texture2DPtr cherries;
-        engine::GameObjectPtr gameObject;
+        engine::Texture2DPtr emeraldTextures, playerTexture;
+        engine::GameObjectPtr rock;
+        engine::GameObjectPtr player;
+        engine::World world;
 
     public:
         TestGame();

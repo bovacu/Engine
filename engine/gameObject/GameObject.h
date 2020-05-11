@@ -42,7 +42,7 @@ namespace engine {
             CircleColliderPtr       addCircleCollider(float _radius, bool _isGhost = false);
             PolygonColliderPtr      addPolygonCollider(const std::vector<Vec2f>& _vertices, bool _isGhost = false);
             PhysicsBodyPtr          addPhysicsBody();
-            SpritePtr               addSprite(const std::shared_ptr<TextureRegion>& = nullptr);
+            SpritePtr               addSprite(const TextureRegionPtr& = nullptr);
 
             void update(Timestep _dt);
             void fixUpdate(Timestep _dt);

@@ -35,37 +35,23 @@ namespace engine {
 
         while (this->running) {
 
-            if(this->window->isVSyncActive()) {
-                float time = (float)glfwGetTime();
-                Timestep _dt = time - this->lastFrame;
-                this->lastFrame = time;
+            auto _time = (float) glfwGetTime();
+            Timestep _dt = _time - this->lastFrame;
+            this->lastFrame = _time;
+            _accumulator += _dt;
 
-                if(!this->minimized) {
-                    this->onUpdate(_dt);
+            if (!this->minimized) {
+                while (_accumulator >= this->timePerFrame) {
+                    _accumulator -= this->timePerFrame;
                     this->onFixedUpdate(this->timePerFrame);
-                    this->onRender(_dt);
+                }
+
+                this->onUpdate(_dt);
+                this->onRender(_dt);
+
+                #ifdef ENGINE_DEBUG
                     this->updateFps();
-                }
-
-            } else {
-                auto _time = (float) glfwGetTime();
-                Timestep _dt = _time - this->lastFrame;
-                this->lastFrame = _time;
-                _accumulator += _dt;
-
-                if (!this->minimized) {
-                    this->onUpdate(_dt);
-
-                    while (_accumulator >= this->timePerFrame) {
-                        _accumulator -= this->timePerFrame;
-                        this->onFixedUpdate(this->timePerFrame);
-                        #ifdef ENGINE_DEBUG
-                            this->updateFps();
-                        #endif
-                    }
-
-                    this->onRender(_dt);
-                }
+                #endif
             }
 
             this->window->update();
@@ -163,4 +149,5 @@ namespace engine {
         this->layerStack.pushOverlay(_layer);
         _layer->onInit();
     }
+
 }

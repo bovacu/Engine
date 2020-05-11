@@ -26,6 +26,7 @@ namespace engine {
             void setProjection(float _left, float _right, float _bottom, float _top);
 
             [[nodiscard]] const glm::vec3& getPosition() const { return this->position; }
+            void setPosition(const Vec2f& _position) { this->setPosition({_position.x, _position.y, 0.0f}); }
             void setPosition(const glm::vec3& _position) { this->position = _position; this->recalculateViewMatrix(); }
 
             [[nodiscard]] float getRotation() const { return this->rotation; }

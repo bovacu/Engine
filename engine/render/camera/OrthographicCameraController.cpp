@@ -13,7 +13,11 @@ namespace engine {
         // Auto updates the aspect ratio directly to the screen size, this way, there's no need to pass it as an argument.
         auto& _app = Application::get();
         this->aspectRatio = _app.getWindowSize().x / _app.getWindowSize().y;
+
         this->camera.setProjection(-this->aspectRatio * this->zoomLevel, this->aspectRatio * this->zoomLevel, -this->zoomLevel, this->zoomLevel);
+
+//        this->camera.setProjection(-_app.getWindowSize().x * this->zoomLevel, _app.getWindowSize().x * this->zoomLevel, -_app.getWindowSize().y *this->zoomLevel,
+//                                   _app.getWindowSize().y * this->zoomLevel);
     }
 
     void OrthographicCameraController::onUpdate(Timestep _ts) {
@@ -64,13 +68,23 @@ namespace engine {
     bool OrthographicCameraController::onMouseScrolled(MouseScrolledEvent& _e) {
         this->zoomLevel -= _e.getScrollY() * 0.25f;
         this->zoomLevel = std::max(this->zoomLevel, 0.25f);
+        auto& _app = Application::get();
+
         this->camera.setProjection(-this->aspectRatio * this->zoomLevel, this->aspectRatio * this->zoomLevel, -this->zoomLevel, this->zoomLevel);
+
+//        this->camera.setProjection(-_app.getWindowSize().x * this->zoomLevel, _app.getWindowSize().x * this->zoomLevel, -_app.getWindowSize().y *this->zoomLevel,
+//                                   _app.getWindowSize().y * this->zoomLevel);
         return false;
     }
 
     bool OrthographicCameraController::onWindowResized(WindowResizedEvent& _e) {
         this->aspectRatio = (float)_e.getWidth() / (float)_e.getHeight();
+        auto& _app = Application::get();
+
         this->camera.setProjection(-this->aspectRatio * this->zoomLevel, this->aspectRatio * this->zoomLevel, -this->zoomLevel, this->zoomLevel);
+
+//        this->camera.setProjection(-_app.getWindowSize().x * this->zoomLevel, _app.getWindowSize().x * this->zoomLevel, -_app.getWindowSize().y *this->zoomLevel,
+//                                   _app.getWindowSize().y * this->zoomLevel);
         return false;
     }
 

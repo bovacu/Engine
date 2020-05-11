@@ -39,11 +39,11 @@ namespace engine {
     }
 
     void PhysicsBody::update(float _dt) {
-        this->move(_dt);
+
     }
 
     void PhysicsBody::fixUpdate(float _dt) {
-
+        this->move(_dt);
     }
 
     void PhysicsBody::postUpdate(float _dt) {

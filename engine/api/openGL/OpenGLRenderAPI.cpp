@@ -34,9 +34,9 @@ namespace engine {
                 glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, NULL, GL_FALSE);
         #endif
 
+//        glEnable(GL_DEPTH_TEST);                            // Using this, caused the engine not to render alpha
         glEnable(GL_BLEND);                                 // Enables transparency
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  // Most typical blending function
-        glEnable(GL_DEPTH_TEST);                            // Used so everything is drawn in a correct order
     }
 
     void OpenGLRenderAPI::setViewport(uint32_t _x, uint32_t _y, uint32_t _width, uint32_t _height) {

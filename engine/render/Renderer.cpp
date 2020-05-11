@@ -26,7 +26,7 @@ namespace engine {
     void Renderer::endRender() {
     }
 
-    void Renderer::submit(const std::shared_ptr<Shader>& _shader, const std::shared_ptr<VertexArray>& _vertexArray, const glm::mat4& _transform) {
+    void Renderer::submit(const ShaderPtr& _shader, const VertexArrayPtr& _vertexArray, const glm::mat4& _transform) {
         _shader->bind();
         _shader->setMat4("u_ViewProjection", sceneData->viewProjectionMatrix);
         _shader->setMat4("u_Transform", _transform);

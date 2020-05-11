@@ -5,6 +5,7 @@
 
 #include <engine/components/physics/PhysicsBody.h>
 #include <engine/gameObject/GameObject.h>
+#include <engine/render/Render2D.h>
 
 namespace engine {
 
@@ -23,16 +24,15 @@ namespace engine {
             explicit World(float _timeStep = 1.0f / 60.0f, const Vec2f& _gravity = {0, 0});
             
             void init();
-            void update(float _dt);
-            void postUpdate(float _postDt);
-            void fixedUpdate(float _fixDt);
+            void update(Timestep _dt);
+            void fixedUpdate(Timestep _fixDt);
 
             bool addGameObject(GameObjectPtr& _gameObject, bool _isStatic = true);
             bool removeGameObject(GameObjectPtr& _gameObject);
 
             void clearWorld();
 
-            void debugWorld();
+            void debugWorld(const OrthographicCamera& _camera);
             void setDebuggingFunction(const DebuggingFunction& _debuggingFunction);
 
         private:

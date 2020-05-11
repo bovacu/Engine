@@ -100,7 +100,8 @@ namespace engine {
     }
 
     void Collider::update(float _dt) {
-
+        this->setPosition(this->gameObject->transform.position);
+        this->rotate(this->gameObject->transform.rotation);
     }
 
     void Collider::fixUpdate(float _fixDt) {
@@ -108,8 +109,7 @@ namespace engine {
     }
 
     void Collider::postUpdate(float _postDt) {
-        this->setPosition(this->gameObject->transform.position);
-        this->rotate(this->gameObject->transform.rotation);
+
     }
 
     void Collider::update(Transform2D& _transform) {

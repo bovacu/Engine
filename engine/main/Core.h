@@ -4,6 +4,7 @@
 #include "engine/util/Logger.h"
 
 #define DEFAULT_SHADER_PATH "assets/shaders/Texture.glsl"
+#define ASPECT_RATIO_PIXEL 0.05f
 
 #ifndef NDEBUG
     #define ENGINE_DEBUG

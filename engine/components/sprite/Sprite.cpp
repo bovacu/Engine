@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "Sprite.h"
 #include <engine/gameObject/GameObject.h>
+#include <engine/main/Application.h>
 
 namespace engine {
 
@@ -14,6 +15,7 @@ namespace engine {
     , texture(_texture) {
         this->position = _gameObject->transform.position;
         this->rotation = _gameObject->transform.rotation;
+        this->size = Size(_texture->getSize().width * ASPECT_RATIO_PIXEL, _texture->getSize().height * ASPECT_RATIO_PIXEL);
     }
 
     void Sprite::update(float _dt) {

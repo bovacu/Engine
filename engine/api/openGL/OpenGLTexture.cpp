@@ -51,7 +51,7 @@ namespace engine {
         ENGINE_CORE_ASSERT(_internalFormat & _dataFormat, "Format not supported!");
 
         glCreateTextures(GL_TEXTURE_2D, 1, &this->rendererID);
-        glTextureStorage2D(this->rendererID, 1, _internalFormat, this->width, this->height);
+        glTextureStorage2D(this->rendererID, 1, this->internalFormat, this->width, this->height);
 
         glTextureParameteri(this->rendererID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTextureParameteri(this->rendererID, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -59,7 +59,7 @@ namespace engine {
         glTextureParameteri(this->rendererID, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTextureParameteri(this->rendererID, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-        glTextureSubImage2D(this->rendererID, 0, 0, 0, this->width, this->height, dataFormat, GL_UNSIGNED_BYTE, _data);
+        glTextureSubImage2D(this->rendererID, 0, 0, 0, this->width, this->height, this->dataFormat, GL_UNSIGNED_BYTE, _data);
 
         stbi_image_free(_data);
     }

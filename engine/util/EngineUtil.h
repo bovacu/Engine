@@ -123,10 +123,10 @@ namespace engine {
 	};
 
 	struct Color {
-		int r,g,b,a;
+        float r,g,b,a;
 
 		Color() : r(0), g(0), b(0), a(0) {  }
-		Color(int _r, int _g, int _b, int _a = 1) : r(_r), g(_g), b(_b), a(_a) {  }
+		Color(float _r, float _g, float _b, float _a = 1) : r(_r), g(_g), b(_b), a(_a) {  }
 
 		// Color toGrayScale(const Color& _color) {
 		// 	std::cerr << "toGrayScale from color currently not supported" << std::endl;

@@ -183,7 +183,7 @@ namespace engine {
 
         float _textureIndex = 0.0f;
         for (uint32_t i = 1; i < data.textureSlotIndex; i++) {
-            if (*data.textureSlots[i].get() == *_texture.get()) {
+            if (*data.textureSlots[i] == *_texture.get()) {
                 _textureIndex = (float)i;
                 break;
             }
@@ -293,14 +293,6 @@ namespace engine {
         data.stats.quadCount++;
     }
 
-    void Render2D::resetStats() {
-        memset(&data.stats, 0, sizeof(Statistics));
-    }
-
-    Render2D::Statistics Render2D::getStats() {
-        return data.stats;
-    }
-
     void Render2D::draw(const GameObjectPtr& _gameObject, float _tilingFactor, const glm::vec4& _tintColor) {
         auto _sprite = _gameObject->getComponentOfType<Sprite>();
         ENGINE_CORE_ASSERT(_sprite, "CAN'T DRAW A GAME OBJECT WITHOUT A SPRITE AS COMPONENT");
@@ -337,7 +329,8 @@ namespace engine {
 
         glm::vec3 _position = {_sprite->getPosition().x, _sprite->getPosition().y, 0.0f};
         glm::mat4 _transform = glm::translate(glm::mat4(1.0f), _position)
-                               * glm::scale(glm::mat4(1.0f), { _sprite->getScale().width, _sprite->getScale().height, 1.0f });
+                               * glm::scale(glm::mat4(1.0f), { _sprite->getScale().width * _sprite->getSize().width,
+                               _sprite->getScale().height * _sprite->getSize().height, 1.0f });
 
         for (size_t _i = 0; _i < _quadVertexCount; _i++) {
             data.quadVertexBufferPtr->position = _transform * data.quadVertexPositions[_i];
@@ -394,6 +387,14 @@ namespace engine {
 
         data.quadIndexCount += 6;
         data.stats.quadCount++;
+    }
+
+    void Render2D::resetStats() {
+        memset(&data.stats, 0, sizeof(Statistics));
+    }
+
+    Render2D::Statistics Render2D::getStats() {
+        return data.stats;
     }
 
 }

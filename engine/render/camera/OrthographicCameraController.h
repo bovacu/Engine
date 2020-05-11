@@ -41,7 +41,7 @@ namespace engine {
             [[nodiscard]] float getAspectRatio() const { return this->aspectRatio; }
             void setAspectRatio(float _aspectRatio) { this->aspectRatio = _aspectRatio; }
 
-            void setCameraPosition(const Vec2f& _position) { this->cameraPosition = _position; }
+            void setCameraPosition(const Vec2f& _position) {  this->cameraPosition = _position; }
             [[nodiscard]] Vec2f getCameraPosition() const { return this->cameraPosition; }
 
         private:
