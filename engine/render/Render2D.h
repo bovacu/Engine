@@ -7,6 +7,7 @@
 #include <engine/render/elements/Texture.h>
 #include <glm/glm.hpp>
 #include <engine/gameObject/GameObject.h>
+#include <engine/render/shapes/Shape.h>
 
 namespace engine {
 
@@ -37,6 +38,7 @@ namespace engine {
             static void drawRotatedRect(const Vec2f& _position, const Size& _size, float rotation, const Color& _color);
             static void drawRotatedTextureRect(const Vec2f& _position, const Size& _size, float rotation, const Texture2DPtr& _texture, float _tilingFactor = 1.0f, const glm::vec4& _tintColor = glm::vec4(1.0f));
             static void draw(const GameObjectPtr& _gameObject, float _tilingFactor = 1.0f, const glm::vec4& _tintColor = glm::vec4(1.0f));
+            static void draw(const Shape& _shape);
 
             static void resetStats();
             static Statistics getStats();

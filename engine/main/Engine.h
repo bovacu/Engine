@@ -31,6 +31,8 @@
 
 #include <engine/render/Renderer.h>
 #include <engine/render/Render2D.h>
+#include <engine/render/shapes/Shape.h>
+#include <engine/render/shapes/PolygonShape.h>
 
 #include <engine/input/Input.h>
 #include <engine/input/KeyboardKeys.h>

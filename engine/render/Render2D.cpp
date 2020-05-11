@@ -18,15 +18,16 @@ namespace engine {
     };
 
     struct Render2DData {
-        static const uint32_t maxQuads = 20000;
-        static const uint32_t maxVertices = maxQuads * 4;
-        static const uint32_t maxIndices = maxQuads * 6;
-        static const uint32_t maxTextureSlots = 32; // TODO: RenderCaps
+        static int              numberOfVertices;
+        static uint32_t         maxQuads;
+        static uint32_t         maxVertices;
+        static uint32_t         maxIndices;
+        static const uint32_t   maxTextureSlots = 32; // TODO: RenderCaps
 
-        std::shared_ptr<VertexArray> quadVertexArray;
-        std::shared_ptr<VertexBuffer> quadVertexBuffer;
-        std::shared_ptr<Shader> textureShader;
-        Texture2DPtr whiteTexture;
+        VertexArrayPtr  quadVertexArray;
+        VertexBufferPtr quadVertexBuffer;
+        ShaderPtr       textureShader;
+        Texture2DPtr    whiteTexture;
 
         uint32_t quadIndexCount = 0;
         QuadVertex* quadVertexBufferBase = nullptr;
@@ -40,12 +41,17 @@ namespace engine {
         Render2D::Statistics stats;
     };
 
+    int Render2DData::numberOfVertices = 4;
+    uint32_t Render2DData::maxQuads = 20000;
+    uint32_t Render2DData::maxVertices = Render2DData::maxQuads * Render2DData::numberOfVertices;
+    uint32_t Render2DData::maxIndices = Render2DData::maxQuads * (Render2DData::numberOfVertices + 2);
+
     static Render2DData data;
 
     void Render2D::init() {
         data.quadVertexArray = VertexArray::create();
 
-        data.quadVertexBuffer = VertexBuffer::create(data.maxVertices * sizeof(QuadVertex));
+        data.quadVertexBuffer = VertexBuffer::create(engine::Render2DData::maxVertices * sizeof(QuadVertex));
         data.quadVertexBuffer->setLayout({
 
             { ShaderDataType::Float3, "a_Position"      },
@@ -58,12 +64,12 @@ namespace engine {
 
         data.quadVertexArray->addVertexBuffer(data.quadVertexBuffer);
 
-        data.quadVertexBufferBase = new QuadVertex[data.maxVertices];
+        data.quadVertexBufferBase = new QuadVertex[engine::Render2DData::maxVertices];
 
-        uint32_t* _quadIndices = new uint32_t[data.maxIndices];
+        auto* _quadIndices = new uint32_t[engine::Render2DData::maxIndices];
 
         uint32_t _offset = 0;
-        for (uint32_t i = 0; i < data.maxIndices; i += 6) {
+        for (uint32_t i = 0; i < engine::Render2DData::maxIndices; i += 6) {
             _quadIndices[i + 0] = _offset + 0;
             _quadIndices[i + 1] = _offset + 1;
             _quadIndices[i + 2] = _offset + 2;
@@ -75,7 +81,7 @@ namespace engine {
             _offset += 4;
         }
 
-        std::shared_ptr<IndexBuffer> _quadIB = IndexBuffer::create(_quadIndices, data.maxIndices);
+        IndexBufferPtr _quadIB = IndexBuffer::create(_quadIndices, engine::Render2DData::maxIndices);
         data.quadVertexArray->setIndexBuffer(_quadIB);
         delete[] _quadIndices;
 
@@ -83,13 +89,13 @@ namespace engine {
         uint32_t _whiteTextureData = 0xffffffff;
         data.whiteTexture->setData(&_whiteTextureData, sizeof(uint32_t));
 
-        int32_t _samplers[data.maxTextureSlots];
-        for (uint32_t i = 0; i < data.maxTextureSlots; i++)
+        int32_t _samplers[engine::Render2DData::maxTextureSlots];
+        for (uint32_t i = 0; i < engine::Render2DData::maxTextureSlots; i++)
             _samplers[i] = i;
 
         data.textureShader = Shader::create(DEFAULT_SHADER_PATH);
         data.textureShader->bind();
-        data.textureShader->setIntArray("u_Textures", _samplers, data.maxTextureSlots);
+        data.textureShader->setIntArray("u_Textures", _samplers, engine::Render2DData::maxTextureSlots);
 
         // Set all texture slots to 0
         data.textureSlots[0] = data.whiteTexture;
@@ -101,7 +107,7 @@ namespace engine {
     }
 
     void Render2D::shutdown() {
-
+        delete [] data.quadVertexBufferBase;
     }
 
     void Render2D::beginRender(const OrthographicCamera& camera) {
@@ -143,7 +149,7 @@ namespace engine {
     }
 
     void Render2D::drawRect(const glm::vec3& _position, const glm::vec2& _size, const glm::vec4& _color) {
-
+        data.numberOfVertices = 4;
         constexpr size_t    _quadVertexCount = 4;
         const float         _textureIndex = 0.0f; // White Texture
         constexpr glm::vec2 _textureCoords[] = { { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f } };
@@ -386,6 +392,32 @@ namespace engine {
         }
 
         data.quadIndexCount += 6;
+        data.stats.quadCount++;
+    }
+
+    void Render2D::draw(const Shape &_shape) {
+        const size_t        _quadVertexCount = _shape.getVertices().size();
+        const glm::vec4     _color = { 1, 0, 0, 1 };
+        constexpr glm::vec2 _textureCoords[] = { { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f } };
+        const float         _textureIndex = 0.0f; // White Texture
+        const float         _tilingFactor = 1.0f;
+
+        if (data.quadIndexCount >= Render2DData::maxIndices)
+            Render2D::flushAndReset();
+
+        glm::mat4 _transform = glm::translate(glm::mat4(1.0f), {_shape.getPosition().x, _shape.getPosition().y, 0.0f})
+                               * glm::scale(glm::mat4(1.0f), { _shape.getSize().width, _shape.getSize().height, 1.0f });
+
+        for (size_t _i = 0; _i < _quadVertexCount; _i++) {
+            data.quadVertexBufferPtr->position = _transform * glm::vec4(_shape.getVertices()[_i].x, _shape.getVertices()[_i].y, 0.0f, 1.0f);
+            data.quadVertexBufferPtr->color = _color;
+//            data.quadVertexBufferPtr->texCoord = _textureCoords[_i];
+            data.quadVertexBufferPtr->texIndex = _textureIndex;
+            data.quadVertexBufferPtr->tilingFactor = _tilingFactor;
+            data.quadVertexBufferPtr++;
+        }
+
+        data.quadIndexCount += _quadVertexCount + 2;
         data.stats.quadCount++;
     }
 
