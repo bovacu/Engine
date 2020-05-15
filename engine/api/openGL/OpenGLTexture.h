@@ -43,8 +43,22 @@ namespace engine {
             void updateTexture()                                                                                        override;
 
             bool operator==(const Texture& other) const                                                                 override { return this->rendererID == ((OpenGLTexture&)other).rendererID; }
+
+            bool LoadTextureFromFile(const char* filename, unsigned int* out_texture, int* out_width, int* out_height)  override;
     };
 
+    class OpenGLImGuiTexture : public ImGuiTexture2D {
+        public:
+            int width, height;
+            unsigned int texture;
+
+            int getWidth()              override { return this->width; }
+            int getHeight()             override { return this->height; }
+            unsigned int getTexture()   override { return this->texture; }
+
+            OpenGLImGuiTexture(const char* _filePath);
+            ~OpenGLImGuiTexture()               override;
+    };
 }
 
 #endif // OPENGL_TEXTURE_H

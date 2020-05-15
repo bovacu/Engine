@@ -36,7 +36,7 @@ namespace engine {
             [[nodiscard]] int getHeight() const                     override { return this->data.height; }
 
             std::string& getTitle()                                 override { return data.title; };
-            void setTitle(const std::string& _title)                override { this->data.title = _title; };
+            void setTitle(const std::string& _title)                override { this->data.title = _title; glfwSetWindowTitle(this->window, _title.c_str()); };
 
             void setWindowSize(int _width, int _height)             override;
             [[nodiscard]] Vec2f getWindowSize() const               override { return  Vec2f((float)this->getWidth(), (float)this->getHeight()); }

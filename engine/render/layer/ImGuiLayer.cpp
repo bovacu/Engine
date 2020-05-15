@@ -48,6 +48,8 @@ namespace engine {
     void ImGuiLayer::onEvent(Event& _e) {
         EventDispatcher dispatcher(_e);
         dispatcher.dispatchEvent<MouseScrolledEvent>(ENGINE_BIND_EVENT_FN(ImGuiLayer::onMouseScrolled));
+        dispatcher.dispatchEvent<MouseButtonPressedEvent>(ENGINE_BIND_EVENT_FN(ImGuiLayer::onMouseClicked));
+        dispatcher.dispatchEvent<MouseMovedEvent>(ENGINE_BIND_EVENT_FN(ImGuiLayer::onMouseMovedEvent));
     }
 
     bool ImGuiLayer::onMouseScrolled(MouseScrolledEvent& _e) {
@@ -145,5 +147,13 @@ namespace engine {
 
         _resolution[0] = _width;
         _resolution[1] = _height;
+    }
+
+    bool ImGuiLayer::onMouseClicked(MouseButtonPressedEvent& _e) {
+        return ImGui::IsAnyWindowHovered();
+    }
+
+    bool ImGuiLayer::onMouseMovedEvent(MouseMovedEvent& _e) {
+        return ImGui::IsAnyWindowHovered();
     }
 }

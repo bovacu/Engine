@@ -26,6 +26,8 @@ namespace engine {
             void end();
 
             bool onMouseScrolled(MouseScrolledEvent& _e);
+            bool onMouseClicked(MouseButtonPressedEvent& _e);
+            bool onMouseMovedEvent(MouseMovedEvent& _e);
 
             static void drawDebugInfo();
 
