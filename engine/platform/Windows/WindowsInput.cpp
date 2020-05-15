@@ -29,7 +29,7 @@ namespace engine {
     bool WindowsInput::isMousePressed_v(MouseCode _button) {
         auto _window = static_cast<GLFWwindow*>(Application::get().getWindow().getNativeWindow());
         auto _state = glfwGetMouseButton(_window, static_cast<int32_t>(_button));
-        return _state == GLFW_PRESS;
+        return _state == GLFW_PRESS || _state == GLFW_REPEAT;
     }
 
     bool WindowsInput::isMouseDown_v(MouseCode _button) {
@@ -46,9 +46,12 @@ namespace engine {
 
     Vec2f WindowsInput::getMousePosition_v() {
         auto _window = static_cast<GLFWwindow*>(Application::get().getWindow().getNativeWindow());
+        int _height, _width;
+        glfwGetWindowSize(_window, &_width, &_height);
+
         double _xPos, _yPos;
         glfwGetCursorPos(_window, &_xPos, &_yPos);
-        return { (float)_xPos, (float)_yPos };
+        return { (float)_xPos, (float)(_height - _yPos) };
     }
 
     float WindowsInput::getMouseX_v() {

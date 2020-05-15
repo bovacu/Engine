@@ -1,62 +1,61 @@
 #include "TestGame.h"
-#include <imgui.h>
 
 TestGame::TestGame() :  engine::Layer("Prueba"),
-                        cameraController(1280.0f / 720.0f), squareColor({ 0.2f, 0.3f, 0.8f, 1.0f }) {
+                        cameraController(true), squareColor({ 0.2f, 0.3f, 0.8f, 1.0f }),
+                        app(Application::get()){
 }
 
 void TestGame::onInit() {
-    this->world.init();
-
-    this->checkerboardTexture = engine::Texture2D::create("assets/textures/Checkerboard2.png");
-    this->emeraldTextures = engine::Texture2D::create("assets/textures/emerald.png");
-    this->playerTexture = engine::Texture2D::create("assets/textures/trainer.png");
-
-    this->player = engine::GameObject::create({0.0f, 0.0f});
-    auto _body = this->player->addPhysicsBody();
-    _body->bodyType = engine::BodyType::DYNAMIC;
-    _body->movementType = engine::MovementType::LINEAR;
-    auto _sprite = this->player->addSprite(engine::TextureRegion::create(this->playerTexture, {0, 2}, {16.0f, 21.0f}));
-    this->player->addBoxCollider(_sprite->getSize());
-
-    this->rock = engine::GameObject::create({2.0f, 0.f});
-    auto _sprite2 = this->rock->addSprite(engine::TextureRegion::create(this->emeraldTextures, {4, 18}, {16.f, 16.f}));
-    this->rock->addPhysicsBody();
-    this->rock->addBoxCollider(_sprite2->getSize());
-
-    this->world.addGameObject(this->player);
-    this->world.addGameObject(this->rock);
+    this->proceduralTexture = Texture2D::create(this->app.getWindowSize().x, this->app.getWindowSize().y, true);
+    LOG_INFO("w: {0}, h: {1}", this->app.getWindowSize().x, this->app.getWindowSize().y);
+    this->initSimulationWorld();
 }
 
-void TestGame::onEnd() {  }
+void TestGame::onEnd() {
+    delete this->particles;
+}
 
 void TestGame::onUpdate(engine::Timestep _dt) {
+    auto _mousePos = Input::getMousePosition();
+    if(_mousePos >= 0 && _mousePos.x < this->proceduralTexture->getWidth() && _mousePos.y < this->proceduralTexture->getHeight()) {
+        if (Input::isMousePressed(MouseCode::Button0)) {
+            int _posInVector = (int)_mousePos.x + ((int)this->proceduralTexture->getWidth() * (int)_mousePos.y);
+            Particle _particle;
+            _particle.posInVector   = _posInVector;
+            _particle.position      = {_mousePos.x, _mousePos.y};
+            _particle.color         = {194, 178, 128, 255};
+            _particle.type          = ParticleType::SAND;
+            this->particles[_posInVector] = _particle;
+        } else if (Input::isMousePressed(MouseCode::Button1)) {
+            int _posInVector = (int)_mousePos.x + ((int)this->proceduralTexture->getWidth() * (int)_mousePos.y);
+            Particle _particle;
+            _particle.posInVector   = _posInVector;
+            _particle.position      = {_mousePos.x, _mousePos.y};
+            _particle.color         = {90,188,216, 255};
+            _particle.type          = ParticleType::WATER;
+            this->particles[_posInVector] = _particle;
+        }
+    }
 
-    auto _body = this->player->getComponentOfType<engine::PhysicsBody>();
+    for(int _y = 0; _y < this->proceduralTexture->getHeight(); _y++)
+        for(int _x = 0; _x < this->proceduralTexture->getWidth(); _x++) {
+            int _pos = (int)_x + ((int)this->proceduralTexture->getWidth() * (int)_y);
+            this->updateSandParticle(_pos);
+            this->updateWaterParticle(_pos);
+        }
 
-    if(engine::Input::isKeyPressed(engine::KeyCode::D))
-        _body->velocity.x = 2.5;
-    else if(engine::Input::isKeyPressed(engine::KeyCode::A))
-        _body->velocity.x = -2.5;
-    else
-        _body->velocity.x = 0;
+    for(int _y = 0; _y < this->proceduralTexture->getHeight(); _y++)
+        for(int _x = 0; _x < this->proceduralTexture->getWidth(); _x++) {
+            int _pos = (int)_x + ((int)this->proceduralTexture->getWidth() * (int)_y);
+            this->proceduralTexture->setPixel((int)this->particles[_pos].position.x, (int)this->particles[_pos].position.y, this->particles[_pos].color);
+            this->particles[_pos].updated = false;
+        }
 
-    if(engine::Input::isKeyPressed(engine::KeyCode::W))
-        _body->velocity.y = 2.5;
-    else if(engine::Input::isKeyPressed(engine::KeyCode::S))
-        _body->velocity.y = -2.5;
-    else
-        _body->velocity.y = 0;
-
-    this->world.update(_dt);
-
-    this->player->getComponentOfType<engine::Sprite>()->setPosition(this->player->transform.position);
-    this->cameraController.setCameraPosition(this->player->transform.position);
-    this->cameraController.onUpdate(_dt);
+    this->proceduralTexture->updateTexture();
 }
 
 void TestGame::onFixedUpdate(engine::Timestep _dt) {
-    this->world.fixedUpdate(_dt);
+//    this->world.fixedUpdate(_dt);
 }
 
 void TestGame::onRender(engine::Timestep _dt) {
@@ -64,20 +63,10 @@ void TestGame::onRender(engine::Timestep _dt) {
     engine::RenderCommand::setClearColor(engine::Color::Black);
     engine::RenderCommand::clear();
 
-    static float rotation = 0.0f;
-    rotation += _dt * 50.0f;
-    std::vector<engine::Vec2f> _vertices = { {-0.5f, -0.5f}, {0.5f, -0.5f}, {0.5f, 0.5f}, {0.0f, 0.6f}, {-0.5f, 0.5f} };
-    engine::PolygonShape _triangle(_vertices, {-1, 1});
-
     engine::Render2D::beginRender(this->cameraController.getCamera());
-        engine::Render2D::drawTextureRect({0.0f, 0.0f}, {20.0f, 20.0f}, this->checkerboardTexture);
-        engine::Render2D::draw(this->rock);
-        engine::Render2D::draw(this->player);
-        engine::Render2D::drawRect({ASPECT_RATIO_PIXEL * 32.5f, ASPECT_RATIO_PIXEL / 2.f}, {ASPECT_RATIO_PIXEL, ASPECT_RATIO_PIXEL}, engine::Color::Red);
-        engine::Render2D::draw(_triangle);
+        engine::Render2D::drawTextureRect({0.0f, 0.0f},
+                {(float)this->proceduralTexture->getWidth(), (float)this->proceduralTexture->getHeight()}, this->proceduralTexture);
     engine::Render2D::endRender();
-
-    this->world.debugWorld(this->cameraController.getCamera());
 }
 
 void TestGame::onImGuiRender(engine::Timestep _dt) {
@@ -86,4 +75,100 @@ void TestGame::onImGuiRender(engine::Timestep _dt) {
 
 void TestGame::onEvent(engine::Event& _e) {
     this->cameraController.onEvent(_e);
+}
+
+void TestGame::initSimulationWorld() {
+    this->particles = new Particle[this->proceduralTexture->getWidth() * this->proceduralTexture->getHeight()];
+
+        for(int _y = 0; _y < this->app.getWindowSize().y; _y++)
+            for(int _x = 0; _x < this->app.getWindowSize().x; _x++) {
+                int _posInVector = (int)_x + ((int)this->proceduralTexture->getWidth() * (int)_y);
+                Particle _particle;
+                _particle.posInVector   = _posInVector;
+                _particle.position      = {(float)_x, (float)_y};
+                _particle.color         = {0, 0, 0, 0};
+                _particle.type          = ParticleType::NONE_PARTICLE;
+                this->particles[_posInVector] = _particle;
+                this->proceduralTexture->setPixel(_x, _y, _particle.color);
+
+        }
+
+    this->proceduralTexture->updateTexture();
+
+}
+
+void TestGame::updateSandParticle(int _pos) {
+    if(this->particles[_pos].type == SAND) {
+        if (this->downNeighbour(_pos) && !this->particles[_pos].updated) {
+            this->particles[_pos].type = NONE_PARTICLE;
+            this->particles[_pos].color = {0, 0, 0, 0};
+            this->particles[_pos - this->proceduralTexture->getWidth()].type = SAND;
+            this->particles[_pos - this->proceduralTexture->getWidth()].color = {194, 178, 128, 255};
+        } else if (this->downLeftNeighbour(_pos)) {
+            this->particles[_pos].type = NONE_PARTICLE;
+            this->particles[_pos].color = {0, 0, 0, 0};
+            this->particles[_pos - this->proceduralTexture->getWidth() - 1].type = SAND;
+            this->particles[_pos - this->proceduralTexture->getWidth() - 1].color = {194, 178, 128, 255};
+        } else if (this->downRightNeighbour(_pos) && !this->particles[_pos].updated) {
+            this->particles[_pos].type = NONE_PARTICLE;
+            this->particles[_pos].color = {0, 0, 0, 0};
+            this->particles[_pos - this->proceduralTexture->getWidth() + 1].type = SAND;
+            this->particles[_pos - this->proceduralTexture->getWidth() + 1].color = {194, 178, 128, 255};
+            this->particles[_pos - this->proceduralTexture->getWidth() + 1].updated = true;
+        }
+
+
+    }
+}
+
+void TestGame::updateWaterParticle(int _pos) {
+    if(this->particles[_pos].type == WATER) {
+        if (this->downNeighbour(_pos)) {
+            this->particles[_pos].type = NONE_PARTICLE;
+            this->particles[_pos].color = {0, 0, 0, 0};
+            this->particles[_pos - this->proceduralTexture->getWidth()].type = WATER;
+            this->particles[_pos - this->proceduralTexture->getWidth()].color = {90,188,216, 255};
+        } else {
+
+            if(this->rightNeighbour(_pos)) {
+                this->particles[_pos].type = NONE_PARTICLE;
+                this->particles[_pos].color = {0, 0, 0, 0};
+                this->particles[_pos + 1].type = WATER;
+                this->particles[_pos + 1].color = {90,188,216, 255};
+//                this->particles[_pos + 1].updated = true;
+            } else if(this->leftNeighbour(_pos)) {
+                this->particles[_pos].type = NONE_PARTICLE;
+                this->particles[_pos].color = {0, 0, 0, 0};
+                this->particles[_pos - 1].type = WATER;
+                this->particles[_pos - 1].color = {90,188,216, 255};
+            }
+
+        }
+    }
+}
+
+bool TestGame::downNeighbour(int _pos) {
+    return this->particles[_pos].position.y > 0 && this->particles[_pos - this->proceduralTexture->getWidth()].type == NONE_PARTICLE;
+}
+
+bool TestGame::leftNeighbour(int _pos) {
+    return this->particles[_pos].position.x > 0 && this->particles[_pos - 1].type == ParticleType::NONE_PARTICLE;
+}
+
+bool TestGame::rightNeighbour(int _pos) {
+    return this->particles[_pos].position.x < (float)this->proceduralTexture->getWidth() - 1 && this->particles[_pos + 1].type == ParticleType::NONE_PARTICLE;
+}
+
+bool TestGame::upNeighbour(int _pos) {
+    return this->particles[_pos].position.y < (float)this->proceduralTexture->getHeight() - 1 && this->particles[_pos + this->proceduralTexture->getWidth()].type == NONE_PARTICLE;
+}
+
+bool TestGame::downLeftNeighbour(int _pos) {
+    return this->particles[_pos].position.y > 0 && this->particles[_pos].position.x != 0 &&
+            this->particles[_pos - this->proceduralTexture->getWidth() - 1].type == NONE_PARTICLE;
+}
+
+bool TestGame::downRightNeighbour(int _pos) {
+    return this->particles[_pos].position.x < (float)this->proceduralTexture->getWidth() && this->particles[_pos].position.y != 0 &&
+            this->particles[_pos - this->proceduralTexture->getWidth() + 1].type == NONE_PARTICLE;
 }

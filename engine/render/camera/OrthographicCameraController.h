@@ -17,7 +17,7 @@ namespace engine {
     class OrthographicCameraController {
         private:
             float aspectRatio;
-            float zoomLevel = 2.1f;
+            float zoomLevel = .5f;
             OrthographicCamera camera;
 
             bool rotation;
@@ -27,7 +27,7 @@ namespace engine {
             float cameraTranslationSpeed = 5.0f, cameraRotationSpeed = 180.0f;
 
         public:
-            explicit OrthographicCameraController(float _aspectRatio = 1, bool _rotation = false);
+            explicit OrthographicCameraController(bool _aspectRatio = true, bool _rotation = false);
 
             void onUpdate(Timestep _ts);
             void onEvent(Event& _e);

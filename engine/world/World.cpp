@@ -12,27 +12,28 @@ namespace engine {
     void World::update(Timestep _dt) {
         for (auto& _object : this->objects)
             _object->getComponentOfType<PhysicsBody>()->update(_dt);
-
-        for(auto& _object : this->objects) {
-            auto _colliders = _object->getComponentsOfType<Collider>();
-            for (auto& _collider : _colliders) {
-                _collider->update(_dt);
-                _collider->manifolds.clear();
-            }
-        }
-
-        this->detectCollisions();
-
     }
 
     void World::fixedUpdate(Timestep _fixDt) {
         for(auto& _object : this->objects)
             _object->getComponentOfType<PhysicsBody>()->fixUpdate(_fixDt);
+
+        for(auto& _object : this->objects) {
+            auto _colliders = _object->getComponentsOfType<Collider>();
+            for (auto& _collider : _colliders) {
+                _collider->update(_fixDt);
+                _collider->manifolds.clear();
+            }
+        }
+
+        this->detectCollisions();
     }
 
     void World::detectCollisions() {
         for (auto& _objectA : this->objects) {
             auto _collidersA = _objectA->getComponentsOfType<Collider>();
+            auto _bodyA = _objectA->getComponentOfType<PhysicsBody>();
+            _bodyA->grounded = false;
             for (auto& _objectB : this->objects) {
                 auto _collidersB = _objectB->getComponentsOfType<Collider>();
 
@@ -40,19 +41,19 @@ namespace engine {
                     for (auto &_colliderB : _collidersB) {
                         if (_colliderA->gameObject != _colliderB->gameObject && !_colliderA->isGhost &&
                             !_colliderB->isGhost) {
-                            if (_colliderA->gameObject->getComponentOfType<PhysicsBody>()->bodyType !=
-                                BodyType::STATIC) {
+                            if (_bodyA->bodyType != BodyType::STATIC) {
                                 if (!std::any_of(_colliderB->manifolds.begin(), _colliderB->manifolds.end(),
                                                  [&](Manifold& _manifold) {
                                                      return _manifold.otherCollider == _colliderA.get();
                                                  })) {
                                     Mtv _mtv = _colliderA->collides(*_colliderB);
+                                    _bodyA->grounded |= _mtv.collision;
                                     if (_mtv.collision) {
                                         _colliderA->manifolds.emplace_back(Manifold(_colliderB.get(), _mtv));
                                         _colliderB->manifolds.emplace_back(Manifold(_colliderA.get(), _mtv));
                                         _colliderA->gameObject->transform.position += _mtv.translation;
-//                                        _colliderA->setPosition(_colliderA->gameObject->transform.position);
-                                        _colliderA->gameObject->getComponentOfType<PhysicsBody>()->position = _colliderA->gameObject->transform.position;
+                                        _colliderA->setPosition(_colliderA->gameObject->transform.position);
+                                        _bodyA->position = _colliderA->gameObject->transform.position;
                                     }
                                 }
                             }
@@ -60,6 +61,9 @@ namespace engine {
                     }
                 }
             }
+
+            if(_bodyA->grounded)
+                _bodyA->velocity.y = 0;
         }
     }
 
@@ -117,7 +121,7 @@ namespace engine {
     //                        float _radius = _collider->size.width;
     //                        _batch.drawCircle(_collider->center - _radius, _radius);
                         } else
-                            Render2D::drawRect(_collider->center, _collider->size, {0.0f, 1.0f, 0.0f, 0.25f});
+                            Render2D::drawRect(_collider->gameObject->transform.position, _collider->size, {0, 255, 0, 75});
                     }
                 }
             Render2D::endRender();

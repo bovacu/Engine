@@ -57,6 +57,18 @@ namespace engine {
         glfwSetWindowUserPointer(this->window, &this->data);
         this->setVSync(false);
 
+        this->monitor = glfwGetPrimaryMonitor();
+        const GLFWvidmode* _mode = glfwGetVideoMode(this->monitor);
+        if (!_mode)
+            return;
+
+        int _monitorX, _monitorY;
+        glfwGetMonitorPos(this->monitor, &_monitorX, &_monitorY);
+        int _windowWidth, _windowHeight;
+        glfwGetWindowSize(this->window, &_windowWidth, &_windowHeight);
+
+        glfwSetWindowPos(this->window, _monitorX + (_mode->width - _windowWidth) / 2, _monitorY + (_mode->height - _windowHeight) / 2);
+
         // Set GLFW callbacks
         glfwSetWindowSizeCallback(this->window, [](GLFWwindow* _window, int _width, int _height) {
             WindowData& _data = *(WindowData*)glfwGetWindowUserPointer(_window);

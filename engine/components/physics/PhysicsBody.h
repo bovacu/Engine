@@ -87,8 +87,9 @@
 #include <engine/components/colliders/PolygonCollider.h>
 #include <engine/components/Component.h>
 
-#define INFINTE_MASS -1
-#define NO_MASS      0
+#define INFINTE_MASS    -1
+#define NO_MASS         0
+#define MAX_VELOCITY_Y  -15
 
 namespace engine {
 
@@ -112,6 +113,7 @@ namespace engine {
             float friction;
 
             Vec2f gravity;
+            bool grounded = false;
 
             BodyType bodyType;
             MovementType movementType;

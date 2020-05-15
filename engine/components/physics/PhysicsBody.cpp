@@ -12,30 +12,29 @@ namespace engine {
     PhysicsBody::PhysicsBody(GameObject* _gameObject, const Vec2f& _position, const BodyType& _bodyType, const Vec2f& _gravity, const MovementType& _movementType) :
     Component(_gameObject, ComponentType::PHYSICS_BODY), position(_position), gravity(_gravity), bodyType(_bodyType), movementType(_movementType) {
         this->angularSpeed = 50;
+        this->gravity = {0, -5};
     }
 
     void PhysicsBody::move(float _dt) {
-        if(this->bodyType == BodyType::STATIC) return;
-        else if (this->bodyType == BodyType::DYNAMIC) {
-            if(this->movementType == MovementType::LINEAR) {
-                this->position.x += this->velocity.x * _dt;
-                this->position.y += this->velocity.y * _dt;
-            } else if(this->movementType == MovementType::APPROACH) {
-                this->velocity.x = this->approach(this->gaolVelocity.x, this->velocity.x, _dt);
-                this->velocity.y = this->approach(this->gaolVelocity.y, this->velocity.y, _dt);
+        if(this->movementType == MovementType::LINEAR) {
+            this->position.x += this->velocity.x * _dt;
+            this->position.y += this->velocity.y * _dt;
+        } else if(this->movementType == MovementType::APPROACH) {
+            this->velocity.x = this->approach(this->gaolVelocity.x, this->velocity.x, _dt);
+            this->velocity.y = this->approach(this->gaolVelocity.y, this->velocity.y, _dt);
 
-                this->position += this->velocity * _dt;
-            } else {
-                this->velocity += this->acceleration * _dt;
-                this->position += this->velocity * _dt;
-            }
+            this->position += this->velocity * _dt;
+        } else {
+            this->velocity += this->acceleration * _dt;
+            this->position += this->velocity * _dt;
         }
-
-        this->gameObject->transform.position = this->position;
     }
 
     void PhysicsBody::applyGravity(float _dt) {
+        this->position += this->velocity * _dt;
+        if(this->velocity.y > MAX_VELOCITY_Y) this->velocity += (this->gravity * this->gravity / 2.f) * -1 * _dt;
 
+//        LOG_INFO_CORE("Velocity[y]: {0}", this->velocity.y);
     }
 
     void PhysicsBody::update(float _dt) {
@@ -43,7 +42,13 @@ namespace engine {
     }
 
     void PhysicsBody::fixUpdate(float _dt) {
-        this->move(_dt);
+        if(this->bodyType == BodyType::STATIC) return;
+        else if (this->bodyType == BodyType::DYNAMIC) {
+            if(!this->grounded)
+                this->applyGravity(_dt);
+            this->move(_dt);
+        }
+        this->gameObject->transform.position = this->position;
     }
 
     void PhysicsBody::postUpdate(float _dt) {

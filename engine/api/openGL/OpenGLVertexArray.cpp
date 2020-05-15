@@ -18,6 +18,8 @@ namespace engine {
             case ShaderDataType::Int3:     return GL_INT;
             case ShaderDataType::Int4:     return GL_INT;
             case ShaderDataType::Bool:     return GL_BOOL;
+            case ShaderDataType::None:
+                break;
         }
 
         ENGINE_CORE_ASSERT(false, "Unknown ShaderDataType!");
@@ -40,7 +42,7 @@ namespace engine {
         glBindVertexArray(0);
     }
 
-    void OpenGLVertexArray::addVertexBuffer(const std::shared_ptr<VertexBuffer>& _vertexBuffer) {
+    void OpenGLVertexArray::addVertexBuffer(const VertexBufferPtr& _vertexBuffer) {
         ENGINE_CORE_ASSERT(_vertexBuffer->getLayout().getElements().size(), "Vertex Buffer has no layout!");
 
         glBindVertexArray(this->rendererID);
@@ -92,7 +94,7 @@ namespace engine {
         this->vertexBuffers.push_back(_vertexBuffer);
     }
 
-    void OpenGLVertexArray::setIndexBuffer(const std::shared_ptr<IndexBuffer>& _indexBuffer) {
+    void OpenGLVertexArray::setIndexBuffer(const IndexBufferPtr& _indexBuffer) {
         glBindVertexArray(this->rendererID);
         _indexBuffer->bind();
 

@@ -2,6 +2,7 @@
 #include "OpenGLRenderAPI.h"
 
 #include <glad/glad.h>
+#include <engine/render/Render2D.h>
 
 namespace engine {
 
@@ -51,7 +52,7 @@ namespace engine {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 
-    void OpenGLRenderAPI::drawIndexed(const std::shared_ptr<VertexArray>& _vertexArray, uint32_t _indexCount) {
+    void OpenGLRenderAPI::drawIndexed(const VertexArrayPtr& _vertexArray, uint32_t _indexCount) {
         uint32_t _count = _indexCount ? _indexCount : _vertexArray->getIndexBuffer()->getCount();
         glDrawElements(GL_TRIANGLES, _count, GL_UNSIGNED_INT, nullptr);
         glBindTexture(GL_TEXTURE_2D, 0);

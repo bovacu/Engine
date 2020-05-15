@@ -9,7 +9,7 @@ namespace engine {
 
     class PolygonShape : public Shape {
         public:
-            explicit PolygonShape(const std::vector<Vec2f>& _vertices, const Vec2f& _position, const Color& _color = {0.0f, 1.0f, 0.0f, 0.25f});
+            explicit PolygonShape(const std::vector<Vec2f>& _vertices, const Vec2f& _position, const Color& _color = {0, 255, 0, 75});
     };
 
 }

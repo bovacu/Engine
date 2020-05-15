@@ -6,8 +6,11 @@
 #include <engine/render/RenderCommand.h>
 
 #include <glm/gtc/matrix_transform.hpp>
+#include <engine/main/Application.h>
 
 namespace engine {
+
+    RenderingType Render2D::renderingType = RenderingType::QUADS;
 
     struct QuadVertex {
         glm::vec3 position;
@@ -15,6 +18,11 @@ namespace engine {
         glm::vec2 texCoord;
         float texIndex;
         float tilingFactor;
+    };
+
+    struct PixelVertex {
+        glm::vec3 position;
+        glm::vec4 color;
     };
 
     struct Render2DData {
@@ -57,13 +65,12 @@ namespace engine {
             { ShaderDataType::Float3, "a_Position"      },
             { ShaderDataType::Float4, "a_Color"         },
             { ShaderDataType::Float2, "a_TexCoord"      },
-            { ShaderDataType::Float, "a_TexIndex"       },
-            { ShaderDataType::Float, "a_TilingFactor"   }
+            { ShaderDataType::Float,  "a_TexIndex"      },
+            { ShaderDataType::Float,  "a_TilingFactor"  }
 
         });
 
         data.quadVertexArray->addVertexBuffer(data.quadVertexBuffer);
-
         data.quadVertexBufferBase = new QuadVertex[engine::Render2DData::maxVertices];
 
         auto* _quadIndices = new uint32_t[engine::Render2DData::maxIndices];
@@ -85,7 +92,7 @@ namespace engine {
         data.quadVertexArray->setIndexBuffer(_quadIB);
         delete[] _quadIndices;
 
-        data.whiteTexture = Texture2D::create(1, 1);
+        data.whiteTexture = Texture2D::create(1, 1, true);
         uint32_t _whiteTextureData = 0xffffffff;
         data.whiteTexture->setData(&_whiteTextureData, sizeof(uint32_t));
 
@@ -110,7 +117,7 @@ namespace engine {
         delete [] data.quadVertexBufferBase;
     }
 
-    void Render2D::beginRender(const OrthographicCamera& camera) {
+    void Render2D::beginRender(const OrthographicCamera& camera, const RenderingType& _type) {
         data.textureShader->bind();
         data.textureShader->setMat4("u_ViewProjection", camera.getViewProjectionMatrix());
 
@@ -121,8 +128,9 @@ namespace engine {
     }
 
     void Render2D::endRender() {
-        uint32_t dataSize = (uint32_t)( (uint8_t*)data.quadVertexBufferPtr - (uint8_t*)data.quadVertexBufferBase );
+        auto dataSize = (uint32_t)( (uint8_t*)data.quadVertexBufferPtr - (uint8_t*)data.quadVertexBufferBase );
         data.quadVertexBuffer->setData(data.quadVertexBufferBase, dataSize);
+
         Render2D::flush();
     }
 
@@ -130,8 +138,8 @@ namespace engine {
         // Bind textures
         for (uint32_t i = 0; i < data.textureSlotIndex; i++)
             data.textureSlots[i]->bind(i);
-
         RenderCommand::drawIndexed(data.quadVertexArray, data.quadIndexCount);
+
         data.stats.drawCalls++;
     }
 
@@ -140,16 +148,14 @@ namespace engine {
 
         data.quadIndexCount = 0;
         data.quadVertexBufferPtr = data.quadVertexBufferBase;
-
         data.textureSlotIndex = 1;
     }
 
     void Render2D::drawRect(const Vec2f& _position, const Size& _size, const Color& _color) {
-        drawRect({_position.x, _position.y, 0.0f}, {_size.width, _size.height}, {_color.r, _color.g, _color.b, _color.a});
+        float _adapter = OrthographicCamera::usingAspectRatio ? ASPECT_RATIO_PIXEL : 1;
+        drawRect({_position.x * _adapter, _position.y * _adapter, 0.0f}, {_size.width * _adapter, _size.height * _adapter}, {_color.r, _color.g, _color.b, _color.a});
     }
-
     void Render2D::drawRect(const glm::vec3& _position, const glm::vec2& _size, const glm::vec4& _color) {
-        data.numberOfVertices = 4;
         constexpr size_t    _quadVertexCount = 4;
         const float         _textureIndex = 0.0f; // White Texture
         constexpr glm::vec2 _textureCoords[] = { { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f } };
@@ -157,6 +163,7 @@ namespace engine {
 
         if (data.quadIndexCount >= Render2DData::maxIndices)
             Render2D::flushAndReset();
+
 
         glm::mat4 _transform = glm::translate(glm::mat4(1.0f), _position)
                               * glm::scale(glm::mat4(1.0f), { _size.x, _size.y, 1.0f });
@@ -176,10 +183,11 @@ namespace engine {
     }
 
     void Render2D::drawTextureRect(const Vec2f& _position, const Size& _size, const Texture2DPtr& _texture, float _tilingFactor, const glm::vec4& _tintColor) {
-        Render2D::drawRect({_position.x, _position.y, 0.0f}, {_size.width, _size.height}, _texture, _tilingFactor, _tintColor);
+        float _adapter = OrthographicCamera::usingAspectRatio ? ASPECT_RATIO_PIXEL : 1;
+        Render2D::drawTextureRect({_position.x * _adapter, _position.y * _adapter, 0.0f}, {_size.width * _adapter, _size.height * _adapter}, _texture,
+                                  _tilingFactor, _tintColor);
     }
-
-    void Render2D::drawRect(const glm::vec3& _position, const glm::vec2& _size, const Texture2DPtr& _texture, float _tilingFactor, const glm::vec4& _tintColor) {
+    void Render2D::drawTextureRect(const glm::vec3& _position, const glm::vec2& _size, const Texture2DPtr& _texture, float _tilingFactor, const glm::vec4& _tintColor) {
         constexpr size_t _quadVertexCount = 4;
         constexpr glm::vec4 _color = { 1.0f, 1.0f, 1.0f, 1.0f };
         constexpr glm::vec2 _textureCoords[] = { { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f } };
@@ -221,9 +229,10 @@ namespace engine {
     }
 
     void Render2D::drawRotatedRect(const Vec2f& _position, const Size& _size, float _rotation, const Color& _color) {
-        Render2D::drawRotatedRect({_position.x, _position.y, 0.0f}, {_size.width, _size.height}, _rotation, {_color.r, _color.g, _color.b, _color.a});
+        float _adapter = OrthographicCamera::usingAspectRatio ? ASPECT_RATIO_PIXEL : 1;
+        Render2D::drawRotatedRect({_position.x * _adapter, _position.y * _adapter, 0.0f},
+                {_size.width * _adapter, _size.height * _adapter}, _rotation, {_color.r, _color.g, _color.b, _color.a});
     }
-
     void Render2D::drawRotatedRect(const glm::vec3& _position, const glm::vec2& _size, float rotation, const glm::vec4& _color) {
         constexpr size_t        _quadVertexCount = 4;
         const float             _textureIndex = 0.0f; // White Texture
@@ -252,10 +261,10 @@ namespace engine {
     }
 
     void Render2D::drawRotatedTextureRect(const Vec2f& _position, const Size& _size, float rotation, const Texture2DPtr& _texture, float _tilingFactor, const glm::vec4& _tintColor) {
-        Render2D::drawRotatedRect({_position.x, _position.y, 0.0f}, {_size.width, _size.height}, rotation, _texture, _tilingFactor,
-                                  _tintColor);
+        float _adapter = OrthographicCamera::usingAspectRatio ? ASPECT_RATIO_PIXEL : 1;
+        Render2D::drawRotatedRect({_position.x * _adapter, _position.y * _adapter, 0.0f},
+                {_size.width * _adapter, _size.height * _adapter}, rotation, _texture, _tilingFactor, _tintColor);
     }
-
     void Render2D::drawRotatedRect(const glm::vec3& _position, const glm::vec2& _size, float rotation, const Texture2DPtr& _texture, float _tilingFactor, const glm::vec4& _tintColor) {
         constexpr size_t        _quadVertexCount = 4;
         constexpr glm::vec4     _color = { 1.0f, 1.0f, 1.0f, 1.0f };
@@ -333,10 +342,11 @@ namespace engine {
             data.textureSlotIndex++;
         }
 
-        glm::vec3 _position = {_sprite->getPosition().x, _sprite->getPosition().y, 0.0f};
+        float _adapter = OrthographicCamera::usingAspectRatio ? ASPECT_RATIO_PIXEL : 1;
+        glm::vec3 _position = {_sprite->getPosition().x * _adapter, _sprite->getPosition().y * _adapter, 0.0f};
         glm::mat4 _transform = glm::translate(glm::mat4(1.0f), _position)
-                               * glm::scale(glm::mat4(1.0f), { _sprite->getScale().width * _sprite->getSize().width,
-                               _sprite->getScale().height * _sprite->getSize().height, 1.0f });
+                               * glm::scale(glm::mat4(1.0f), { _sprite->getScale().width * _sprite->getSize().width * _adapter,
+                               _sprite->getScale().height * _sprite->getSize().height * _adapter, 1.0f });
 
         for (size_t _i = 0; _i < _quadVertexCount; _i++) {
             data.quadVertexBufferPtr->position = _transform * data.quadVertexPositions[_i];
@@ -350,7 +360,6 @@ namespace engine {
         data.quadIndexCount += 6;
         data.stats.quadCount++;
     }
-
     void Render2D::drawRotated(const SpritePtr& _sprite, float _rotation, float _tilingFactor, const glm::vec4& _tintColor) {
         constexpr size_t        _quadVertexCount = 4;
         const Vec2f*            _textureCoords = _sprite->getTexture()->getTextureCoords();
@@ -377,10 +386,12 @@ namespace engine {
             data.textureSlotIndex++;
         }
 
-        glm::vec3 _position = {_sprite->getPosition().x, _sprite->getPosition().y, 0.0f};
+        float _adapter = OrthographicCamera::usingAspectRatio ? ASPECT_RATIO_PIXEL : 1;
+        glm::vec3 _position = {_sprite->getPosition().x * _adapter, _sprite->getPosition().y * _adapter, 0.0f};
         glm::mat4 _transform = glm::translate(glm::mat4(1.0f), _position)
                                * glm::rotate(glm::mat4(1.0f), glm::radians(_sprite->getRotation()), {0.0f, 0.0f, 1.0f })
-                               * glm::scale(glm::mat4(1.0f), { _sprite->getScale().width, _sprite->getScale().height, 1.0f });
+                               * glm::scale(glm::mat4(1.0f), { _sprite->getScale().width * _sprite->getSize().width * _adapter,
+                                                               _sprite->getScale().height * _sprite->getSize().height * _adapter, 1.0f });
 
         for (size_t _i = 0; _i < _quadVertexCount; _i++) {
             data.quadVertexBufferPtr->position = _transform * data.quadVertexPositions[_i];
@@ -392,6 +403,36 @@ namespace engine {
         }
 
         data.quadIndexCount += 6;
+        data.stats.quadCount++;
+    }
+
+    void Render2D::drawPixel(const Vec2f& _position, const Color& _color) {
+        float _adapter = OrthographicCamera::usingAspectRatio ? ASPECT_RATIO_PIXEL : 1;
+        Render2D::drawPixel({_position.x * _adapter, _position.y * _adapter, 0.0f}, {_color.r, _color.g, _color.b, _color.a});
+    }
+    void Render2D::drawPixel(const glm::vec3& _position, const glm::vec4& _color) {
+
+        constexpr size_t    _quadVertexCount = 4;
+        const float         _textureIndex = 0.0f; // White Texture
+        constexpr glm::vec2 _textureCoords[] = { { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f } };
+        const float         _tilingFactor = 1.0f;
+
+        if (data.quadIndexCount >= Render2DData::maxIndices)
+            Render2D::flushAndReset();
+
+        float _adapter = OrthographicCamera::usingAspectRatio ? ASPECT_RATIO_PIXEL : 1;
+        glm::mat4 _transform = glm::translate(glm::mat4(1.0f), _position)
+                                * glm::scale(glm::mat4(1.0f), { _adapter, _adapter, 1.0f });
+
+        for (size_t _i = 0; _i < _quadVertexCount; _i++) {
+            data.quadVertexBufferPtr->position = _transform * data.quadVertexPositions[_i];
+            data.quadVertexBufferPtr->color = _color;
+            data.quadVertexBufferPtr->texCoord = _textureCoords[_i];
+            data.quadVertexBufferPtr->texIndex = _textureIndex;
+            data.quadVertexBufferPtr->tilingFactor = _tilingFactor;
+            data.quadVertexBufferPtr++;
+        }
+
         data.stats.quadCount++;
     }
 
@@ -417,7 +458,7 @@ namespace engine {
             data.quadVertexBufferPtr++;
         }
 
-        data.quadIndexCount += _quadVertexCount + 2;
+        data.quadIndexCount += (uint32_t)(_quadVertexCount + 2);
         data.stats.quadCount++;
     }
 
@@ -428,5 +469,8 @@ namespace engine {
     Render2D::Statistics Render2D::getStats() {
         return data.stats;
     }
+
+
+
 
 }

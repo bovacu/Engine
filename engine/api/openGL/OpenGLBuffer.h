@@ -13,7 +13,7 @@ namespace engine {
             BufferLayout        layout;
 
         public:
-            OpenGLVertexBuffer(uint32_t _size);
+            explicit OpenGLVertexBuffer(uint32_t _size);
             OpenGLVertexBuffer(float* _vertices, uint32_t _size);
             ~OpenGLVertexBuffer()                                   override;
 
@@ -22,7 +22,7 @@ namespace engine {
 
             void setData(const void* _data, uint32_t _size)         override;
 
-            const BufferLayout& getLayout() const                   override { return this->layout; }
+            [[nodiscard]] const BufferLayout& getLayout() const     override { return this->layout; }
             void setLayout(const BufferLayout& _layout)             override { this->layout = _layout; }
     };
 
@@ -38,7 +38,7 @@ namespace engine {
             void bind() const                                       override;
             void unbind() const                                     override;
 
-            uint32_t getCount() const                               override { return this->count; }
+            [[nodiscard]] uint32_t getCount() const                 override { return this->count; }
     };
 
 }

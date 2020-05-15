@@ -12,6 +12,7 @@
 #include <engine/render/layer/Layer.h>
 #include <engine/render/layer/LayerStack.h>
 #include <engine/render/layer/ImGuiLayer.h>
+#include <engine/input/Input.h>
 
 
 /*  =================================================================================================
@@ -108,6 +109,8 @@ namespace engine {
             bool isVSync();
 
             [[nodiscard]] Timestep getDelta() const             { return this->dt; }
+            Vec2f getMousePos() const                           { return Vec2f( -this->getWindowSize().x / 2.f + Input::getMouseX(),
+                                                                                this->getWindowSize().y / 2.f - Input::getMouseY()); }
 
             void setFullscreen(bool _fullscreen);
             [[nodiscard]] bool isFullscreen() const             {  return this->window->isFullscreen(); }

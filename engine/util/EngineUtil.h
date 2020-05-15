@@ -98,9 +98,25 @@ namespace engine {
 			return Vec2f(this->x - _a, this->y - _a);
 		} 
 
-		inline bool operator==(const Vec2f& _p) {
+		inline bool operator==(const Vec2f& _p) const {
 			return this->x == _p.x && this->y == _p.y;
 		}
+
+		inline bool operator>(float _value) const {
+		    return this->x > _value && this->y > _value;
+		}
+
+        inline bool operator>=(float _value) const {
+            return this->x >= _value && this->y >= _value;
+        }
+
+        inline bool operator<(float _value) const {
+            return this->x < _value && this->y < _value;
+        }
+
+        inline bool operator<=(float _value) const {
+            return this->x <= _value && this->y <= _value;
+        }
 	};
 
     struct Size {
@@ -123,10 +139,10 @@ namespace engine {
 	};
 
 	struct Color {
-        float r,g,b,a;
+        unsigned char r,g,b,a;
 
 		Color() : r(0), g(0), b(0), a(0) {  }
-		Color(float _r, float _g, float _b, float _a = 1) : r(_r), g(_g), b(_b), a(_a) {  }
+		Color(unsigned char _r, unsigned char _g, unsigned char _b, unsigned char _a = 1) : r(_r), g(_g), b(_b), a(_a) {  }
 
 		// Color toGrayScale(const Color& _color) {
 		// 	std::cerr << "toGrayScale from color currently not supported" << std::endl;

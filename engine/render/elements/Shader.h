@@ -24,6 +24,7 @@ namespace engine {
             virtual void setIntArray(const std::string& _name, int* _values, uint32_t _count) = 0;
             virtual void setFloat(const std::string& _name, float _value) = 0;
             virtual void setFloat3(const std::string& _name, const glm::vec3& _value) = 0;
+            virtual void setFloat2(const std::string& _name, const glm::vec2& _value) = 0;
             virtual void setFloat4(const std::string& _name, const glm::vec4& _value) = 0;
             virtual void setMat4(const std::string& _name, const glm::mat4& _value) = 0;
 

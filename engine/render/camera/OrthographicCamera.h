@@ -21,6 +21,9 @@ namespace engine {
             float rotation = 0.0f;
 
         public:
+            static bool usingAspectRatio;
+
+        public:
             OrthographicCamera(float _left, float _right, float _bottom, float _top);
 
             void setProjection(float _left, float _right, float _bottom, float _top);

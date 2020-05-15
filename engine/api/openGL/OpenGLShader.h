@@ -25,6 +25,7 @@ namespace engine {
             void setInt(const std::string& _name, int _value)                               override;
             void setIntArray(const std::string& _name, int* _values, uint32_t _count)       override;
             void setFloat(const std::string& _name, float _value)                           override;
+            void setFloat2(const std::string& _name, const glm::vec2& _value)               override;
             void setFloat3(const std::string& _name, const glm::vec3& _value)               override;
             void setFloat4(const std::string& _name, const glm::vec4& _value)               override;
             void setMat4(const std::string& _name, const glm::mat4& _value)                 override;

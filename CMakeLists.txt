@@ -31,6 +31,9 @@ link_directories(${IMGUI_DOCKING})
 set(SPDLOG_DIR "${LIB_DIR}/spdlog")
 add_subdirectory(${SPDLOG_DIR})
 
+set(BOX2D_DIR "${LIB_DIR}/box2d")
+add_subdirectory("${BOX2D_DIR}")
+
 add_executable( Engine engine/main/Application.cpp engine/util/EngineUtil.cpp
                 engine/components/colliders/Collider.cpp engine/components/colliders/BoxCollider.cpp engine/components/colliders/CircleCollider.cpp
                 engine/components/colliders/PolygonCollider.cpp engine/components/physics/PhysicsBody.cpp
@@ -57,18 +60,21 @@ add_executable( Engine engine/main/Application.cpp engine/util/EngineUtil.cpp
                 engine/input/Input.cpp engine/render/layer/ImGuiLayer.h engine/render/layer/ImGuiLayer.cpp
                 engine/util/Clock.cpp engine/util/Clock.h engine/render/elements/TextureRegion.cpp engine/render/elements/TextureRegion.h
                 engine/components/sprite/Sprite.cpp engine/components/sprite/Sprite.h
+                engine/render/shapes/Shape.cpp engine/render/shapes/Shape.h engine/render/shapes/PolygonShape.cpp engine/render/shapes/PolygonShape.h
 
                 lib/imgui-docking/imgui.cpp lib/imgui-docking/imgui_draw.cpp lib/imgui-docking/imgui_widgets.cpp
-                lib/imgui-docking/examples/imgui_impl_glfw.cpp lib/imgui-docking/examples/imgui_impl_opengl3.cpp engine/render/shapes/Shape.cpp engine/render/shapes/Shape.h engine/render/shapes/PolygonShape.cpp engine/render/shapes/PolygonShape.h)
+                lib/imgui-docking/examples/imgui_impl_glfw.cpp lib/imgui-docking/examples/imgui_impl_opengl3.cpp)
 
 target_link_libraries ( Engine spdlog)
 target_link_libraries ( ${PROJECT_NAME} "glfw" "${GLFW_LIBRARIES}")
 target_link_libraries ( ${PROJECT_NAME} "glad" "${CMAKE_DL_LIBS}")
 target_link_libraries ( ${PROJECT_NAME} "glm" "${GLM_LIBRARIES}")
 target_link_libraries ( ${PROJECT_NAME} "spdlog" "${SPDLOG_LIBRARIES}")
+target_link_libraries ( ${PROJECT_NAME} "box2d" "${BOX2D_LIBRARIES}")
 
 target_include_directories(${PROJECT_NAME} PRIVATE "${GLFW_DIR}/include")
 target_include_directories("glad" PRIVATE "${GLAD_DIR}/include")
 target_include_directories(${PROJECT_NAME} PRIVATE "${GLAD_DIR}/include")
 target_include_directories("${PROJECT_NAME}" PRIVATE "${GLM_DIR}/glm")
 target_include_directories("${PROJECT_NAME}" PRIVATE "${SPDLOG_DIR}/include")
+target_include_directories("${PROJECT_NAME}" PRIVATE "${BOX2D_DIR}/include")

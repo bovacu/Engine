@@ -5,10 +5,11 @@
 
 namespace engine {
 
-    OpenGLTexture::OpenGLTexture(uint32_t _width, uint32_t _height)
+    OpenGLTexture::OpenGLTexture(uint32_t _width, uint32_t _height, bool _useAlpha)
             : width(_width), height(_height) {
-        this->internalFormat = GL_RGBA8;
-        this->dataFormat = GL_RGBA;
+        this->bpp = _useAlpha ? 4 : 3;
+        this->internalFormat = _useAlpha ? GL_RGBA8 : GL_RGB8;
+        this->dataFormat = _useAlpha ? GL_RGBA : GL_RGB;
 
         glCreateTextures(GL_TEXTURE_2D, 1, &this->rendererID);
         glTextureStorage2D(this->rendererID, 1, this->internalFormat, this->width, this->height);
@@ -18,6 +19,8 @@ namespace engine {
 
         glTextureParameteri(this->rendererID, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTextureParameteri(this->rendererID, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+        this->bufferData = new GLubyte[_width * _height * (_useAlpha ? 4 : 3)];
     }
 
     OpenGLTexture::OpenGLTexture(const std::string& _path)
@@ -35,6 +38,7 @@ namespace engine {
         ENGINE_CORE_ASSERT(_data, "Failed to load image!");
         this->width = _width;
         this->height = _height;
+        this->bpp = _channels;
 
         GLenum _internalFormat = 0, _dataFormat = 0;
         if (_channels == 4) {
@@ -66,6 +70,7 @@ namespace engine {
 
     OpenGLTexture::~OpenGLTexture() {
         glDeleteTextures(1, &this->rendererID);
+//        delete this->bufferData;
     }
 
     void OpenGLTexture::setData(void* _data, uint32_t _size) {
@@ -76,6 +81,36 @@ namespace engine {
 
     void OpenGLTexture::bind(uint32_t _slot) const {
         glBindTextureUnit(_slot, this->rendererID);
+    }
+
+    bool OpenGLTexture::usesAlpha() const {
+        return this->bpp == 4;
+    }
+
+    void OpenGLTexture::setPixel(int _x, int _y, unsigned char _r, unsigned char _g, unsigned char _b, unsigned char _a) {
+        int _pixel = this->bpp * _x + (this->bpp * (int)this->width * _y);
+        this->bufferData[_pixel] = _r;
+        this->bufferData[_pixel + 1] = _g;
+        this->bufferData[_pixel + 2] = _b;
+        if(this->bpp == 4) this->bufferData[_pixel + 3] = _a;
+    }
+
+    void OpenGLTexture::setPixel(int _x, int _y, const Color& _color) {
+        this->setPixel(_x, _y, _color.r, _color.g, _color.b, _color.a);
+    }
+
+    Color OpenGLTexture::getPixel(int _x, int _y) const {
+        Color _color;
+        int _pixel = this->bpp * _x + (this->bpp * (int)this->width * _y);
+        _color.r = this->bufferData[_pixel];
+        _color.g = this->bufferData[_pixel + 1];
+        _color.b = this->bufferData[_pixel + 2];
+        if(usesAlpha()) _color.a = this->bufferData[_pixel + 3];
+        return _color;
+    }
+
+    void OpenGLTexture::updateTexture() {
+        glTextureSubImage2D(this->rendererID, 0, 0, 0, this->width, this->height, this->dataFormat, GL_UNSIGNED_BYTE, this->bufferData);
     }
 
 }

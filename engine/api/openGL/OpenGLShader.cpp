@@ -165,7 +165,6 @@ namespace engine {
     }
 
     void OpenGLShader::setInt(const std::string& _name, int _value) {
-
         this->uploadUniformInt(_name, _value);
     }
 
@@ -175,6 +174,10 @@ namespace engine {
 
     void OpenGLShader::setFloat(const std::string& _name, float _value) {
         this->uploadUniformFloat(_name, _value);
+    }
+
+    void OpenGLShader::setFloat2(const std::string& _name, const glm::vec2& _value) {
+        this->uploadUniformFloat2(_name, _value);
     }
 
     void OpenGLShader::setFloat3(const std::string& _name, const glm::vec3& _value) {

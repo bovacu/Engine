@@ -11,7 +11,7 @@
 
 namespace engine {
 
-
+    enum RenderingType { QUADS, PIXEL };
 
     class Render2D {
         // Stats
@@ -24,11 +24,13 @@ namespace engine {
                 uint32_t getTotalIndexCount() { return quadCount * 6; }
             };
 
+            static RenderingType renderingType;
+
         public:
             static void init();
             static void shutdown();
 
-            static void beginRender(const OrthographicCamera& camera);
+            static void beginRender(const OrthographicCamera& camera, const RenderingType& _type = RenderingType::QUADS);
             static void endRender();
             static void flush();
 
@@ -39,6 +41,7 @@ namespace engine {
             static void drawRotatedTextureRect(const Vec2f& _position, const Size& _size, float rotation, const Texture2DPtr& _texture, float _tilingFactor = 1.0f, const glm::vec4& _tintColor = glm::vec4(1.0f));
             static void draw(const GameObjectPtr& _gameObject, float _tilingFactor = 1.0f, const glm::vec4& _tintColor = glm::vec4(1.0f));
             static void draw(const Shape& _shape);
+            static void drawPixel(const Vec2f& _position, const Color& _color);
 
             static void resetStats();
             static Statistics getStats();
@@ -47,9 +50,10 @@ namespace engine {
             static void flushAndReset();
             static void drawRotated(const SpritePtr & _sprite, float _rotation, float _tilingFactor = 1.0f, const glm::vec4& _tintColor = glm::vec4(1.0f));
             static void drawRect(const glm::vec3& _position, const glm::vec2& _size, const glm::vec4& _color);
-            static void drawRect(const glm::vec3& _position, const glm::vec2& _size, const Texture2DPtr& _texture, float _tilingFactor = 1.0f, const glm::vec4& _tintColor = glm::vec4(1.0f));
+            static void drawTextureRect(const glm::vec3& _position, const glm::vec2& _size, const Texture2DPtr& _texture, float _tilingFactor = 1.0f, const glm::vec4& _tintColor = glm::vec4(1.0f));
             static void drawRotatedRect(const glm::vec3& _position, const glm::vec2& _size, float rotation, const glm::vec4& _color);
             static void drawRotatedRect(const glm::vec3& _position, const glm::vec2& _size, float rotation, const Texture2DPtr& _texture, float _tilingFactor = 1.0f, const glm::vec4& _tintColor = glm::vec4(1.0f));
+            static void drawPixel(const glm::vec3& _position, const glm::vec4& _color);
     };
 
 }

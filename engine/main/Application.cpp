@@ -49,9 +49,9 @@ namespace engine {
                 this->onUpdate(_dt);
                 this->onRender(_dt);
 
-                #ifdef ENGINE_DEBUG
+//                #ifdef ENGINE_DEBUG
                     this->updateFps();
-                #endif
+//                #endif
             }
 
             this->window->update();
