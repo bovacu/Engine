@@ -16,6 +16,9 @@ void TestGame::onInit() {
     this->pauseTexture = engine::ImGuiTexture2D::create("assets/textures/pause.png");
     this->resumeTexture = engine::ImGuiTexture2D::create("assets/textures/play-button.png");
     this->advanceTexture = engine::ImGuiTexture2D::create("assets/textures/fast-forward.png");
+    this->oneFrameTexture = engine::ImGuiTexture2D::create("assets/textures/archivo-de-video.png");
+    this->drawTexture = engine::ImGuiTexture2D::create("assets/textures/editar.png");
+    this->eraseTexture = engine::ImGuiTexture2D::create("assets/textures/borrador.png");
 }
 
 void TestGame::onEnd() {
@@ -34,7 +37,10 @@ void TestGame::onUpdate(engine::Timestep _dt) {
             auto _mousePos = Input::getMousePosition();
             if(_mousePos >= 0 && _mousePos.x < this->proceduralTexture->getWidth() && _mousePos.y < this->proceduralTexture->getHeight()) {
                 if (Input::isMousePressed(MouseCode::Button0)) {
-                    this->generateWithBrush(_mousePos);
+                    if(this->usingTool == DRAW)
+                        this->generateWithBrush(_mousePos);
+                    else
+                        this->removeParticles(_mousePos);
                 }
             }
         }
@@ -42,16 +48,15 @@ void TestGame::onUpdate(engine::Timestep _dt) {
         /// UPDATING PARTICLES
         for(int _y = 0; _y < (int)this->proceduralTexture->getHeight(); _y++) {
             for (int _x = 0; _x < (int) this->proceduralTexture->getWidth(); _x++) {
-                int _pos = (int) _x + ((int) this->proceduralTexture->getWidth() * (int) _y);
-                this->updateSandParticle(_pos);
-                this->updateWaterParticle(_pos);
+                this->updateSandParticle(_x, _y);
+//                this->updateWaterParticle(_pos);
             }
         }
 
         /// UPDATING PIXELS
         for(int _y = 0; _y < (int)this->proceduralTexture->getHeight(); _y++) {
             for (int _x = 0; _x < (int) this->proceduralTexture->getWidth(); _x++) {
-                int _pos = (int) _x + ((int) this->proceduralTexture->getWidth() * (int) _y);
+                int _pos = this->calcVecPos(_x, _y);
                 this->proceduralTexture->setPixel((int) this->particles[_pos].position.x,
                                                   (int) this->particles[_pos].position.y, this->particles[_pos].color);
                 this->particles[_pos].updated = false;
@@ -95,10 +100,25 @@ void TestGame::onImGuiRender(engine::Timestep _dt) {
         if(ImGui::ImageButton((void*)(intptr_t)this->pauseTexture->getTexture(), ImVec2((float)this->pauseTexture->getWidth(), (float)this->pauseTexture->getHeight())))
             this->play = false;
         ImGui::SameLine();
+        if(ImGui::ImageButton((void*)(intptr_t)this->oneFrameTexture->getTexture(), ImVec2((float)this->oneFrameTexture->getWidth(), (float)this->oneFrameTexture->getHeight()))) {
+            this->play = true;
+            this->oneStep = true;
+        }
+        ImGui::SameLine();
         ImGui::ImageButton((void*)(intptr_t)this->advanceTexture->getTexture(), ImVec2((float)this->advanceTexture->getWidth(), (float)this->advanceTexture->getHeight()));
         if(ImGui::IsItemHovered() && Input::isMousePressed(MouseCode::Button0)) {
             this->play = true;
             this->oneStep = true;
+        }
+
+        ImGui::Separator();
+
+        if(ImGui::ImageButton((void*)(intptr_t)this->drawTexture->getTexture(), ImVec2((float)this->drawTexture->getWidth(), (float)this->drawTexture->getHeight()))) {
+            this->usingTool = DRAW;
+        }
+        ImGui::SameLine();
+        if(ImGui::ImageButton((void*)(intptr_t)this->eraseTexture->getTexture(), ImVec2((float)this->eraseTexture->getWidth(), (float)this->eraseTexture->getHeight()))) {
+            this->usingTool = ERASE;
         }
 
         const char* _materials[] = { "Sand", "Water", "Rock"};
@@ -155,27 +175,50 @@ void TestGame::initSimulationWorld() {
 
 }
 
-void TestGame::updateSandParticle(int _pos) {
+void TestGame::updateSandParticle(int _x, int _y) {
+    int _pos = this->calcVecPos(_x, _y);
     if(this->particles[_pos].type == SAND) {
-        if (this->downNeighbour(_pos) && !this->particles[_pos].updated) {
+
+        int _neighbours = 0;
+        while(this->isInBounds(_x, _y - 1 - _neighbours) && this->isEmpty(_x, _y - 1 - _neighbours) &&
+                _neighbours <= SAND_MAX_FALL) { _neighbours++; }
+
+        if (_neighbours >= 1) {
             this->particles[_pos].type = NONE_PARTICLE;
             this->particles[_pos].color = TRANSPARENT_COLOR;
-            this->particles[_pos - this->proceduralTexture->getWidth()].type = SAND;
-            this->particles[_pos - this->proceduralTexture->getWidth()].color = SAND_COLOR;
-        } else if (this->downLeftNeighbour(_pos)) {
-            this->particles[_pos].type = NONE_PARTICLE;
-            this->particles[_pos].color = TRANSPARENT_COLOR;
-            this->particles[_pos - this->proceduralTexture->getWidth() - 1].type = SAND;
-            this->particles[_pos - this->proceduralTexture->getWidth() - 1].color = SAND_COLOR;
-        } else if (this->downRightNeighbour(_pos) && !this->particles[_pos].updated) {
-            this->particles[_pos].type = NONE_PARTICLE;
-            this->particles[_pos].color = TRANSPARENT_COLOR;
-            this->particles[_pos - this->proceduralTexture->getWidth() + 1].type = SAND;
-            this->particles[_pos - this->proceduralTexture->getWidth() + 1].color = SAND_COLOR;
-            this->particles[_pos - this->proceduralTexture->getWidth() + 1].updated = true;
+
+            int _toExchange = this->calcVecPos(_x, _y - _neighbours);
+            this->particles[_toExchange].type = SAND;
+            this->particles[_toExchange].color = SAND_COLOR;
+            return;
         }
 
+        while(this->isInBounds( _x - 1 - _neighbours, _y - 1 - _neighbours) && this->isEmpty(_x - 1 - _neighbours, _y - 1 - _neighbours) &&
+              _neighbours <= SAND_MAX_FALL) { _neighbours++; }
 
+        if (_neighbours >= 1) {
+            this->particles[_pos].type = NONE_PARTICLE;
+            this->particles[_pos].color = TRANSPARENT_COLOR;
+
+            int _toExchange = this->calcVecPos(_x - _neighbours, _y - _neighbours);
+            this->particles[_toExchange].type = SAND;
+            this->particles[_toExchange].color = SAND_COLOR;
+            return;
+        }
+
+        while(this->isInBounds( _x + 1 + _neighbours, _y - 1 - _neighbours) && this->isEmpty(_x + 1 + _neighbours, _y - 1 - _neighbours) &&
+              _neighbours <= SAND_MAX_FALL) { _neighbours++; }
+
+        if (_neighbours >= 1) {
+            this->particles[_pos].type = NONE_PARTICLE;
+            this->particles[_pos].color = TRANSPARENT_COLOR;
+
+            int _toExchange = this->calcVecPos(_x + _neighbours, _y - _neighbours);
+            this->particles[_toExchange].type = SAND;
+            this->particles[_toExchange].color = SAND_COLOR;
+            this->particles[_toExchange].updated = true;
+            return;
+        }
     }
 }
 
@@ -243,7 +286,7 @@ Color TestGame::particleTypeToColor(const TestGame::ParticleType& _particle) {
 }
 
 void TestGame::generateParticles(const Vec2f& _mousePos) {
-    int _posInVector = (int)_mousePos.x + ((int)this->proceduralTexture->getWidth() * (int)_mousePos.y);
+    int _posInVector = this->calcVecPos((int)_mousePos.x, (int)_mousePos.y);
     if(this->particles[_posInVector].type == NONE_PARTICLE) {
         Particle _particle;
         _particle.position              = {_mousePos.x, _mousePos.y};
@@ -253,7 +296,7 @@ void TestGame::generateParticles(const Vec2f& _mousePos) {
     }
 }
 
-void TestGame::generateWithBrush(Vec2f _mousePos) {
+void TestGame::generateWithBrush(const Vec2f& _mousePos) {
 
     if(this->brushSize == 1) {
         this->generateParticles(_mousePos);
@@ -268,14 +311,12 @@ void TestGame::generateWithBrush(Vec2f _mousePos) {
                       (_randPos.second + _mousePos.y < 0 || _randPos.second + _mousePos.y >= (float)this->proceduralTexture->getHeight() - 1))
                     _randPos = std::make_pair<int, int>(dist(mt), dist(mt));
 
-//            LOG_INFO("X: {0}, Y: {1}", _mousePos.x + _randPos.first, _mousePos.y + _randPos.second);
                 _spawnedPositions.emplace_back(_randPos);
                 this->generateParticles({_mousePos.x + _randPos.first, _mousePos.y + _randPos.second});
             }
         } else {
             std::vector<std::pair<int, int>> _spawnedPositions;
             std::uniform_int_distribution<int> dist(-this->brushSize, this->brushSize);
-            int _count = 0;
             for(int _y = -this->brushSize / 2; _y < this->brushSize / 2; _y++) {
                 for(int _x = -this->brushSize / 2; _x < this->brushSize / 2; _x++) {
                     if(((float)_x  + _mousePos.x > 0 || (float)_x  + _mousePos.x <= (float)this->proceduralTexture->getWidth() - 1) ||
@@ -286,4 +327,23 @@ void TestGame::generateWithBrush(Vec2f _mousePos) {
             }
         }
     }
+}
+
+void TestGame::removeParticles(const Vec2f& _mousePos) {
+    int _posInVector = this->calcVecPos((int)_mousePos.x, (int)_mousePos.y);
+    this->particles[_posInVector].type  = NONE_PARTICLE;
+    this->particles[_posInVector].color = this->particleTypeToColor(NONE_PARTICLE);
+}
+
+bool TestGame::isInBounds(int _x, int _y) {
+    return _x >= 0 && _x <= this->proceduralTexture->getWidth() - 1 &&
+           _y >= 0 && _y <= this->proceduralTexture->getHeight() - 1;
+}
+
+int TestGame::calcVecPos(int _x, int _y) {
+    return _x + ((int)this->proceduralTexture->getWidth() * _y);
+}
+
+bool TestGame::isEmpty(int _x, int _y) {
+    return this->particles[this->calcVecPos(_x, _y)].type == NONE_PARTICLE;
 }
