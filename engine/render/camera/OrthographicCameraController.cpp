@@ -14,7 +14,7 @@ namespace engine {
 
         // Auto updates the aspect ratio directly to the screen size, this way, there's no need to pass it as an argument.
         auto& _app = Application::get();
-        this->aspectRatio = _app.getWindowSize().x / _app.getWindowSize().y;
+        this->aspectRatio = (float)_app.getWindowSize().x / (float)_app.getWindowSize().y;
 
         if(OrthographicCamera::usingAspectRatio) {
             this->zoomLevel = 12.0f;

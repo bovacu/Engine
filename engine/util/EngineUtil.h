@@ -28,97 +28,101 @@
 
 namespace engine {
 
-    struct Vec2f {
-		float x, y;
+    template<typename T>
+    struct Vec2 {
+        public:
+            T x, y;
 
-		Vec2f(const Vec2f& _point)  = default;
-		Vec2f() : x(0), y(0) {  }
-		Vec2f(float _x, float _y) : x(_x), y(_y) {  } 
+            Vec2(const Vec2& _point)  = default;
+            Vec2() : x(0), y(0) {  }
+            Vec2(T _x, T _y) : x(_x), y(_y) {  }
 
-		float dotProduct(const Vec2f& _p) const {
-			return this->x * _p.x + this->y * _p.y;
-		}
+            [[nodiscard]] float dotProduct(const Vec2<T>& _p) const {
+                return this->x * _p.x + this->y * _p.y;
+            }
 
-		float magnitude() const {
-			return std::sqrt(this->x * this->x + this->y * this->y);
-		}
+            [[nodiscard]] float magnitude() const {
+                return std::sqrt(this->x * this->x + this->y * this->y);
+            }
 
-		static Vec2f normalize(Vec2f& _p) {
-			float _magnitude = _p.magnitude();
-			return Vec2f(_p.x / _magnitude, _p.y / _magnitude);
-		}
+            static Vec2<float> normalize(Vec2<T>& _p) {
+                float _magnitude = _p.magnitude();
+                return Vec2<float>(_p.x / _magnitude, _p.y / _magnitude);
+            }
 
-		inline void operator=(const Vec2f& _p) {
-			this->x = _p.x;
-			this->y = _p.y;
-		}
+            inline Vec2<T>& operator=(const Vec2<T>& _p) = default;
 
-		inline Vec2f operator-(const Vec2f& _p) {
-			return Vec2f(this->x - _p.x, this->y - _p.y);
-		} 
+            inline Vec2<T> operator-(const Vec2<T>& _p) const {
+                return Vec2<T>(this->x - _p.x, this->y - _p.y);
+            }
 
-		inline void operator-=(const Vec2f& _p) {
-			this->x -= _p.x;
-			this->y -= _p.y;
-		} 
+            inline void operator-=(const Vec2<T>& _p) {
+                this->x -= _p.x;
+                this->y -= _p.y;
+            }
 
-		inline Vec2f operator+(const Vec2f& _p) const{
-			return Vec2f(this->x + _p.x, this->y + _p.y);
-		} 
+            inline Vec2<T> operator+(const Vec2<T>& _p) const{
+                return Vec2<T>(this->x + _p.x, this->y + _p.y);
+            }
 
-		inline void operator+=(const Vec2f& _p) {
-			this->x += _p.x;
-			this->y += _p.y;
-		} 
+            inline void operator+=(const Vec2<T>& _p) {
+                this->x += _p.x;
+                this->y += _p.y;
+            }
 
-		inline Vec2f operator/(const float _a) const{
-			return Vec2f(this->x / _a, this->y / _a);
-		} 
+            inline Vec2<T> operator/(const float _a) const{
+                return Vec2<T>(this->x / _a, this->y / _a);
+            }
 
-		inline Vec2f operator*(const float _a) const{
-			return Vec2f(this->x * _a, this->y *_a);
-		} 
+            inline Vec2 operator*(const float _a) const{
+                return Vec2<T>(this->x * _a, this->y *_a);
+            }
 
-		inline Vec2f operator*(const Vec2f& _p) const{
-			return Vec2f(this->x * _p.x, this->y *_p.y);
-		}
+            inline Vec2<T> operator*(const Vec2<T>& _p) const{
+                return Vec2<T>(this->x * _p.x, this->y *_p.y);
+            }
 
-		inline Vec2f operator*=(const Vec2f& _p) const{
-			return Vec2f(this->x * _p.x, this->y *_p.y);
-		} 
+            inline Vec2<T> operator*=(const Vec2<T>& _p) const{
+                return Vec2<T>(this->x * _p.x, this->y *_p.y);
+            }
 
-		inline Vec2f operator+(const float _a) const{
-			return Vec2f(this->x + _a, this->y + _a);
-		} 
+            inline Vec2<T> operator+(const float _a) const{
+                return Vec2<T>(this->x + _a, this->y + _a);
+            }
 
-		inline Vec2f operator+=(const float _a) const{
-			return Vec2f(this->x + _a, this->y + _a);
-		} 
+            inline Vec2<T> operator+=(const float _a) const{
+                return Vec2<T>(this->x + _a, this->y + _a);
+            }
 
-		inline Vec2f operator-(const float _a) const{
-			return Vec2f(this->x - _a, this->y - _a);
-		} 
+            inline Vec2<T> operator-(const float _a) const{
+                return Vec2<T>(this->x - _a, this->y - _a);
+            }
 
-		inline bool operator==(const Vec2f& _p) const {
-			return this->x == _p.x && this->y == _p.y;
-		}
+            inline bool operator==(const Vec2<T>& _p) const {
+                return this->x == _p.x && this->y == _p.y;
+            }
 
-		inline bool operator>(float _value) const {
-		    return this->x > _value && this->y > _value;
-		}
+            inline bool operator>(float _value) const {
+                return this->x > _value && this->y > _value;
+            }
 
-        inline bool operator>=(float _value) const {
-            return this->x >= _value && this->y >= _value;
-        }
+            inline bool operator>=(float _value) const {
+                return this->x >= _value && this->y >= _value;
+            }
 
-        inline bool operator<(float _value) const {
-            return this->x < _value && this->y < _value;
-        }
+            inline bool operator<(float _value) const {
+                return this->x < _value && this->y < _value;
+            }
 
-        inline bool operator<=(float _value) const {
-            return this->x <= _value && this->y <= _value;
-        }
-	};
+            inline bool operator<=(float _value) const {
+                return this->x <= _value && this->y <= _value;
+            }
+    };
+
+    typedef Vec2<float>         Vec2f;
+    typedef Vec2<int>           Vec2i;
+    typedef Vec2<double>        Vec2d;
+    typedef Vec2<unsigned int>  Vec2ui;
 
     struct Size {
 		float width, height;

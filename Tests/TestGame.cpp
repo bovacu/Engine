@@ -8,7 +8,6 @@ TestGame::TestGame() :  engine::Layer("Prueba"),
 
 void TestGame::onInit() {
     this->app.setTitle("Particle simulator");
-
     this->proceduralTexture = Texture2D::create((uint32_t)this->app.getWindowSize().x, (uint32_t)this->app.getWindowSize().y, true);
 
     this->initSimulationWorld();
@@ -272,10 +271,10 @@ bool TestGame::rightNeighbour(int _pos) {
 
 Color TestGame::particleTypeToColor(const TestGame::ParticleType& _particle) {
     switch (_particle) {
-        case SAND           : return this->PARTICLE_COLORS[this->random.random(0, 3)];
-        case WATER          : return this->PARTICLE_COLORS[4];
-        case ROCK           : return this->PARTICLE_COLORS[5];
-        case NONE_PARTICLE  : return this->PARTICLE_COLORS[6];
+        case SAND           : return this->PARTICLE_COLORS[this->random.random(0, 4)];
+        case WATER          : return this->PARTICLE_COLORS[5];
+        case ROCK           : return this->PARTICLE_COLORS[6];
+        case NONE_PARTICLE  : return this->PARTICLE_COLORS[7];
     }
 
     return TRANSPARENT_COLOR;

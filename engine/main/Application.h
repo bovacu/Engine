@@ -100,7 +100,7 @@ namespace engine {
             [[nodiscard]] const std::string& getTitle() const   { return this->window->getTitle(); }
 
             void setWindowSize(int _width, int _height);
-            [[nodiscard]] Vec2f getWindowSize() const           { return Vec2f((float)this->window->getWidth(), (float)this->window->getHeight()); }
+            [[nodiscard]] Vec2i getWindowSize() const           { return Vec2i(this->window->getWidth(), this->window->getHeight()); }
 
             void setTimePerFrame(float _timePerFrame)           { this->timePerFrame = _timePerFrame; }
             [[nodiscard]] float getTimePerFrame() const         { return this->timePerFrame; }
@@ -109,8 +109,8 @@ namespace engine {
             bool isVSync();
 
             [[nodiscard]] Timestep getDelta() const             { return this->dt; }
-            Vec2f getMousePos() const                           { return Vec2f( -this->getWindowSize().x / 2.f + Input::getMouseX(),
-                                                                                this->getWindowSize().y / 2.f - Input::getMouseY()); }
+            [[nodiscard]] Vec2i getMousePos() const             { return Vec2i( (int)(-this->getWindowSize().x / 2.f + Input::getMouseX()),
+                                                                                (int)(this->getWindowSize().y / 2.f - Input::getMouseY())); }
 
             void setFullscreen(bool _fullscreen);
             [[nodiscard]] bool isFullscreen() const             {  return this->window->isFullscreen(); }

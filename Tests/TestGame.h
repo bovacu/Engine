@@ -46,11 +46,12 @@ class TestGame : public engine::Layer {
 
         int particlesUpdating = 0;
 
-        Color PARTICLE_COLORS[7] = {
-                { 194, 178, 128, 255 }, /// SAND_0
-                { 186, 168, 111, 255 }, /// SAND_1
-                { 177, 157,  94, 255 }, /// SAND_2
-                { 166, 145,  80, 255 }, /// SAND_3
+        Color PARTICLE_COLORS[8] = {
+                { 202, 188, 145, 255 }, /// SAND_0
+                { 194, 178, 128, 255 }, /// SAND_1
+                { 186, 168, 111, 255 }, /// SAND_2
+                { 177, 157,  94, 255 }, /// SAND_3
+                { 166, 145,  80, 255 }, /// SAND_4
                 {  90, 188, 216, 125 }, /// WATER_0
                 { 187, 182, 177, 255 }, /// ROCK_0
                 {   0,   0,   0,   0 }  /// TRANSPARENT
