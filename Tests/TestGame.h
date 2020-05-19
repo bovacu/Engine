@@ -3,8 +3,6 @@
 #ifndef TESTGAME_H
 #define TESTGAME_H
 
-#define SAND_MAX_FALL 3
-
 #define MAX_BRUSH_THICKNESS 20
 
 #define SAND_COLOR          { 194, 178, 128, 255 }
@@ -13,7 +11,6 @@
 #define ROCK_COLOR          { 187, 182, 177, 255 }
 
 #include <engine/main/Engine.h>
-#include <random>
 
 using namespace engine;
 
@@ -22,9 +19,10 @@ class TestGame : public engine::Layer {
     public:
         enum ParticleType { NONE_PARTICLE, SAND, WATER, ROCK };
         enum Tool { DRAW, ERASE };
+        float gravity = 10.f;
 
         struct Particle {
-            Vec2f position;
+            Vec2f velocity {0.0f, 0.0f};
             Color color;
             ParticleType type;
             bool updated = false;
@@ -42,10 +40,21 @@ class TestGame : public engine::Layer {
         ParticleType selectedParticle = SAND;
 
         Tool usingTool = DRAW;
-        int brushSize = 1;
+        int brushSize = 10;
 
-        std::random_device rd;
-        std::mt19937 mt;
+        engine::Random random;
+
+        int particlesUpdating = 0;
+
+        Color PARTICLE_COLORS[7] = {
+                { 194, 178, 128, 255 }, /// SAND_0
+                { 186, 168, 111, 255 }, /// SAND_1
+                { 177, 157,  94, 255 }, /// SAND_2
+                { 166, 145,  80, 255 }, /// SAND_3
+                {  90, 188, 216, 125 }, /// WATER_0
+                { 187, 182, 177, 255 }, /// ROCK_0
+                {   0,   0,   0,   0 }  /// TRANSPARENT
+        };
 
     public:
         TestGame();
@@ -61,15 +70,12 @@ class TestGame : public engine::Layer {
 
     private:
         void initSimulationWorld();
-        void updateSandParticle(int _x, int _y);
+        void updateSandParticle(int _x, int _y, Timestep _dt);
         void updateWaterParticle(int _pos);
 
         bool downNeighbour(int _pos);
         bool leftNeighbour(int _pos);
         bool rightNeighbour(int _pos);
-        bool upNeighbour(int _pos);
-        bool downLeftNeighbour(int _pos);
-        bool downRightNeighbour(int _pos);
 
         Color particleTypeToColor(const ParticleType& _particle);
         void generateParticles(const Vec2f& _mousePos);
@@ -79,6 +85,8 @@ class TestGame : public engine::Layer {
         bool isInBounds(int _x, int _y);
         int calcVecPos(int _x, int _y);
         bool isEmpty(int _x, int _y);
+
+        void writeParticle(int _x, int _y, const Particle& _particle);
 };
 
 #endif //TESTGAME_H

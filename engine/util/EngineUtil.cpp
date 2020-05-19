@@ -17,9 +17,8 @@ namespace engine {
     namespace functions {
 
         float clamp(float _value, float _minValue, float _maxValue) {
-            return (_value < _minValue) ? _minValue : (_maxValue < _value) ? _maxValue : _value;
+            return (_value < _minValue) ? _minValue : (_value > _maxValue) ? _maxValue : _value;
         }
-
 
     }
 

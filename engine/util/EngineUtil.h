@@ -4,6 +4,7 @@
 #define ENGINE_UTIL_H
 
 #include "pch.h"
+#include <random>
 
 /*  =================================================================================================
     =                                      ENGINE UTIL                                              =
@@ -168,12 +169,31 @@ namespace engine {
 		static const Color Gray;
 	};
 
+	class Random {
+	    private:
+            std::random_device rd;
+            std::mt19937 mt;
+
+	    public:
+	        explicit Random() : mt(rd()) {  };
+
+	        template<typename T>
+            T random(T _min, T _max) {
+                if(_min > _max) {
+                    T _aux = _min;
+                    _min = _max;
+                    _max = _min;
+                }
+                std::uniform_int_distribution<T> _dist(_min, _max);
+                return _dist(this->mt);
+            }
+	};
+
     namespace functions {
 
         // This method return _value if _value is between _minValue and _maxValue,
         // _minValue if _value is lower and _maxValue if _value is higher
         float clamp(float _value, float _minValue, float _maxValue);
-
     }
 }
 
