@@ -46,16 +46,28 @@ void TestGame::onUpdate(engine::Timestep _dt) {
 
         /// UPDATING PARTICLES
         for(int _y = 0; _y < (int)this->proceduralTexture->getHeight(); _y++) {
-            for (int _x = 0; _x < (int) this->proceduralTexture->getWidth(); _x++) {
-                int _pos = this->calcVecPos(_x, _y);
-                ParticleType _type = this->particles[_pos].type;
-                switch(_type) {
-                    case SAND   : this->updateSandParticle(_x, _y, _pos, _dt);  break;
-                    case WATER  : this->updateWaterParticle(_x, _y, _pos, _dt); break;
-                    case ROCK   : this->updateRockParticle(_x, _y, _pos, _dt);  break;
-                    default     :                                               break;
+            if(this->random.random<int>(0, 1) == 0) {
+                for (int _x = 0; _x < (int) this->proceduralTexture->getWidth(); _x++) {
+                    int _pos = this->calcVecPos(_x, _y);
+                    ParticleType _type = this->particles[_pos].type;
+                    switch (_type) {
+                        case SAND   : this->updateSandParticle(_x, _y, _pos, _dt);  break;
+                        case WATER  : this->updateWaterParticle(_x, _y, _pos, _dt); break;
+                        case ROCK   : this->updateRockParticle(_x, _y, _pos, _dt);  break;
+                        default     :                                               break;
+                    }
                 }
-//                this->updateWaterParticle(_pos);
+            } else {
+                for (int _x = (int)this->proceduralTexture->getWidth() - 1; _x > 0; _x--) {
+                    int _pos = this->calcVecPos(_x, _y);
+                    ParticleType _type = this->particles[_pos].type;
+                    switch (_type) {
+                        case SAND   : this->updateSandParticle(_x, _y, _pos, _dt);  break;
+                        case WATER  : this->updateWaterParticle(_x, _y, _pos, _dt); break;
+                        case ROCK   : this->updateRockParticle(_x, _y, _pos, _dt);  break;
+                        default     :                                               break;
+                    }
+                }
             }
         }
 
@@ -256,43 +268,50 @@ void TestGame::updateWaterParticle(int _x, int _y, int _posInVector, Timestep _d
         this->writeParticle(_x, _y, _tempB);
         this->particlesUpdating++;
     } else {
-        /// Down
-        if(this->isEmpty(_x, _y - 1)) {
-            _p->velocity.y += (this->gravity * _dt);
-            _tempB = this->particles[this->calcVecPos(_x, _y - 1)];
+        int _spreadVelocity = 5;
+        int _sign = this->random.random<int>(0, 1) == 0 ? -1 : 1;
+        _sign *= _spreadVelocity;
+        int _below = this->calcVecPos(_x, _y - 1);
 
-            this->writeParticle(_x, _y - 1, *_p);
+        int _firstMovement  = this->calcVecPos(_x + _sign, _y);
+        int _secondMovement = this->calcVecPos(_x - _sign, _y);
+
+        int _firstDownMovement  = this->calcVecPos(_x + _sign, _y - 1);
+        int _secondDownMovement = this->calcVecPos(_x - _sign, _y - 1);
+
+        /// Down
+        if(this->isInBounds(_x, _y - 1) && (_tempB = this->particles[_below]).type == NONE_PARTICLE) {
+            this->writeParticle(_x, _y - 1, _tempA);
             this->writeParticle(_x, _y, _tempB);
             this->particlesUpdating++;
         }
 
-        else {
-            if(_p->direction.x < 0) {
-                if(this->isEmpty(_x - 1, _y)) {
-                    if(this->isInBounds(_x - 1, _y - 1)) {
-                        _tempB = this->particles[this->calcVecPos(_x - 1, _y)];
-                        _p->velocity.x = 0.f;
-                        this->writeParticle(_x - 1, _y, *_p);
-                        this->writeParticle(_x, _y, _tempB);
-                        this->particlesUpdating++;
-                    }
-                } else {
-                    _p->direction.x = 1;
-                }
-            } else {
-                if(this->isEmpty(_x + 1, _y)) {
-                    if(this->isInBounds(_x + 1, _y - 1)) {
-                        _tempB = this->particles[this->calcVecPos(_x + 1, _y)];
-                        _p->velocity.x = 0.f;
-                        this->writeParticle(_x + 1, _y, *_p);
-                        this->writeParticle(_x, _y, _tempB);
-                        this->particles[_posInVector].updated = false;
-                        this->particlesUpdating++;
-                    }
-                } else {
-                    _p->direction.x = -1;
-                }
-            }
+        /// Down-Right OR Down-Left
+        else if (this->isInBounds(_x + _sign, _y - 1) && (_tempB = this->particles[_firstDownMovement]).type == NONE_PARTICLE) {
+            this->writeParticle(_x + _sign, _y - 1, _tempA);
+            this->writeParticle(_x, _y, _tempB);
+            this->particlesUpdating++;
+        }
+
+        /// Down-Right OR Down-Left
+        else if (this->isInBounds(_x - _sign, _y - 1) && (_tempB = this->particles[_secondDownMovement]).type == NONE_PARTICLE) {
+            this->writeParticle(_x - _sign, _y - 1, _tempA);
+            this->writeParticle(_x, _y, _tempB);
+            this->particlesUpdating++;
+        }
+
+        /// Left OR Right
+        else if (this->isInBounds(_x + _sign, _y) && (_tempB = this->particles[_firstMovement]).type == NONE_PARTICLE) {
+            this->writeParticle(_x + _sign, _y, _tempA);
+            this->writeParticle(_x, _y, _tempB);
+            this->particlesUpdating++;
+        }
+
+        /// Left OR Right
+        else if (this->isInBounds(_x - _sign, _y) && (_tempB = this->particles[_secondMovement]).type == NONE_PARTICLE) {
+            this->writeParticle(_x - _sign, _y, _tempA);
+            this->writeParticle(_x, _y, _tempB);
+            this->particlesUpdating++;
         }
     }
 }
@@ -309,7 +328,7 @@ Color TestGame::particleTypeToColor(const TestGame::ParticleType& _particle) {
         case NONE_PARTICLE  : return this->PARTICLE_COLORS[7];
     }
 
-    return TRANSPARENT_COLOR;
+    return this->PARTICLE_COLORS[7];
 }
 
 void TestGame::generateParticles(const Vec2f& _mousePos) {
@@ -319,9 +338,9 @@ void TestGame::generateParticles(const Vec2f& _mousePos) {
         _particle.velocity              = {0, 0};
         _particle.color                 = this->particleTypeToColor(this->selectedParticle);
         _particle.type                  = this->selectedParticle;
-        if(this->selectedParticle == WATER)
-            this->setWaterParticleDirection(_particle, _mousePos);
         this->particles[_posInVector]   = _particle;
+
+        this->writeParticle((int)_mousePos.x, (int)_mousePos.y, this->particles[_posInVector]);
     }
 }
 
@@ -378,25 +397,4 @@ bool TestGame::isEmpty(int _x, int _y) {
 void TestGame::writeParticle(int _x, int _y, const TestGame::Particle& _particle) {
     this->particles[this->calcVecPos(_x, _y)] = _particle;
     this->proceduralTexture->setPixel(_x, _y, _particle.color);
-}
-
-void TestGame::setWaterParticleDirection(Particle& _particle, const Vec2f& _particlePosition) {
-    Vec2f _mousePos = Input::getMousePosition();
-    if(_particlePosition.x > _mousePos.x)       _particle.direction.x = 1;
-    else if(_particlePosition.x < _mousePos.x)  _particle.direction.x = -1;
-    else {
-        int _rand = this->random.random(0, 1);
-        _particle.direction.x = _rand == 0 ?  -1 : 1;
-    }
-
-//    Vec2f _mousePos = Input::getMousePosition();
-//    int _rand = this->random.random(0, 1);
-//    _particle.velocity.x = _rand == 0 ?  -1.f : 1.f;
-//    if(_particlePosition.x + _particle.velocity.x > _mousePos.x) {
-//        _particle.direction.x = 1;
-//    } else if(_particlePosition.x + _particle.velocity.x < _mousePos.x) {
-//        _particle.direction.x = -1;
-//    } else {
-//        _particle.direction.x = _rand == 0 ?  -1 : 1;
-//    }
 }
