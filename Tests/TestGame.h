@@ -22,7 +22,8 @@ class TestGame : public engine::Layer {
         float gravity = 10.f;
 
         struct Particle {
-            Vec2f velocity {0.0f, 0.0f};
+            Vec2f velocity  {0.0f, 0.0f};
+            Vec2i direction {  0,    0 };
             Color color;
             ParticleType type;
             bool updated = false;
@@ -71,12 +72,11 @@ class TestGame : public engine::Layer {
 
     private:
         void initSimulationWorld();
-        void updateSandParticle(int _x, int _y, Timestep _dt);
-        void updateWaterParticle(int _pos);
+        void updateSandParticle (int _x, int _y, int _posInVector, Timestep _dt);
+        void updateWaterParticle(int _x, int _y, int _posInVector, Timestep _dt);
+        void updateRockParticle (int _x, int _y, int _posInVector, Timestep _dt);
 
-        bool downNeighbour(int _pos);
-        bool leftNeighbour(int _pos);
-        bool rightNeighbour(int _pos);
+        void setWaterParticleDirection(Particle& _particle, const Vec2f& _particlePosition);
 
         Color particleTypeToColor(const ParticleType& _particle);
         void generateParticles(const Vec2f& _mousePos);
