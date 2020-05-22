@@ -2,6 +2,8 @@
   <dictionary name="vazqu">
     <words>
       <w>calcs</w>
+      <w>crafter</w>
+      <w>imgui</w>
       <w>recalc</w>
       <w>timestep</w>
       <w>vsync</w>

@@ -18,6 +18,9 @@ void TestGame::onInit() {
     this->oneFrameTexture = engine::ImGuiTexture2D::create("assets/textures/archivo-de-video.png");
     this->drawTexture = engine::ImGuiTexture2D::create("assets/textures/editar.png");
     this->eraseTexture = engine::ImGuiTexture2D::create("assets/textures/borrador.png");
+
+    this->enabledTexture = engine::ImGuiTexture2D::create("assets/textures/selected.png");
+    this->disabledTexture = engine::ImGuiTexture2D::create("assets/textures/unselected.png");
 }
 
 void TestGame::onEnd() {
@@ -32,7 +35,7 @@ void TestGame::onUpdate(engine::Timestep _dt) {
         }
 
         /// ADDING NEW PARTICLES
-        if(!ImGui::IsAnyWindowHovered() && !ImGui::IsAnyItemActive()) {
+        if(!ImGui::IsAnyWindowHovered() && !ImGui::IsAnyItemActive() && !this->tools[IMGUI_CRAFTER]) {
             auto _mousePos = Input::getMousePosition();
             if(_mousePos >= 0 && _mousePos.x < this->proceduralTexture->getWidth() && _mousePos.y < this->proceduralTexture->getHeight()) {
                 if (Input::isMousePressed(MouseCode::Button0)) {
@@ -99,77 +102,21 @@ void TestGame::onRender(engine::Timestep _dt) {
 }
 
 void TestGame::onImGuiRender(engine::Timestep _dt) {
-    engine::ImGuiLayer::drawDebugInfo();
+    this->imGuiToolEnablerWindow(_dt);
 
-    ImGui::Begin("Controller");
+//    if(this->tools[IMGUI_DEBUGGING])
+//        engine::ImGuiLayer::drawDebugInfo();
+//
+//    if(this->tools[IMGUI_DRAWING])
+//        this->imGuiDrawingWindow(_dt);
+//
+//    if(this->tools[IMGUI_CONTROLLER])
+//        this->imGuiControllerWindow(_dt);
+//
+//    if(this->tools[IMGUI_CRAFTER])
+//        this->imGuiCrafterWindow(_dt);
 
-        if(ImGui::Button("Reset Scene")) {
-            delete [] this->particles;
-            this->initSimulationWorld();
-        }
-
-        ImGui::Separator();
-
-        if(ImGui::ImageButton((void*)(intptr_t)this->resumeTexture->getTexture(), ImVec2((float)this->resumeTexture->getWidth(), (float)this->resumeTexture->getHeight())))
-            this->play = true;
-        ImGui::SameLine();
-        if(ImGui::ImageButton((void*)(intptr_t)this->pauseTexture->getTexture(), ImVec2((float)this->pauseTexture->getWidth(), (float)this->pauseTexture->getHeight())))
-            this->play = false;
-        ImGui::SameLine();
-        if(ImGui::ImageButton((void*)(intptr_t)this->oneFrameTexture->getTexture(), ImVec2((float)this->oneFrameTexture->getWidth(), (float)this->oneFrameTexture->getHeight()))) {
-            this->play = true;
-            this->oneStep = true;
-        }
-        ImGui::SameLine();
-        ImGui::ImageButton((void*)(intptr_t)this->advanceTexture->getTexture(), ImVec2((float)this->advanceTexture->getWidth(), (float)this->advanceTexture->getHeight()));
-        if(ImGui::IsItemHovered() && Input::isMousePressed(MouseCode::Button0)) {
-            this->play = true;
-            this->oneStep = true;
-        }
-
-        ImGui::Separator();
-
-        if(ImGui::ImageButton((void*)(intptr_t)this->drawTexture->getTexture(), ImVec2((float)this->drawTexture->getWidth(), (float)this->drawTexture->getHeight()))) {
-            this->usingTool = DRAW;
-        }
-        ImGui::SameLine();
-        if(ImGui::ImageButton((void*)(intptr_t)this->eraseTexture->getTexture(), ImVec2((float)this->eraseTexture->getWidth(), (float)this->eraseTexture->getHeight()))) {
-            this->usingTool = ERASE;
-        }
-
-        const char* _materials[] = { "Sand", "Water", "Rock"};
-        static const char* _materialSelected = _materials[0];
-
-        ImGui::Separator();
-        ImGui::Text("Materials");
-        if (ImGui::BeginCombo("##combo", _materialSelected)){ // The second parameter is the label previewed before opening the combo. {
-            for (auto & _material : _materials) {
-                bool is_selected = (_materialSelected == _material); // You can store your selection however you want, outside or inside your objects
-                if (ImGui::Selectable(_material, is_selected)) {
-                    _materialSelected = _material;
-                    if(strcmp(_materialSelected, "Sand") == 0)
-                        this->selectedParticle = SAND;
-                    else if(strcmp(_materialSelected, "Water") == 0)
-                        this->selectedParticle = WATER;
-                    else if(strcmp(_materialSelected, "Rock") == 0)
-                        this->selectedParticle = ROCK;
-                }
-                if (is_selected)
-                    ImGui::SetItemDefaultFocus();   // You may set the initial focus when opening the combo (scrolling + for keyboard navigation support)
-            }
-            ImGui::EndCombo();
-        }
-
-        ImGui::Separator();
-
-        ImGui::Text("Brush thickness");
-        ImGui::SliderInt("##slider", &this->brushSize, 1, MAX_BRUSH_THICKNESS);
-
-        ImGui::Separator();
-        ImGui::Text("Particles Updating: %d", this->particlesUpdating);
-        this->particlesUpdating = 0;
-
-    ImGui::End();
+    this->particlesUpdating = 0;
 }
 
 void TestGame::onEvent(engine::Event& _e) {
@@ -249,9 +196,8 @@ void TestGame::updateSandParticle(int _x, int _y, int _posInVector, Timestep _dt
 
 void TestGame::updateWaterParticle(int _x, int _y, int _posInVector, Timestep _dt) {
     Particle* _p = &this->particles[_posInVector];
+    int _sign = this->random.random<int>(0, 1) == 0 ? -1 : 1;
     _p->velocity.y = functions::clamp(_p->velocity.y + (this->gravity * _dt), -this->gravity, this->gravity );
-    _p->updated = true;
-//    _p->velocity.x = this->random.random<int>( 0, 1 ) == 0 ? -1.f : 1.f;
 
     int _vX = _x + (int)_p->velocity.x;
     int _vY = _y - (int)_p->velocity.y;
@@ -268,9 +214,7 @@ void TestGame::updateWaterParticle(int _x, int _y, int _posInVector, Timestep _d
         this->writeParticle(_x, _y, _tempB);
         this->particlesUpdating++;
     } else {
-        int _spreadVelocity = 5;
-        int _sign = this->random.random<int>(0, 1) == 0 ? -1 : 1;
-        _sign *= _spreadVelocity;
+
         int _below = this->calcVecPos(_x, _y - 1);
 
         int _firstMovement  = this->calcVecPos(_x + _sign, _y);
@@ -397,4 +341,130 @@ bool TestGame::isEmpty(int _x, int _y) {
 void TestGame::writeParticle(int _x, int _y, const TestGame::Particle& _particle) {
     this->particles[this->calcVecPos(_x, _y)] = _particle;
     this->proceduralTexture->setPixel(_x, _y, _particle.color);
+}
+
+void TestGame::imGuiToolEnablerWindow(engine::Timestep _dt) {
+    ImGui::Begin("Tools", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+//        ImGui::Text("Debugging"); ImGui::SameLine(80);
+//        if(this->tools[IMGUI_DEBUGGING]) {
+//            if(ImGui::ImageButton((void*)(intptr_t)this->enabledTexture->getTexture(), ImVec2((float)this->enabledTexture->getWidth(), (float)this->enabledTexture->getHeight())))
+//                this->tools[IMGUI_DEBUGGING] = false;
+//        } else {
+//            if(ImGui::ImageButton((void*)(intptr_t)this->disabledTexture->getTexture(), ImVec2((float)this->disabledTexture->getWidth(), (float)this->disabledTexture->getHeight())))
+//                this->tools[IMGUI_DEBUGGING] = true;
+//        }
+//
+//        ImGui::Text("Controller"); ImGui::SameLine(80);
+//        if(this->tools[IMGUI_CONTROLLER]) {
+//            if(ImGui::ImageButton((void*)(intptr_t)this->enabledTexture->getTexture(), ImVec2((float)this->enabledTexture->getWidth(), (float)this->enabledTexture->getHeight())))
+//                this->tools[IMGUI_CONTROLLER] = false;
+//        } else {
+//            if(ImGui::ImageButton((void*)(intptr_t)this->disabledTexture->getTexture(), ImVec2((float)this->disabledTexture->getWidth(), (float)this->disabledTexture->getHeight())))
+//                this->tools[IMGUI_CONTROLLER] = true;
+//        }
+//
+//        ImGui::Text("Drawing"); ImGui::SameLine(80);
+//        if(this->tools[IMGUI_DRAWING]) {
+//            if(ImGui::ImageButton((void*)(intptr_t)this->enabledTexture->getTexture(), ImVec2((float)this->enabledTexture->getWidth(), (float)this->enabledTexture->getHeight())))
+//                this->tools[IMGUI_DRAWING] = false;
+//        } else {
+//            if(ImGui::ImageButton((void*)(intptr_t)this->disabledTexture->getTexture(), ImVec2((float)this->disabledTexture->getWidth(), (float)this->disabledTexture->getHeight())))
+//                this->tools[IMGUI_DRAWING] = true;
+//        }
+
+        ImGui::Text("Crafter"); ImGui::SameLine(80);
+        if(ImGui::Button("Open Crafter")) {
+            ImGui::SetNextWindowSize({(float)this->app.getWindowSize().x / 2.f, (float)this->app.getWindowSize().y / 2.f}, ImGuiCond_Always);
+            ImGui::SetNextWindowPos({(float)this->app.getWindowSize().x, (float)this->app.getWindowSize().y}, ImGuiCond_Always);
+            ImGui::OpenPopup("Crafter");
+            this->tools[IMGUI_CRAFTER] = true;
+            this->play = false;
+        }
+
+        this->imGuiCrafterWindow(_dt);
+
+    ImGui::End();
+}
+
+void TestGame::imGuiDrawingWindow(engine::Timestep _dt) {
+    ImGui::Begin("Drawing");
+        if(ImGui::ImageButton((void*)(intptr_t)this->drawTexture->getTexture(), ImVec2((float)this->drawTexture->getWidth(), (float)this->drawTexture->getHeight()))) {
+            this->usingTool = DRAW;
+        }
+        ImGui::SameLine();
+        if(ImGui::ImageButton((void*)(intptr_t)this->eraseTexture->getTexture(), ImVec2((float)this->eraseTexture->getWidth(), (float)this->eraseTexture->getHeight()))) {
+            this->usingTool = ERASE;
+        }
+
+        const char* _materials[] = { "Sand", "Water", "Rock"};
+        static const char* _materialSelected = _materials[0];
+
+        ImGui::Separator();
+        ImGui::Text("Materials");
+        if (ImGui::BeginCombo("##combo", _materialSelected)){ // The second parameter is the label previewed before opening the combo. {
+            for (auto & _material : _materials) {
+                bool is_selected = (_materialSelected == _material); // You can store your selection however you want, outside or inside your objects
+                if (ImGui::Selectable(_material, is_selected)) {
+                    _materialSelected = _material;
+                    if(strcmp(_materialSelected, "Sand") == 0)
+                        this->selectedParticle = SAND;
+                    else if(strcmp(_materialSelected, "Water") == 0)
+                        this->selectedParticle = WATER;
+                    else if(strcmp(_materialSelected, "Rock") == 0)
+                        this->selectedParticle = ROCK;
+                }
+                if (is_selected)
+                    ImGui::SetItemDefaultFocus();   // You may set the initial focus when opening the combo (scrolling + for keyboard navigation support)
+            }
+            ImGui::EndCombo();
+        }
+
+        ImGui::Separator();
+
+        ImGui::Text("Brush thickness");
+        ImGui::SliderInt("##slider", &this->brushSize, 1, MAX_BRUSH_THICKNESS);
+    ImGui::End();
+}
+
+void TestGame::imGuiControllerWindow(engine::Timestep _dt) {
+    ImGui::Begin("Controller");
+        if(ImGui::Button("Reset Scene")) {
+            delete [] this->particles;
+            this->initSimulationWorld();
+        }
+
+        ImGui::Separator();
+
+        if(ImGui::ImageButton((void*)(intptr_t)this->resumeTexture->getTexture(), ImVec2((float)this->resumeTexture->getWidth(), (float)this->resumeTexture->getHeight())))
+            this->play = true;
+        ImGui::SameLine();
+        if(ImGui::ImageButton((void*)(intptr_t)this->pauseTexture->getTexture(), ImVec2((float)this->pauseTexture->getWidth(), (float)this->pauseTexture->getHeight())))
+            this->play = false;
+        ImGui::SameLine();
+        if(ImGui::ImageButton((void*)(intptr_t)this->oneFrameTexture->getTexture(), ImVec2((float)this->oneFrameTexture->getWidth(), (float)this->oneFrameTexture->getHeight()))) {
+            this->play = true;
+            this->oneStep = true;
+        }
+        ImGui::SameLine();
+        ImGui::ImageButton((void*)(intptr_t)this->advanceTexture->getTexture(), ImVec2((float)this->advanceTexture->getWidth(), (float)this->advanceTexture->getHeight()));
+        if(ImGui::IsItemHovered() && Input::isMousePressed(MouseCode::Button0)) {
+            this->play = true;
+            this->oneStep = true;
+        }
+    ImGui::End();
+}
+
+void TestGame::imGuiCrafterWindow(engine::Timestep _dt) {
+
+
+    if(ImGui::BeginPopupModal("Crafter", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize)) {
+        ImGui::Text("cosita");
+        if(ImGui::Button("Close")) {
+            ImGui::CloseCurrentPopup();
+            this->tools[IMGUI_CRAFTER] = false;
+            this->play = true;
+        }
+
+        ImGui::EndPopup();
+    }
 }

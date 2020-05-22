@@ -5,6 +5,11 @@
 
 #define MAX_BRUSH_THICKNESS 20
 
+#define IMGUI_DEBUGGING     0
+#define IMGUI_CONTROLLER    1
+#define IMGUI_DRAWING       2
+#define IMGUI_CRAFTER       3
+
 #include <engine/main/Engine.h>
 
 using namespace engine;
@@ -28,6 +33,7 @@ class TestGame : public engine::Layer {
         glm::vec4 squareColor = { 0.2f, 0.3f, 0.8f, 1.0f };
         Texture2DPtr proceduralTexture;
         ImGuiTexture2DPtr pauseTexture, resumeTexture, advanceTexture, oneFrameTexture, drawTexture, eraseTexture;
+        ImGuiTexture2DPtr enabledTexture, disabledTexture;
         Particle* particles;
         Application& app;
 
@@ -50,6 +56,13 @@ class TestGame : public engine::Layer {
                 {  90, 188, 216, 125 }, /// WATER_0
                 { 187, 182, 177, 255 }, /// ROCK_0
                 {   0,   0,   0,   0 }  /// TRANSPARENT
+        };
+
+        bool tools[4] = {
+                true,       /// Debugging
+                true,       /// Controller
+                true,       /// Drawing
+                false,       /// Crafter
         };
 
     public:
@@ -80,6 +93,11 @@ class TestGame : public engine::Layer {
         bool isEmpty(int _x, int _y);
 
         void writeParticle(int _x, int _y, const Particle& _particle);
+
+        void imGuiToolEnablerWindow(engine::Timestep _dt);
+        void imGuiDrawingWindow(engine::Timestep _dt);
+        void imGuiControllerWindow(engine::Timestep _dt);
+        void imGuiCrafterWindow(engine::Timestep _dt);
 };
 
 #endif //TESTGAME_H

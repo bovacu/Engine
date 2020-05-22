@@ -126,6 +126,8 @@ namespace engine {
             void pushLayer(Layer* _layer);
             void pushOverlay(Layer* _layer);
 
+            void popLayer(Layer* _layer);
+            void popOverlay(Layer* _layer);
 
 	    public:
             Window& getWindow() { return *this->window; }

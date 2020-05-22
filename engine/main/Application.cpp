@@ -41,6 +41,7 @@ namespace engine {
             _accumulator += _dt;
 
             if (!this->minimized) {
+
                 while (_accumulator >= this->timePerFrame) {
                     _accumulator -= this->timePerFrame;
                     this->onFixedUpdate(this->timePerFrame);
@@ -148,6 +149,14 @@ namespace engine {
     void Application::pushOverlay(Layer* _layer) {
         this->layerStack.pushOverlay(_layer);
         _layer->onInit();
+    }
+
+    void Application::popLayer(Layer* _layer) {
+
+    }
+
+    void Application::popOverlay(Layer* _layer) {
+
     }
 
 }

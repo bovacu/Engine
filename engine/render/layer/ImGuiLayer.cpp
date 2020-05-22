@@ -93,12 +93,8 @@ namespace engine {
 
         static const char* _resSelected = "800x480";
 
-        ImGui::Begin("Settings");
+        ImGui::Begin("Debugging");
         auto stats = engine::Render2D::getStats();
-        ImGui::Text("FPS: %d", engine::Application::get().getFps()); ImGui::SameLine();
-        if(ImGui::SliderInt("", &_fps, 30, 300)) {
-            engine::Application::get().setTimePerFrame(1.f / _fps);
-        }
 
         if(ImGui::Checkbox("VSync Active", &_vsync)) {
             engine::Application::get().getWindow().setVSync(_vsync);
@@ -126,6 +122,11 @@ namespace engine {
             }
             ImGui::EndCombo();
         }
+
+        ImGui::Text("FPS: %d", engine::Application::get().getFps()); ImGui::SameLine();
+//        if(ImGui::SliderInt("", &_fps, 30, 300)) {
+//            engine::Application::get().setTimePerFrame(1.f / _fps);
+//        }
 
         ImGui::Separator();
 
