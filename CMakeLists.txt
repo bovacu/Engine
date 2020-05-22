@@ -63,7 +63,7 @@ add_executable( Engine engine/main/Application.cpp engine/util/EngineUtil.cpp
                 engine/render/shapes/Shape.cpp engine/render/shapes/Shape.h engine/render/shapes/PolygonShape.cpp engine/render/shapes/PolygonShape.h
 
                 lib/imgui-docking/imgui.cpp lib/imgui-docking/imgui_draw.cpp lib/imgui-docking/imgui_widgets.cpp
-                lib/imgui-docking/examples/imgui_impl_glfw.cpp lib/imgui-docking/examples/imgui_impl_opengl3.cpp)
+                lib/imgui-docking/examples/imgui_impl_glfw.cpp lib/imgui-docking/examples/imgui_impl_opengl3.cpp engine/scene/SceneManager.cpp engine/scene/SceneManager.h engine/scene/Scene.cpp engine/scene/Scene.h)
 
 target_link_libraries ( Engine spdlog)
 target_link_libraries ( ${PROJECT_NAME} "glfw" "${GLFW_LIBRARIES}")
