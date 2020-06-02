@@ -104,17 +104,17 @@ void TestGame::onRender(engine::Timestep _dt) {
 void TestGame::onImGuiRender(engine::Timestep _dt) {
     this->imGuiToolEnablerWindow(_dt);
 
-//    if(this->tools[IMGUI_DEBUGGING])
-//        engine::ImGuiLayer::drawDebugInfo();
-//
-//    if(this->tools[IMGUI_DRAWING])
-//        this->imGuiDrawingWindow(_dt);
-//
-//    if(this->tools[IMGUI_CONTROLLER])
-//        this->imGuiControllerWindow(_dt);
-//
-//    if(this->tools[IMGUI_CRAFTER])
-//        this->imGuiCrafterWindow(_dt);
+    if(this->tools[IMGUI_DEBUGGING])
+        engine::ImGuiLayer::drawDebugInfo();
+
+    if(this->tools[IMGUI_DRAWING])
+        this->imGuiDrawingWindow(_dt);
+
+    if(this->tools[IMGUI_CONTROLLER])
+        this->imGuiControllerWindow(_dt);
+
+    if(this->tools[IMGUI_CRAFTER])
+        this->imGuiCrafterWindow(_dt);
 
     this->particlesUpdating = 0;
 }
@@ -161,16 +161,28 @@ void TestGame::updateSandParticle(int _x, int _y, int _posInVector, Timestep _dt
         this->writeParticle(_vX, _vY, _tempA);
         this->writeParticle(_x, _y, _tempB);
         this->particlesUpdating++;
+    } else if(this->is(_vX, _vY, ParticleType::WATER)) {
+        _tempB = this->particles[this->calcVecPos(_vX, _vY)];
+        _tempA.velocity.x = 0;
+        _tempA.velocity.y *= 0.5f;
+        this->writeParticle(_vX, _vY, _tempA);
+        this->writeParticle(_x, _y, _tempB);
+        this->particlesUpdating++;
     } else {
-        if(this->isEmpty(_x, _y - 1)) {
-            _p->velocity.y += (this->gravity * _dt);
+        bool _inWater = false;
+        if(this->isEmpty(_x, _y - 1) || (_inWater = this->is(_x, _y - 1, ParticleType::WATER))) {
+            if(_inWater)
+                _p->velocity.y *= 0.5f;
+            else _p->velocity.y += (this->gravity * _dt);
+
             _tempB = this->particles[this->calcVecPos(_x, _y - 1)];
 
             this->writeParticle(_x, _y - 1, *_p);
             this->writeParticle(_x, _y, _tempB);
             this->particlesUpdating++;
-        } else if (this->isEmpty(_x - 1, _y - 1)) {
-            _p->velocity.y += (this->gravity * _dt);
+        } else if (this->isEmpty(_x - 1, _y - 1) || (_inWater = this->is(_x - 1, _y - 1, ParticleType::WATER))) {
+            if(_inWater) _p->velocity.y *= 0.5f;
+            else _p->velocity.y += (this->gravity * _dt);
                 _p->velocity.x = this->random.random<int>( 0, 1 ) == 0 ? -1.f : 1.f;
 //                _p->velocity.x = -2.f;
 //            _p->velocity.x = -1.f;
@@ -179,8 +191,9 @@ void TestGame::updateSandParticle(int _x, int _y, int _posInVector, Timestep _dt
             this->writeParticle(_x - 1, _y - 1, *_p);
             this->writeParticle(_x, _y, _tempB);
             this->particlesUpdating++;
-        } else if (this->isEmpty(_x + 1, _y - 1)) {
-            _p->velocity.y += (this->gravity * _dt);
+        } else if (this->isEmpty(_x + 1, _y - 1) || (_inWater = this->is(_x + 1, _y - 1, ParticleType::WATER))) {
+            if(_inWater) _p->velocity.y *= 0.5f;
+            else _p->velocity.y += (this->gravity * _dt);
                 _p->velocity.x = this->random.random<int>( 0, 1 ) == 0 ? -1.f : 1.f;
 //            _p->velocity.x = 1.f;
 
@@ -338,6 +351,10 @@ bool TestGame::isEmpty(int _x, int _y) {
     return this->isInBounds(_x, _y) && this->particles[this->calcVecPos(_x, _y)].type == NONE_PARTICLE;
 }
 
+bool TestGame::is(int _x, int _y, const ParticleType& _particle) {
+    return this->isInBounds(_x, _y) && this->particles[this->calcVecPos(_x, _y)].type == _particle;
+}
+
 void TestGame::writeParticle(int _x, int _y, const TestGame::Particle& _particle) {
     this->particles[this->calcVecPos(_x, _y)] = _particle;
     this->proceduralTexture->setPixel(_x, _y, _particle.color);
@@ -345,32 +362,45 @@ void TestGame::writeParticle(int _x, int _y, const TestGame::Particle& _particle
 
 void TestGame::imGuiToolEnablerWindow(engine::Timestep _dt) {
     ImGui::Begin("Tools", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-//        ImGui::Text("Debugging"); ImGui::SameLine(80);
-//        if(this->tools[IMGUI_DEBUGGING]) {
-//            if(ImGui::ImageButton((void*)(intptr_t)this->enabledTexture->getTexture(), ImVec2((float)this->enabledTexture->getWidth(), (float)this->enabledTexture->getHeight())))
-//                this->tools[IMGUI_DEBUGGING] = false;
-//        } else {
-//            if(ImGui::ImageButton((void*)(intptr_t)this->disabledTexture->getTexture(), ImVec2((float)this->disabledTexture->getWidth(), (float)this->disabledTexture->getHeight())))
-//                this->tools[IMGUI_DEBUGGING] = true;
-//        }
-//
-//        ImGui::Text("Controller"); ImGui::SameLine(80);
-//        if(this->tools[IMGUI_CONTROLLER]) {
-//            if(ImGui::ImageButton((void*)(intptr_t)this->enabledTexture->getTexture(), ImVec2((float)this->enabledTexture->getWidth(), (float)this->enabledTexture->getHeight())))
-//                this->tools[IMGUI_CONTROLLER] = false;
-//        } else {
-//            if(ImGui::ImageButton((void*)(intptr_t)this->disabledTexture->getTexture(), ImVec2((float)this->disabledTexture->getWidth(), (float)this->disabledTexture->getHeight())))
-//                this->tools[IMGUI_CONTROLLER] = true;
-//        }
-//
-//        ImGui::Text("Drawing"); ImGui::SameLine(80);
-//        if(this->tools[IMGUI_DRAWING]) {
-//            if(ImGui::ImageButton((void*)(intptr_t)this->enabledTexture->getTexture(), ImVec2((float)this->enabledTexture->getWidth(), (float)this->enabledTexture->getHeight())))
-//                this->tools[IMGUI_DRAWING] = false;
-//        } else {
-//            if(ImGui::ImageButton((void*)(intptr_t)this->disabledTexture->getTexture(), ImVec2((float)this->disabledTexture->getWidth(), (float)this->disabledTexture->getHeight())))
-//                this->tools[IMGUI_DRAWING] = true;
-//        }
+        ImGui::Text("Debugging"); ImGui::SameLine(80);
+        ImGui::PushID(0);
+            if(this->tools[IMGUI_DEBUGGING]) {
+                if(ImGui::ImageButton((void*)(intptr_t)this->enabledTexture->getTexture(), ImVec2((float)this->enabledTexture->getWidth(), (float)this->enabledTexture->getHeight()))) {
+                    this->tools[IMGUI_DEBUGGING] = false;
+                }
+            } else {
+                if(ImGui::ImageButton((void*)(intptr_t)this->disabledTexture->getTexture(), ImVec2((float)this->disabledTexture->getWidth(), (float)this->disabledTexture->getHeight()))) {
+                    this->tools[IMGUI_DEBUGGING] = true;
+                }
+            }
+        ImGui::PopID();
+
+        ImGui::Text("Controller"); ImGui::SameLine(80);
+        ImGui::PushID(1);
+            if(this->tools[IMGUI_CONTROLLER]) {
+                if(ImGui::ImageButton((void*)(intptr_t)this->enabledTexture->getTexture(), ImVec2((float)this->enabledTexture->getWidth(), (float)this->enabledTexture->getHeight()))) {
+                    this->tools[IMGUI_CONTROLLER] = false;
+                    LOG_INFO("INSIDE");
+                }
+            } else {
+                if(ImGui::ImageButton((void*)(intptr_t)this->disabledTexture->getTexture(), ImVec2((float)this->disabledTexture->getWidth(), (float)this->disabledTexture->getHeight()))) {\
+                    this->tools[IMGUI_CONTROLLER] = true;
+                }
+            }
+        ImGui::PopID();
+
+        ImGui::Text("Drawing"); ImGui::SameLine(80);
+        ImGui::PushID(2);
+            if(this->tools[IMGUI_DRAWING]) {
+                if(ImGui::ImageButton((void*)(intptr_t)this->enabledTexture->getTexture(), ImVec2((float)this->enabledTexture->getWidth(), (float)this->enabledTexture->getHeight()))) {
+                    this->tools[IMGUI_DRAWING] = false;
+                }
+            } else {
+                if(ImGui::ImageButton((void*)(intptr_t)this->disabledTexture->getTexture(), ImVec2((float)this->disabledTexture->getWidth(), (float)this->disabledTexture->getHeight()))) {
+                    this->tools[IMGUI_DRAWING] = true;
+                }
+            }
+        ImGui::PopID();
 
         ImGui::Text("Crafter"); ImGui::SameLine(80);
         if(ImGui::Button("Open Crafter")) {
@@ -468,3 +498,5 @@ void TestGame::imGuiCrafterWindow(engine::Timestep _dt) {
         ImGui::EndPopup();
     }
 }
+
+

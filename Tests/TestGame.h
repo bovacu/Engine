@@ -91,6 +91,7 @@ class TestGame : public engine::Layer {
         bool isInBounds(int _x, int _y);
         int calcVecPos(int _x, int _y);
         bool isEmpty(int _x, int _y);
+        bool is(int _x, int _y, const ParticleType& _particle);
 
         void writeParticle(int _x, int _y, const Particle& _particle);
 
