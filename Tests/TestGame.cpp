@@ -53,6 +53,7 @@ void TestGame::onUpdate(engine::Timestep _dt) {
                 for (int _x = 0; _x < (int) this->proceduralTexture->getWidth(); _x++) {
                     int _pos = this->calcVecPos(_x, _y);
                     ParticleType _type = this->particles[_pos].type;
+                    if(_type == ParticleType::NONE_PARTICLE) continue;
                     switch (_type) {
                         case SAND   : this->updateSandParticle(_x, _y, _pos, _dt);  break;
                         case WATER  : this->updateWaterParticle(_x, _y, _pos, _dt); break;
@@ -64,6 +65,7 @@ void TestGame::onUpdate(engine::Timestep _dt) {
                 for (int _x = (int)this->proceduralTexture->getWidth() - 1; _x > 0; _x--) {
                     int _pos = this->calcVecPos(_x, _y);
                     ParticleType _type = this->particles[_pos].type;
+                    if(_type == ParticleType::NONE_PARTICLE) continue;
                     switch (_type) {
                         case SAND   : this->updateSandParticle(_x, _y, _pos, _dt);  break;
                         case WATER  : this->updateWaterParticle(_x, _y, _pos, _dt); break;
@@ -171,8 +173,7 @@ void TestGame::updateSandParticle(int _x, int _y, int _posInVector, Timestep _dt
     } else {
         bool _inWater = false;
         if(this->isEmpty(_x, _y - 1) || (_inWater = this->is(_x, _y - 1, ParticleType::WATER))) {
-            if(_inWater)
-                _p->velocity.y *= 0.5f;
+            if(_inWater) _p->velocity.y *= 0.5f;
             else _p->velocity.y += (this->gravity * _dt);
 
             _tempB = this->particles[this->calcVecPos(_x, _y - 1)];
@@ -237,36 +238,69 @@ void TestGame::updateWaterParticle(int _x, int _y, int _posInVector, Timestep _d
         int _secondDownMovement = this->calcVecPos(_x - _sign, _y - 1);
 
         /// Down
-        if(this->isInBounds(_x, _y - 1) && (_tempB = this->particles[_below]).type == NONE_PARTICLE) {
+        if(this->isInBounds(_x, _y - 1) && this->particles[_below].type == NONE_PARTICLE) {
+            _tempB = this->particles[_below];
             this->writeParticle(_x, _y - 1, _tempA);
             this->writeParticle(_x, _y, _tempB);
             this->particlesUpdating++;
         }
 
         /// Down-Right OR Down-Left
-        else if (this->isInBounds(_x + _sign, _y - 1) && (_tempB = this->particles[_firstDownMovement]).type == NONE_PARTICLE) {
-            this->writeParticle(_x + _sign, _y - 1, _tempA);
+        else if (this->isInBounds(_x + _sign, _y - 1) && this->particles[_firstDownMovement].type == NONE_PARTICLE) {
+
+            int _neighbour = 1;
+            while(this->isEmpty(_x + (_sign * (_neighbour + 1)), _y - (_neighbour + 1)) && _neighbour <= 3) {
+                _neighbour++;
+                _firstDownMovement = this->calcVecPos(_x + (_sign * _neighbour), _y - _neighbour);
+            }
+
+            _tempB = this->particles[_firstDownMovement];
+            this->writeParticle(_x + (_sign * _neighbour), _y - _neighbour, _tempA);
             this->writeParticle(_x, _y, _tempB);
             this->particlesUpdating++;
         }
 
         /// Down-Right OR Down-Left
-        else if (this->isInBounds(_x - _sign, _y - 1) && (_tempB = this->particles[_secondDownMovement]).type == NONE_PARTICLE) {
-            this->writeParticle(_x - _sign, _y - 1, _tempA);
+        else if (this->isInBounds(_x - _sign, _y - 1) && this->particles[_secondDownMovement].type == NONE_PARTICLE) {
+
+            int _neighbour = 1;
+            while(this->isEmpty(_x - (_sign * (_neighbour + 1)), _y - (_neighbour + 1)) && _neighbour <= 3) {
+                _neighbour++;
+                _secondDownMovement = this->calcVecPos(_x - (_sign * _neighbour), _y - _neighbour);
+            }
+
+            _tempB = this->particles[_secondDownMovement];
+            this->writeParticle(_x - (_sign * _neighbour), _y - _neighbour, _tempA);
             this->writeParticle(_x, _y, _tempB);
             this->particlesUpdating++;
         }
 
         /// Left OR Right
-        else if (this->isInBounds(_x + _sign, _y) && (_tempB = this->particles[_firstMovement]).type == NONE_PARTICLE) {
-            this->writeParticle(_x + _sign, _y, _tempA);
+        else if (this->isEmpty(_x + _sign, _y)) {
+
+            int _neighbour = 1;
+            while(this->isEmpty(_x + (_sign * (_neighbour + 1)), _y) && _neighbour <= 3) {
+                _neighbour++;
+                _firstMovement = this->calcVecPos(_x + (_sign * _neighbour), _y);
+            }
+
+            _tempB = this->particles[_firstMovement];
+            this->writeParticle(_x + (_sign * _neighbour), _y, _tempA);
             this->writeParticle(_x, _y, _tempB);
             this->particlesUpdating++;
         }
 
         /// Left OR Right
-        else if (this->isInBounds(_x - _sign, _y) && (_tempB = this->particles[_secondMovement]).type == NONE_PARTICLE) {
-            this->writeParticle(_x - _sign, _y, _tempA);
+        else if (this->isEmpty(_x - _sign, _y)) {
+
+            int _neighbour = 1;
+            while(this->isEmpty(_x - (_sign * (_neighbour + 1)), _y) && _neighbour <= 3) {
+                _neighbour++;
+                _secondMovement = this->calcVecPos(_x - (_sign * _neighbour), _y);
+            }
+
+            _tempB = this->particles[_secondMovement];
+            this->writeParticle(_x - (_sign * _neighbour), _y, _tempA);
             this->writeParticle(_x, _y, _tempB);
             this->particlesUpdating++;
         }
