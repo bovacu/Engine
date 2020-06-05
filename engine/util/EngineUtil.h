@@ -181,14 +181,23 @@ namespace engine {
 	    public:
 	        explicit Random() : mt(rd()) {  };
 
-	        template<typename T>
-            T random(T _min, T _max) {
+            int randomi(int _min, int _max) {
                 if(_min > _max) {
-                    T _aux = _min;
+                    int _aux = _min;
                     _min = _max;
                     _max = _min;
                 }
-                std::uniform_int_distribution<T> _dist(_min, _max);
+                std::uniform_int_distribution<int> _dist(_min, _max);
+                return _dist(this->mt);
+            }
+
+            float randomf(float _min, float _max) {
+                if(_min > _max) {
+                    float _aux = _min;
+                    _min = _max;
+                    _max = _min;
+                }
+                std::uniform_real_distribution<float> _dist(_min, _max);
                 return _dist(this->mt);
             }
 	};

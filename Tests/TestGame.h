@@ -17,15 +17,15 @@ using namespace engine;
 class TestGame : public engine::Layer {
 
     public:
-        enum ParticleType { NONE_PARTICLE, SAND, WATER, ROCK };
+        enum ParticleType { NONE_PARTICLE, SAND, WATER, ROCK, ACID, STEAM, SMOKE };
         enum Tool { DRAW, ERASE };
         float gravity = 10.f;
 
         struct Particle {
             Vec2f velocity  {0.0f, 0.0f};
-            Color color;
-            ParticleType type;
-            bool updated = false;
+            Color color = {   0,   0,   0,   0 };
+            ParticleType type = NONE_PARTICLE;
+            bool canUpdate = true;
         };
 
     private:
@@ -46,15 +46,28 @@ class TestGame : public engine::Layer {
         engine::Random random;
 
         int particlesUpdating = 0;
+        int particlesInSecond = 0;
+        float particlesUpdateTimer = 0.0f;
 
-        Color PARTICLE_COLORS[8] = {
+        static Particle noneParticle, sandParticle, waterParticle, rockParticle, acidParticle;
+        static int textureWidth, textureHeight;
+
+        Color PARTICLE_COLORS[16] = {
                 { 202, 188, 145, 255 }, /// SAND_0
                 { 194, 178, 128, 255 }, /// SAND_1
                 { 186, 168, 111, 255 }, /// SAND_2
                 { 177, 157,  94, 255 }, /// SAND_3
                 { 166, 145,  80, 255 }, /// SAND_4
                 {  90, 188, 216, 125 }, /// WATER_0
-                { 187, 182, 177, 255 }, /// ROCK_0
+                { 170, 164, 157, 255 }, /// ROCK_0
+                { 149, 141, 133, 255 }, /// ROCK_1
+                { 123, 113, 103, 255 }, /// ROCK_2
+                { 176, 191,  26, 255 }, /// ACID_0
+                { 203, 227,  21, 255 }, /// ACID_1
+                { 199, 213, 224, 255 }, /// STEAM_0
+                {  43,  50,  48, 255 }, /// SMOKE_0
+                {  39,  45,  43, 255 }, /// SMOKE_1
+                {  34,  40,  38, 255 }, /// SMOKE_2
                 {   0,   0,   0,   0 }  /// TRANSPARENT
         };
 
@@ -79,9 +92,10 @@ class TestGame : public engine::Layer {
 
     private:
         void initSimulationWorld();
-        void updateSandParticle (int _x, int _y, int _posInVector, Timestep _dt);
+        void updateSandParticle(int _x, int _y, int _posInVector, Timestep _dt);
         void updateWaterParticle(int _x, int _y, int _posInVector, Timestep _dt);
-        void updateRockParticle (int _x, int _y, int _posInVector, Timestep _dt);
+        void updateRockParticle(int _x, int _y, int _posInVector, Timestep _dt);
+        void updateAcidParticle(int _x, int _y, int _posInVector, Timestep _dt);
 
         Color particleTypeToColor(const ParticleType& _particle);
         void generateParticles(const Vec2f& _mousePos);
@@ -92,13 +106,19 @@ class TestGame : public engine::Layer {
         int calcVecPos(int _x, int _y);
         bool isEmpty(int _x, int _y);
         bool is(int _x, int _y, const ParticleType& _particle);
+        bool isSurrounded(int _x, int _y);
+        void activateNeighbours(int _x, int _y, int _width);
 
         void writeParticle(int _x, int _y, const Particle& _particle);
+        void writeParticle(int _x, int _y,int _vecPos, const Particle& _particle);
 
         void imGuiToolEnablerWindow(engine::Timestep _dt);
         void imGuiDrawingWindow(engine::Timestep _dt);
         void imGuiControllerWindow(engine::Timestep _dt);
         void imGuiCrafterWindow(engine::Timestep _dt);
+
+        static float probValues(const ParticleType& _firstParticle, const ParticleType& _secondParticle);
+        void reactions(const Vec2i& _posA, const Vec2i& _posB, Particle& _particleA, const Particle& _particleB);
 };
 
 #endif //TESTGAME_H

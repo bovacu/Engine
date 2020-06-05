@@ -159,4 +159,8 @@ namespace engine {
 
     }
 
+    void Application::closeApplication() {
+        this->running = false;
+    }
+
 }

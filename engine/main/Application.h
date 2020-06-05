@@ -95,6 +95,8 @@ namespace engine {
 	        Application();
             virtual ~Application();
 
+            void closeApplication();
+
             int getFps();
             void setTitle(const std::string& _title);
             [[nodiscard]] const std::string& getTitle() const   { return this->window->getTitle(); }
