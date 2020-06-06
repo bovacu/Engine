@@ -61,21 +61,13 @@ void TestGame::onUpdate(engine::Timestep _dt) {
 
         int _textureWidth = this->proceduralTexture->getWidth();
 
-//        for(int _y = 0; _y < (int)this->proceduralTexture->getHeight(); _y++)
-//            for (int _x = 0; _x < (int) this->proceduralTexture->getWidth(); _x++) {
-//                int _pos = _x + _textureWidth * _y;
-//                if (this->particles[_pos].type == ParticleType::NONE_PARTICLE) continue;
-//
-//                LOG_INFO("HELLO");
-//            }
-
         /// UPDATING PARTICLES
         for(int _y = 0; _y < (int)this->proceduralTexture->getHeight(); _y++) {
             if(this->random.randomi(0, 1) == 0) {
                 for (int _x = 0; _x < (int) this->proceduralTexture->getWidth(); _x++) {
                     int _pos = _x + _textureWidth * _y;
                     ParticleType _type = this->particles[_pos].type;
-                    if(_type == ParticleType::NONE_PARTICLE || !this->particles[_pos].canUpdate) continue;
+                    if(_type == ParticleType::NONE_PARTICLE || _type == ParticleType::ROCK || !this->particles[_pos].canUpdate) continue;
                     this->particlesUpdating++;
                     switch (_type) {
                         case SAND   : this->updateSandParticle(_x, _y, _pos, _dt);  break;
@@ -89,7 +81,7 @@ void TestGame::onUpdate(engine::Timestep _dt) {
                 for (int _x = (int)this->proceduralTexture->getWidth() - 1; _x > 0; _x--) {
                     int _pos = _x + _textureWidth * _y;
                     ParticleType _type = this->particles[_pos].type;
-                    if(_type == ParticleType::NONE_PARTICLE || !this->particles[_pos].canUpdate) continue;
+                    if(_type == ParticleType::NONE_PARTICLE || _type == ParticleType::ROCK || !this->particles[_pos].canUpdate) continue;
                     this->particlesUpdating++;
                     switch (_type) {
                         case SAND   : this->updateSandParticle(_x, _y, _pos, _dt);  break;
@@ -101,14 +93,6 @@ void TestGame::onUpdate(engine::Timestep _dt) {
                 }
             }
         }
-
-        /// UPDATING PIXELS
-//        for(int _y = 0; _y < (int)this->proceduralTexture->getHeight(); _y++) {
-//            for (int _x = 0; _x < (int) this->proceduralTexture->getWidth(); _x++) {
-//                int _pos = this->calcVecPos(_x, _y);
-//                this->particles[_pos].updated = false;
-//            }
-//        }
 
         this->proceduralTexture->updateTexture();
     }
@@ -202,7 +186,7 @@ void TestGame::updateSandParticle(int _x, int _y, int _posInVector, Timestep _dt
         this->writeParticle(_x, _y, _tempB);
 
         this->activateNeighbours(_x, _y, _width);
-        this->activateNeighbours(_vX, _vY, _width);
+//        this->activateNeighbours(_vX, _vY, _width);
         
     } else if(this->is(_vX, _vY, ParticleType::WATER)) {
         int _vecForB = _vX + _width * _vY;
@@ -215,7 +199,7 @@ void TestGame::updateSandParticle(int _x, int _y, int _posInVector, Timestep _dt
         this->writeParticle(_x, _y, _posInVector, _tempB);
 
         this->activateNeighbours(_x, _y, _width);
-        this->activateNeighbours(_vX, _vY, _width);
+//        this->activateNeighbours(_vX, _vY, _width);
 
     } else {
 
@@ -234,7 +218,7 @@ void TestGame::updateSandParticle(int _x, int _y, int _posInVector, Timestep _dt
             this->writeParticle(_x, _y, _posInVector, _tempB);
 
             this->activateNeighbours(_x, _y, _width);
-            this->activateNeighbours(_x, _y - 1, _width);
+//            this->activateNeighbours(_x, _y - 1, _width);
             
         }
         /// Down-Left
@@ -252,7 +236,7 @@ void TestGame::updateSandParticle(int _x, int _y, int _posInVector, Timestep _dt
             this->writeParticle(_x, _y, _posInVector, _tempB);
 
             this->activateNeighbours(_x, _y, _width);
-            this->activateNeighbours(_x - 1, _y - 1, _width);
+//            this->activateNeighbours(_x - 1, _y - 1, _width);
             
         }
         /// Down-Right
@@ -270,7 +254,7 @@ void TestGame::updateSandParticle(int _x, int _y, int _posInVector, Timestep _dt
             this->writeParticle(_x, _y, _posInVector, _tempB);
 
             this->activateNeighbours(_x, _y, _width);
-            this->activateNeighbours(_x + 1, _y - 1, _width);
+//            this->activateNeighbours(_x + 1, _y - 1, _width);
             
         } else {
             _p->canUpdate = false;
@@ -293,12 +277,13 @@ void TestGame::updateWaterParticle(int _x, int _y, int _posInVector, Timestep _d
 
     Particle _tempB;
     if(isEmpty(_vX, _vY)) {
-        _tempB = this->particles[this->calcVecPos(_vX, _vY)];
+        int _pos = this->calcVecPos(_vX, _vY);
+        _tempB = this->particles[_pos];
         this->writeParticle(_vX, _vY, *_p);
         this->writeParticle(_x, _y, _tempB);
 
+        this->handleUnfittedDrops(_x, _y, _pos, _dt);
         this->activateNeighbours(_x, _y, _width);
-        this->activateNeighbours(_vX, _vY, _width);
         
     } else {
 
@@ -316,8 +301,8 @@ void TestGame::updateWaterParticle(int _x, int _y, int _posInVector, Timestep _d
             this->writeParticle(_x, _y - 1, *_p);
             this->writeParticle(_x, _y, _tempB);
 
+            this->handleUnfittedDrops(_x, _y - 1, _below, _dt);
             this->activateNeighbours(_x, _y, _width);
-            this->activateNeighbours(_x, _y - 1, _width);
         }
 
         /// Down-Right OR Down-Left
@@ -333,8 +318,8 @@ void TestGame::updateWaterParticle(int _x, int _y, int _posInVector, Timestep _d
             this->writeParticle(_x + (_sign * _neighbour), _y - _neighbour, *_p);
             this->writeParticle(_x, _y, _tempB);
 
+            this->handleUnfittedDrops(_x + (_sign * _neighbour), _y, _firstDownMovement, _dt);
             this->activateNeighbours(_x, _y, _width);
-            this->activateNeighbours(_x + (_sign * _neighbour), _y - _neighbour, _width);
         }
 
         /// Down-Right OR Down-Left
@@ -350,8 +335,8 @@ void TestGame::updateWaterParticle(int _x, int _y, int _posInVector, Timestep _d
             this->writeParticle(_x - (_sign * _neighbour), _y - _neighbour, *_p);
             this->writeParticle(_x, _y, _tempB);
 
+            this->handleUnfittedDrops(_x - (_sign * _neighbour), _y, _secondDownMovement, _dt);
             this->activateNeighbours(_x, _y, _width);
-            this->activateNeighbours(_x - (_sign * _neighbour), _y - _neighbour, _width);
         }
 
         /// Left OR Right
@@ -367,8 +352,8 @@ void TestGame::updateWaterParticle(int _x, int _y, int _posInVector, Timestep _d
             this->writeParticle(_x + (_sign * _neighbour), _y, *_p);
             this->writeParticle(_x, _y, _tempB);
 
+            this->handleUnfittedDrops(_x + (_sign * _neighbour), _y, _firstMovement, _dt);
             this->activateNeighbours(_x, _y, _width);
-            this->activateNeighbours(_x + (_sign * _neighbour), _y, _width);
         }
 
         /// Left OR Right
@@ -384,8 +369,8 @@ void TestGame::updateWaterParticle(int _x, int _y, int _posInVector, Timestep _d
             this->writeParticle(_x - (_sign * _neighbour), _y, *_p);
             this->writeParticle(_x, _y, _tempB);
 
+            this->handleUnfittedDrops(_x - (_sign * _neighbour), _y, _secondMovement, _dt);
             this->activateNeighbours(_x, _y, _width);
-            this->activateNeighbours(_x - (_sign * _neighbour), _y, _width);
             
         } else {
             _p->canUpdate = false;
@@ -414,12 +399,13 @@ void TestGame::updateAcidParticle(int _x, int _y, int _posInVector, Timestep _dt
 
     Particle _tempB;
     if(isEmpty(_vX, _vY)) {
-        _tempB = this->particles[this->calcVecPos(_vX, _vY)];
+        int _pos = this->calcVecPos(_vX, _vY);
+        _tempB = this->particles[_pos];
         this->writeParticle(_vX, _vY, _tempA);
         this->writeParticle(_x, _y, _tempB);
 
+        this->handleUnfittedDrops(_x, _y, _pos, _dt);
         this->activateNeighbours(_x, _y, _width);
-        this->activateNeighbours(_vX, _vY, _width);
     } else {
 
         int _below = this->calcVecPos(_x, _y - 1);
@@ -437,15 +423,16 @@ void TestGame::updateAcidParticle(int _x, int _y, int _posInVector, Timestep _dt
                 this->writeParticle(_x, _y - 1, _tempA);
                 this->writeParticle(_x, _y, _tempB);
 
+                this->handleUnfittedDrops(_x, _y - 1, _below, _dt);
                 this->activateNeighbours(_x, _y, _width);
-                this->activateNeighbours(_x, _y - 1, _width);
 
                 return;
             } else {
-                this->reactions({_x, _y}, {_x, _y - 1}, _tempA, _tempB);
-
-                this->activateNeighbours(_x, _y, _width);
-                this->activateNeighbours(_x, _y - 1, _width);
+                if(this->random.probability(0.1f).happened)
+                    if (this->reactions({_x, _y}, {_x, _y - 1}, _tempA, _tempB)) {
+                        this->activateNeighbours(_x, _y, _width);
+                        return;
+                    }
             }
         }
             /// Down-Right OR Down-Left
@@ -460,23 +447,24 @@ void TestGame::updateAcidParticle(int _x, int _y, int _posInVector, Timestep _dt
                 }
 
                 _tempB = this->particles[_firstDownMovement];
+
                 this->writeParticle(_x + (_sign * _neighbour), _y - _neighbour, _tempA);
                 this->writeParticle(_x, _y, _tempB);
 
+                this->handleUnfittedDrops(_x + (_sign * _neighbour), _y - _neighbour, _firstDownMovement, _dt);
                 this->activateNeighbours(_x, _y, _width);
-                this->activateNeighbours(_x + (_sign * _neighbour), _y - _neighbour, _width);
 
                 return;
             } else {
-                this->reactions({_x, _y}, {_x + _sign, _y - 1}, _tempA, _tempB);
+                if(this->reactions({_x, _y}, {_x + _sign, _y - 1}, _tempA, _tempB)) {
+                    this->activateNeighbours(_x, _y, _width);
+                    return;
+                }
             }
         }
 
             /// Down-Right OR Down-Left
         if (this->isEmpty(_x - _sign, _y - 1)) {
-
-            _tempB = this->particles[_secondDownMovement];
-
             int _neighbour = 1;
             while(this->isEmpty(_x - (_sign * (_neighbour + 1)), _y - (_neighbour + 1)) && _neighbour < 3) {
                 _neighbour++;
@@ -487,14 +475,14 @@ void TestGame::updateAcidParticle(int _x, int _y, int _posInVector, Timestep _dt
             this->writeParticle(_x - (_sign * _neighbour), _y - _neighbour, _tempA);
             this->writeParticle(_x, _y, _tempB);
 
+            this->handleUnfittedDrops(_x - (_sign * _neighbour), _y - _neighbour, _secondDownMovement, _dt);
             this->activateNeighbours(_x, _y, _width);
-            this->activateNeighbours(_x - (_sign * _neighbour), _y - _neighbour, _width);
 
             return;
         }
 
             /// Left OR Right
-        if (this->isEmpty(_x + _sign, _y)) {
+        if (this->isInBounds(_x + _sign, _y)) {
             _tempB = this->particles[_firstMovement];
 
             if(this->particles[_firstMovement].type == NONE_PARTICLE) {
@@ -504,46 +492,40 @@ void TestGame::updateAcidParticle(int _x, int _y, int _posInVector, Timestep _dt
                     _firstMovement = this->calcVecPos(_x + (_sign * _neighbour), _y);
                 }
 
+                _tempB = this->particles[_firstMovement];
 
                 this->writeParticle(_x + (_sign * _neighbour), _y, _tempA);
                 this->writeParticle(_x, _y, _tempB);
 
+                this->handleUnfittedDrops(_x + (_sign * _neighbour), _y, _firstMovement, _dt);
                 this->activateNeighbours(_x, _y, _width);
-                this->activateNeighbours(_x + (_sign * _neighbour), _y, _width);
 
                 return;
             } else {
-                this->activateNeighbours(_x, _y, _width);
-                this->activateNeighbours(_x, _y - 1, _width);
-                this->reactions({_x, _y}, {_x + _sign, _y - 1}, _tempA, _tempB);
+                if(this->reactions({_x, _y}, {_x + _sign, _y}, _tempA, _tempB)) {
+                    this->activateNeighbours(_x, _y, _width);
+                    return;
+                }
             }
         }
 
             /// Left OR Right
         if (this->isEmpty(_x - _sign, _y)) {
-            _tempB = this->particles[_secondMovement];
-
-            if(this->particles[_secondMovement].type == NONE_PARTICLE) {
-                int _neighbour = 1;
-                while(this->isEmpty(_x - (_sign * (_neighbour + 1)), _y) && _neighbour < 3) {
-                    _neighbour++;
-                    _secondMovement = this->calcVecPos(_x - (_sign * _neighbour), _y);
-                }
-
-
-                this->writeParticle(_x - (_sign * _neighbour), _y, _tempA);
-                this->writeParticle(_x, _y, _tempB);
-
-                this->activateNeighbours(_x, _y, _width);
-                this->activateNeighbours(_x - (_sign * _neighbour), _y, _width);
-
-                return;
-            } else {
-                this->activateNeighbours(_x, _y, _width);
-                this->activateNeighbours(_x, _y - 1, _width);
-                this->reactions({_x, _y}, {_x - _sign, _y - 1}, _tempA, _tempB);
+            int _neighbour = 1;
+            while(this->isEmpty(_x - (_sign * (_neighbour + 1)), _y) && _neighbour < 3) {
+                _neighbour++;
+                _secondMovement = this->calcVecPos(_x - (_sign * _neighbour), _y);
             }
 
+            _tempB = this->particles[_secondMovement];
+
+            this->writeParticle(_x - (_sign * _neighbour), _y, _tempA);
+            this->writeParticle(_x, _y, _tempB);
+
+            this->handleUnfittedDrops(_x - (_sign * _neighbour), _y, _secondMovement, _dt);
+            this->activateNeighbours(_x, _y, _width);
+
+            return;
         }
 
         _p->canUpdate = false;
@@ -576,11 +558,13 @@ void TestGame::generateParticles(const Vec2f& _mousePos) {
             case WATER  : {
                 this->particles[_posInVector] = TestGame::waterParticle;
                 this->particles[_posInVector].color = this->particleTypeToColor(WATER);
+                this->particles[_posInVector].lifeTime = this->random.randomf(MIN_WATER_LIFE, MAX_WATER_LIFE);
                 break;
             }
             case ACID   : {
                 this->particles[_posInVector] = TestGame::acidParticle;
                 this->particles[_posInVector].color = this->particleTypeToColor(ACID);
+                this->particles[_posInVector].lifeTime = this->random.randomf(MIN_WATER_LIFE, MAX_WATER_LIFE);
                 break;
             }
             case ROCK   : {
@@ -798,6 +782,14 @@ void TestGame::imGuiControllerWindow(engine::Timestep _dt) {
             this->play = true;
             this->oneStep = true;
         }
+
+        ImGui::Separator();
+        ImGui::Text("Unfitted drops");
+        ImGui::Indent(30.f);
+            ImGui::RadioButton("Remove", &this->whatToDoWithUnfittingDrops, 0);
+            ImGui::RadioButton("Evaporate", &this->whatToDoWithUnfittingDrops, 1);
+            ImGui::RadioButton("Live", &this->whatToDoWithUnfittingDrops, 2);
+        ImGui::Unindent(30.f);
     ImGui::End();
 }
 
@@ -828,7 +820,7 @@ float TestGame::probValues(const TestGame::ParticleType& _firstParticle,
     return 0.0f;
 }
 
-void TestGame::reactions(const Vec2i& _posA, const Vec2i& _posB, TestGame::Particle& _particleA,
+bool TestGame::reactions(const Vec2i& _posA, const Vec2i& _posB, TestGame::Particle& _particleA,
                          const TestGame::Particle& _particleB) {
     float _prob = TestGame::probValues(_particleA.type, _particleB.type);
     float _chanceToReact = 1.f - _prob;
@@ -839,13 +831,15 @@ void TestGame::reactions(const Vec2i& _posA, const Vec2i& _posB, TestGame::Parti
         if(_particleB.type == ROCK) {
             if(_reacting) {
                 this->writeParticle(_posB.x, _posB.y, TestGame::noneParticle);
-                if(this->random.randomf(0.0f, 1.0f) >= 0.65f)
+                if(this->random.randomf(0.0f, 1.0f) >= 0.85f)
                     this->writeParticle(_posA.x, _posA.y, TestGame::noneParticle);
             }
 
-            return;
+            return true;
         }
     }
+
+    return false;
 }
 
 void TestGame::activateNeighbours(int _x, int _y, int _width) {
@@ -872,6 +866,25 @@ void TestGame::activateNeighbours(int _x, int _y, int _width) {
 
     if(this->isInBounds(_x + 1, _y - 1))
         this->particles[(_x + 1) + _width * (_y - 1)].canUpdate = true;
+}
+
+void TestGame::handleUnfittedDrops(int _x, int _y, int _vecPos, float _dt) {
+    if(this->whatToDoWithUnfittingDrops == 2)
+        return;
+
+    if (this->whatToDoWithUnfittingDrops == 0) {
+        if(this->particles[_vecPos].lastHeight == _y)
+            this->particles[_vecPos].lifeTimer += _dt;
+        else {
+            this->particles[_vecPos].lastHeight = _y;
+            this->particles[_vecPos].lifeTimer = 0.0f;
+        }
+
+        if(this->particles[_vecPos].lifeTimer >= this->particles[_vecPos].lifeTime)
+            this->writeParticle(_x, _y, _vecPos, TestGame::noneParticle);
+    } else if (this->whatToDoWithUnfittingDrops == 1){
+        LOG_INFO("EVAPORATING NOT IMPLEMENTED YET");
+    }
 }
 
 

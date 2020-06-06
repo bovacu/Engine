@@ -10,6 +10,10 @@
 #define IMGUI_DRAWING       2
 #define IMGUI_CRAFTER       3
 
+#define INFINITE_LIFE_TIME -1.f
+#define MAX_WATER_LIFE      8.f
+#define MIN_WATER_LIFE      4.f
+
 #include <engine/main/Engine.h>
 
 using namespace engine;
@@ -26,6 +30,9 @@ class TestGame : public engine::Layer {
             Color color = {   0,   0,   0,   0 };
             ParticleType type = NONE_PARTICLE;
             bool canUpdate = true;
+            float lifeTimer = 0.0f;
+            float lifeTime = INFINITE_LIFE_TIME;
+            int lastHeight = 0;
         };
 
     private:
@@ -78,6 +85,8 @@ class TestGame : public engine::Layer {
                 false,       /// Crafter
         };
 
+        int whatToDoWithUnfittingDrops = 0; /// 0 = leave them alone, 1 = remove them, 2 = evaporate them
+
     public:
         TestGame();
         ~TestGame() override = default;
@@ -118,7 +127,8 @@ class TestGame : public engine::Layer {
         void imGuiCrafterWindow(engine::Timestep _dt);
 
         static float probValues(const ParticleType& _firstParticle, const ParticleType& _secondParticle);
-        void reactions(const Vec2i& _posA, const Vec2i& _posB, Particle& _particleA, const Particle& _particleB);
+        bool reactions(const Vec2i& _posA, const Vec2i& _posB, Particle& _particleA, const Particle& _particleB);
+        void handleUnfittedDrops(int _x, int _y, int _vecPos, float _dt);
 };
 
 #endif //TESTGAME_H
