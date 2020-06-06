@@ -5,11 +5,6 @@
 
 #define MAX_BRUSH_THICKNESS 20
 
-#define IMGUI_DEBUGGING     0
-#define IMGUI_CONTROLLER    1
-#define IMGUI_DRAWING       2
-#define IMGUI_CRAFTER       3
-
 #define INFINITE_LIFE_TIME -1.f
 #define MAX_WATER_LIFE      8.f
 #define MIN_WATER_LIFE      4.f
@@ -21,7 +16,15 @@ using namespace engine;
 class TestGame : public engine::Layer {
 
     public:
-        enum ParticleType { NONE_PARTICLE, SAND, WATER, ROCK, ACID, STEAM, SMOKE };
+        enum ParticleType { NONE_PARTICLE,                                                                              /// NOTHING
+                            SAND    , GUNPOWDER , SALT  ,                                                               /// DUSTS
+                            WATER   , ACID      , LAVA  , POISON_L  ,                                                   /// LIQUIDS
+                            STONE   , WOOD      , ICE   , SNOW      ,   STEEL   ,   WAX , DIRT  ,                       /// SOLIDS
+                            STEAM   , SMOKE     , GAS   , POISON_G  ,                                                   /// GASES
+                            CLOUD   , FIRE      , PLANT ,                                                               /// VARIOUS
+                            FUSE                                                                                        /// UTILS
+        };
+
         enum Tool { DRAW, ERASE };
         float gravity = 10.f;
 
@@ -40,7 +43,6 @@ class TestGame : public engine::Layer {
         glm::vec4 squareColor = { 0.2f, 0.3f, 0.8f, 1.0f };
         Texture2DPtr proceduralTexture;
         ImGuiTexture2DPtr pauseTexture, resumeTexture, advanceTexture, oneFrameTexture, drawTexture, eraseTexture;
-        ImGuiTexture2DPtr enabledTexture, disabledTexture;
         Particle* particles;
         Application& app;
 
@@ -56,7 +58,7 @@ class TestGame : public engine::Layer {
         int particlesInSecond = 0;
         float particlesUpdateTimer = 0.0f;
 
-        static Particle noneParticle, sandParticle, waterParticle, rockParticle, acidParticle;
+        static Particle noneParticle, sandParticle, waterParticle, stoneParticle, acidParticle;
         static int textureWidth, textureHeight;
 
         Color PARTICLE_COLORS[16] = {
@@ -78,14 +80,14 @@ class TestGame : public engine::Layer {
                 {   0,   0,   0,   0 }  /// TRANSPARENT
         };
 
-        bool tools[4] = {
-                true,       /// Debugging
-                true,       /// Controller
-                true,       /// Drawing
-                false,       /// Crafter
-        };
-
         int whatToDoWithUnfittingDrops = 0; /// 0 = leave them alone, 1 = remove them, 2 = evaporate them
+        float weatherConditions[5] = {
+            0       ,   /// Wind
+            20      ,   /// Temperature (Celsius)
+            0       ,   /// Rain
+            0       ,   /// Snow
+            9.8f    ,   /// Gravity
+        };
 
     public:
         TestGame();
@@ -103,7 +105,7 @@ class TestGame : public engine::Layer {
         void initSimulationWorld();
         void updateSandParticle(int _x, int _y, int _posInVector, Timestep _dt);
         void updateWaterParticle(int _x, int _y, int _posInVector, Timestep _dt);
-        void updateRockParticle(int _x, int _y, int _posInVector, Timestep _dt);
+        void updateStoneParticle(int _x, int _y, int _posInVector, Timestep _dt);
         void updateAcidParticle(int _x, int _y, int _posInVector, Timestep _dt);
 
         Color particleTypeToColor(const ParticleType& _particle);
@@ -121,10 +123,14 @@ class TestGame : public engine::Layer {
         void writeParticle(int _x, int _y, const Particle& _particle);
         void writeParticle(int _x, int _y,int _vecPos, const Particle& _particle);
 
-        void imGuiToolEnablerWindow(engine::Timestep _dt);
-        void imGuiDrawingWindow(engine::Timestep _dt);
+        void imGuiAppWindow(engine::Timestep _dt);
+        void imGuiInfo(engine::Timestep _dt);
         void imGuiControllerWindow(engine::Timestep _dt);
-        void imGuiCrafterWindow(engine::Timestep _dt);
+        void imGuiConditions(engine::Timestep _dt);
+        void imGuiWeather(engine::Timestep _dt);
+        void imGuiDrawingWindow(engine::Timestep _dt);
+        void imGuiMaterials(engine::Timestep _dt);
+        void imGuiSettings(engine::Timestep _dt);
 
         static float probValues(const ParticleType& _firstParticle, const ParticleType& _secondParticle);
         bool reactions(const Vec2i& _posA, const Vec2i& _posB, Particle& _particleA, const Particle& _particleB);
