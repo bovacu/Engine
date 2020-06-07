@@ -6,21 +6,28 @@
 
 namespace engine {
 
-    bool WindowsInput::isKeyPressed_v(KeyCode _key) {
-        auto _window = static_cast<GLFWwindow*>(Application::get().getWindow().getNativeWindow());
-        auto state = glfwGetKey(_window, static_cast<int32_t>(_key));
-        return state == GLFW_PRESS;
+    bool WindowsInput::isKeyJustPressed_v(KeyCode _keyCode) {
+        if(!Input::pressedKeys[_keyCode]) {
+            auto _window = static_cast<GLFWwindow*>(Application::get().getWindow().getNativeWindow());
+            auto _state = glfwGetKey(_window, static_cast<int32_t>(_keyCode));
+            bool _result = _state == GLFW_PRESS;
+
+            if(_result)
+                Input::pressedKeys[_keyCode] = true;
+
+            return _result;
+        }
+
+        return false;
     }
 
-    bool WindowsInput::isKeyDown_v(KeyCode _key) {
-        LOG_WARN_CORE("IS KEY DOWN IS NOT TESTED TO BE WORKING OKAY");
+    bool WindowsInput::isKeyPressed_v(KeyCode _key) {
         auto _window = static_cast<GLFWwindow*>(Application::get().getWindow().getNativeWindow());
         auto _state = glfwGetKey(_window, static_cast<int32_t>(_key));
-        return _state == GLFW_REPEAT;
+        return _state == GLFW_PRESS;
     }
 
     bool WindowsInput::isKeyReleased_v(KeyCode _key) {
-        LOG_WARN_CORE("IS KEY RELEASED IS NOT TESTED TO BE WORKING OKAY");
         auto _window = static_cast<GLFWwindow*>(Application::get().getWindow().getNativeWindow());
         auto _state = glfwGetKey(_window, static_cast<int32_t>(_key));
         return _state == GLFW_RELEASE;
@@ -29,13 +36,7 @@ namespace engine {
     bool WindowsInput::isMousePressed_v(MouseCode _button) {
         auto _window = static_cast<GLFWwindow*>(Application::get().getWindow().getNativeWindow());
         auto _state = glfwGetMouseButton(_window, static_cast<int32_t>(_button));
-        return _state == GLFW_PRESS || _state == GLFW_REPEAT;
-    }
-
-    bool WindowsInput::isMouseDown_v(MouseCode _button) {
-        auto _window = static_cast<GLFWwindow*>(Application::get().getWindow().getNativeWindow());
-        auto _state = glfwGetMouseButton(_window, static_cast<int32_t>(_button));
-        return _state == GLFW_REPEAT;
+        return _state == GLFW_PRESS;
     }
 
     bool WindowsInput::isMouseReleased_v(MouseCode _button) {

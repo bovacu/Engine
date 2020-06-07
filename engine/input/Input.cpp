@@ -8,8 +8,10 @@
 namespace engine {
 
     InputPtr Input::inputInstance = Input::create();
+    std::unordered_map<KeyCode, bool> Input::pressedKeys = { {KEY_SPACE, false} };
 
     InputPtr Input::create() {
+
         #ifdef ENGINE_PLATFORM_WINDOWS
                 return std::make_unique<WindowsInput>();
         #else

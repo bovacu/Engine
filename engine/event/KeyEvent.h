@@ -17,7 +17,7 @@ namespace engine {
             explicit KeyEvent(KeyCode _keyCode) : keyCode(_keyCode) {}
 
         public:
-            inline KeyCode getKeyCode() const { return this->keyCode; }
+            [[nodiscard]] inline KeyCode getKeyCode() const { return this->keyCode; }
             EVENT_CLASS_CATEGORY(EventCategory::EventCategoryKeyboard | EventCategory::EventCategoryInput);
     };
 
@@ -27,11 +27,11 @@ namespace engine {
 
         public:
             KeyPressedEvent(KeyCode _keyCode, int _repeatedTimes) : KeyEvent(_keyCode), repeatedTimes(_repeatedTimes) {}
-            inline int getRepeatedTimes() const { return this->repeatedTimes; }
+            [[nodiscard]] inline int getRepeatedTimes() const { return this->repeatedTimes; }
 
-            std::string toString() const override {
+            [[nodiscard]] std::string toString() const override {
                 std::stringstream _sst;
-                _sst << "KeyPressedEvent: KeyPressed = " << (char)this->keyCode << " (" << this->keyCode << ") (pressed " << this->repeatedTimes << " times)";
+                _sst << "KeyDownEvent: KeyDown = " << (char)this->keyCode << " (" << this->keyCode << ") (down " << this->repeatedTimes << " times)";
                 return _sst.str();
             }
 
@@ -42,7 +42,7 @@ namespace engine {
         public:
             explicit KeyTypedEvent(KeyCode _keyCode) : KeyEvent(_keyCode) {  }
 
-            std::string toString() const override {
+            [[nodiscard]] std::string toString() const override {
                 std::stringstream _sst;
                 _sst << "KeyTypedEvent: KeyPressed = " << (char)this->keyCode;
                 return _sst.str();
@@ -55,7 +55,7 @@ namespace engine {
         public:
             explicit KeyReleasedEvent(KeyCode _keyCode) : KeyEvent(_keyCode) {}
 
-            std::string toString() const override {
+            [[nodiscard]] std::string toString() const override {
                 std::stringstream _sst;
                 _sst << "KeyReleasedEvent: KeyReleased = " << (char)this->keyCode << " (" << this->keyCode << ")";
                 return _sst.str();

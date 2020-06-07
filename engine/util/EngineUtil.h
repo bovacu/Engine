@@ -144,21 +144,10 @@ namespace engine {
 	};
 
 	struct Color {
-        unsigned char r,g,b,a;
+        unsigned char r, g, b, a;
 
 		Color() : r(0), g(0), b(0), a(0) {  }
-		Color(unsigned char _r, unsigned char _g, unsigned char _b, unsigned char _a = 1) : r(_r), g(_g), b(_b), a(_a) {  }
-
-		// Color toGrayScale(const Color& _color) {
-		// 	std::cerr << "toGrayScale from color currently not supported" << std::endl;
-		// 	return _color;
-		// }
-
-		// long toHex() {
-		// 	std::cerr << "toHex from color currently not supported" << std::endl;
-		// 	return ((r & 0xff) << 24) + ((g & 0xff) << 16) + ((b & 0xff) << 8)
-        //    + (a & 0xff);;
-		// }
+		Color(unsigned char _r, unsigned char _g, unsigned char _b, unsigned char _a = 255) : r(_r), g(_g), b(_b), a(_a) {  }
 
 		static const Color White;
 		static const Color Black;

@@ -18,12 +18,14 @@ namespace engine {
             static InputPtr inputInstance;
 
         public:
+            static std::unordered_map<KeyCode, bool> pressedKeys;
+
+        public:
+            static bool isKeyJustPressed(KeyCode _keyCode)          { return inputInstance->isKeyJustPressed_v(_keyCode); }
             static bool isKeyPressed(KeyCode _keyCode)              { return inputInstance->isKeyPressed_v(_keyCode); }
-            static bool isKeyDown(KeyCode _keyCode)                 { return inputInstance->isKeyDown_v(_keyCode); }
             static bool isKeyReleased(KeyCode _keyCode)             { return inputInstance->isKeyReleased_v(_keyCode); }
 
             static bool isMousePressed(MouseCode _mouseButton)      { return inputInstance->isMousePressed_v(_mouseButton); }
-            static bool isMouseDown(MouseCode _mouseButton)         { return inputInstance->isMouseDown_v(_mouseButton); }
             static bool isMouseReleased(MouseCode _mouseButton)     { return inputInstance->isMouseReleased_v(_mouseButton); }
 
             static Vec2f getMousePosition()                         { return inputInstance->getMousePosition_v(); }
@@ -35,11 +37,10 @@ namespace engine {
 
         protected:
             virtual bool isKeyPressed_v(KeyCode _keyCode)           = 0;
-            virtual bool isKeyDown_v(KeyCode _keyCode)              = 0;
+            virtual bool isKeyJustPressed_v(KeyCode _keyCode)       = 0;
             virtual bool isKeyReleased_v(KeyCode _keyCode)          = 0;
 
             virtual bool isMousePressed_v(MouseCode _mouseButton)   = 0;
-            virtual bool isMouseDown_v(MouseCode _mouseButton)      = 0;
             virtual bool isMouseReleased_v(MouseCode _mouseButton)  = 0;
 
             virtual Vec2f getMousePosition_v()                      = 0;

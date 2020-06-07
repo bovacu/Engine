@@ -10,11 +10,10 @@ namespace engine {
     class WindowsInput : public Input {
         protected:
             bool isKeyPressed_v(KeyCode _key)               override;
-            bool isKeyDown_v(KeyCode _key)                  override;
+            bool isKeyJustPressed_v(KeyCode _keyCode)       override;
             bool isKeyReleased_v(KeyCode _key)              override;
 
             bool isMousePressed_v(MouseCode _mouseButton)   override;
-            bool isMouseDown_v(MouseCode _mouseButton)      override;
             bool isMouseReleased_v(MouseCode _mouseButton)  override;
 
             Vec2f getMousePosition_v()                      override;

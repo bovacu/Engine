@@ -94,11 +94,14 @@ namespace engine {
                     _data.eventCallback(_event);
                     break;
                 }
+
                 case GLFW_RELEASE: {
                     KeyReleasedEvent _event(static_cast<KeyCode>(_key));
                     _data.eventCallback(_event);
+                    Input::pressedKeys[static_cast<KeyCode>(_key)] = false;
                     break;
                 }
+
                 case GLFW_REPEAT: {
                     KeyPressedEvent _event(static_cast<KeyCode>(_key), 1);
                     _data.eventCallback(_event);

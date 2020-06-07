@@ -35,6 +35,10 @@ void TestGame::onEvent(engine::Event& _e) {
     this->cameraController.onEvent(_e);
 }
 void TestGame::onUpdate(engine::Timestep _dt) {
+
+    if(Input::isKeyJustPressed(KEY_SPACE))
+        this->play = !this->play;
+
     if(this->play) {
         if(this->oneStep) {
             this->play = false;
@@ -97,7 +101,7 @@ void TestGame::onFixedUpdate(engine::Timestep _dt) {
 }
 void TestGame::onRender(engine::Timestep _dt) {
     engine::Render2D::resetStats();
-    engine::RenderCommand::setClearColor(engine::Color::Black);
+    engine::RenderCommand::setClearColor(this->backgroundColor);
     engine::RenderCommand::clear();
 
     engine::Render2D::beginRender(this->cameraController.getCamera());
@@ -142,13 +146,13 @@ void TestGame::initSimulationWorld() {
 
 void TestGame::updateSandParticle(int _x, int _y, int _posInVector, Timestep _dt) {
     Particle* _p = &this->particles[_posInVector];
-    _p->velocity.y = functions::clamp(_p->velocity.y + (this->gravity * _dt), -this->gravity, this->gravity );
+    _p->velocity.y = functions::clamp(_p->velocity.y + (this->weatherConditions[4] * _dt), -this->weatherConditions[4], this->weatherConditions[4] );
 
     int _vX = _x + (int)_p->velocity.x;
     int _vY = _y - (int)_p->velocity.y;
 
-    if(!this->isEmpty(_x, _y - 1))
-        _p->velocity.y *= 0.5f;
+//    if(!this->isEmpty(_x, _y - 1))
+//        _p->velocity.y *= (this->weatherConditions[4]) * 0.5f;
 
     Particle _tempA = *_p;
 
@@ -158,26 +162,18 @@ void TestGame::updateSandParticle(int _x, int _y, int _posInVector, Timestep _dt
     if(isEmpty(_vX, _vY)) {
         _tempB = this->particles[_vX + _width * _vY];
         _tempA.velocity.x = 0;
-        _tempA.canUpdate = true;
-        _tempB.canUpdate = true;
         this->writeParticle(_vX, _vY, _tempA);
         this->writeParticle(_x, _y, _tempB);
-
         this->activateNeighbours(_x, _y, _width);
-//        this->activateNeighbours(_vX, _vY, _width);
-        
+
     } else if(this->is(_vX, _vY, ParticleType::WATER)) {
         int _vecForB = _vX + _width * _vY;
         _tempB = this->particles[_vecForB];
         _tempA.velocity.x = 0;
         _tempA.velocity.y *= 0.5f;
-        _tempA.canUpdate = true;
-        _tempB.canUpdate = true;
         this->writeParticle(_vX, _vY, _vecForB, _tempA);
         this->writeParticle(_x, _y, _posInVector, _tempB);
-
         this->activateNeighbours(_x, _y, _width);
-//        this->activateNeighbours(_vX, _vY, _width);
 
     } else {
 
@@ -185,54 +181,42 @@ void TestGame::updateSandParticle(int _x, int _y, int _posInVector, Timestep _dt
         bool _inWater = false;
         if(this->isEmpty(_x, _y - 1) || (_inWater = this->is(_x, _y - 1, ParticleType::WATER))) {
             if(_inWater) _p->velocity.y *= 0.5f;
-            else _p->velocity.y += (this->gravity * _dt);
+            else _p->velocity.y += (this->weatherConditions[4] * _dt);
 
             int _vecForB = _x + _width * (_y - 1);
             _tempB = this->particles[_vecForB];
-            _tempA.canUpdate = true;
-            _tempB.canUpdate = true;
 
             this->writeParticle(_x, _y - 1, _vecForB, _tempA);
             this->writeParticle(_x, _y, _posInVector, _tempB);
-
             this->activateNeighbours(_x, _y, _width);
-//            this->activateNeighbours(_x, _y - 1, _width);
-            
+
         }
         /// Down-Left
         else if (this->isEmpty(_x - 1, _y - 1) || (_inWater = this->is(_x - 1, _y - 1, ParticleType::WATER))) {
             if(_inWater) _p->velocity.y *= 0.5f;
-            else _p->velocity.y += (this->gravity * _dt);
+            else _p->velocity.y += (this->weatherConditions[4] * _dt);
                 _p->velocity.x = this->random.randomi( 0, 1 ) == 0 ? -1.f : 1.f;
 
             int _vecForB = (_x - 1) + _width * (_y - 1);
             _tempB = this->particles[(_x - 1) + _width * (_y - 1)];
-            _tempA.canUpdate = true;
-            _tempB.canUpdate = true;
 
             this->writeParticle(_x - 1, _y - 1, _vecForB, _tempA);
             this->writeParticle(_x, _y, _posInVector, _tempB);
-
             this->activateNeighbours(_x, _y, _width);
-//            this->activateNeighbours(_x - 1, _y - 1, _width);
             
         }
         /// Down-Right
         else if (this->isEmpty(_x + 1, _y - 1) || (_inWater = this->is(_x + 1, _y - 1, ParticleType::WATER))) {
             if(_inWater) _p->velocity.y *= 0.5f;
-            else _p->velocity.y += (this->gravity * _dt);
+            else _p->velocity.y += (this->weatherConditions[4] * _dt);
                 _p->velocity.x = this->random.randomi( 0, 1 ) == 0 ? -1.f : 1.f;
 
             int _vecForB = (_x + 1) + _width * (_y - 1);
             _tempB = this->particles[_vecForB];
-            _tempA.canUpdate = true;
-            _tempB.canUpdate = true;
 
             this->writeParticle(_x + 1, _y - 1, _vecForB, _tempA);
             this->writeParticle(_x, _y, _posInVector, _tempB);
-
             this->activateNeighbours(_x, _y, _width);
-//            this->activateNeighbours(_x + 1, _y - 1, _width);
             
         } else {
             _p->canUpdate = false;
@@ -242,7 +226,7 @@ void TestGame::updateSandParticle(int _x, int _y, int _posInVector, Timestep _dt
 void TestGame::updateWaterParticle(int _x, int _y, int _posInVector, Timestep _dt) {
     Particle* _p = &this->particles[_posInVector];
     int _sign = this->random.randomi(0, 1) == 0 ? -1 : 1;
-    _p->velocity.y = functions::clamp(_p->velocity.y + (this->gravity * _dt), -this->gravity, this->gravity );
+    _p->velocity.y = functions::clamp(_p->velocity.y + (this->weatherConditions[4] * _dt), -this->weatherConditions[4], this->weatherConditions[4] );
 
     int _vX = _x + (int)_p->velocity.x;
     int _vY = _y - (int)_p->velocity.y;
@@ -360,7 +344,7 @@ void TestGame::updateStoneParticle(int _x, int _y, int _posInVector, Timestep _d
 void TestGame::updateAcidParticle(int _x, int _y, int _posInVector, Timestep _dt) {
     Particle* _p = &this->particles[_posInVector];
     int _sign = this->random.randomi(0, 1) == 0 ? -1 : 1;
-    _p->velocity.y = functions::clamp(_p->velocity.y + (this->gravity * _dt), -this->gravity, this->gravity );
+    _p->velocity.y = functions::clamp(_p->velocity.y + (this->weatherConditions[4] * _dt), -this->weatherConditions[4], this->weatherConditions[4] );
 
     int _vX = _x + (int)_p->velocity.x;
     int _vY = _y - (int)_p->velocity.y;
@@ -403,7 +387,7 @@ void TestGame::updateAcidParticle(int _x, int _y, int _posInVector, Timestep _dt
 
                 return;
             } else {
-                if(this->random.probability(0.1f).happened)
+                if(this->random.probability(0.5f).happened)
                     if (this->reactions({_x, _y}, {_x, _y - 1}, _tempA, _tempB)) {
                         this->activateNeighbours(_x, _y, _width);
                         return;
@@ -439,21 +423,31 @@ void TestGame::updateAcidParticle(int _x, int _y, int _posInVector, Timestep _dt
         }
 
             /// Down-Right OR Down-Left
-        if (this->isEmpty(_x - _sign, _y - 1)) {
-            int _neighbour = 1;
-            while(this->isEmpty(_x - (_sign * (_neighbour + 1)), _y - (_neighbour + 1)) && _neighbour < 3) {
-                _neighbour++;
-                _secondDownMovement = this->calcVecPos(_x - (_sign * _neighbour), _y - _neighbour);
-            }
-
+        if (this->isInBounds(_x - _sign, _y - 1)) {
             _tempB = this->particles[_secondDownMovement];
-            this->writeParticle(_x - (_sign * _neighbour), _y - _neighbour, _tempA);
-            this->writeParticle(_x, _y, _tempB);
 
-            this->handleUnfittedDrops(_x - (_sign * _neighbour), _y - _neighbour, _secondDownMovement, _dt);
-            this->activateNeighbours(_x, _y, _width);
+            if(_tempB.type == NONE_PARTICLE) {
+                int _neighbour = 1;
+                while(this->isEmpty(_x - (_sign * (_neighbour + 1)), _y - (_neighbour + 1)) && _neighbour < 3) {
+                    _neighbour++;
+                    _secondDownMovement = this->calcVecPos(_x - (_sign * _neighbour), _y - _neighbour);
+                }
 
-            return;
+                _tempB = this->particles[_secondDownMovement];
+
+                this->writeParticle(_x - (_sign * _neighbour), _y - _neighbour, _tempA);
+                this->writeParticle(_x, _y, _tempB);
+
+                this->handleUnfittedDrops(_x - (_sign * _neighbour), _y - _neighbour, _secondDownMovement, _dt);
+                this->activateNeighbours(_x, _y, _width);
+
+                return;
+            } else {
+                if(this->reactions({_x, _y}, {_x - _sign, _y - 1}, _tempA, _tempB)) {
+                    this->activateNeighbours(_x, _y, _width);
+                    return;
+                }
+            }
         }
 
             /// Left OR Right
@@ -485,22 +479,31 @@ void TestGame::updateAcidParticle(int _x, int _y, int _posInVector, Timestep _dt
         }
 
             /// Left OR Right
-        if (this->isEmpty(_x - _sign, _y)) {
-            int _neighbour = 1;
-            while(this->isEmpty(_x - (_sign * (_neighbour + 1)), _y) && _neighbour < 3) {
-                _neighbour++;
-                _secondMovement = this->calcVecPos(_x - (_sign * _neighbour), _y);
-            }
-
+        if (this->isInBounds(_x - _sign, _y)) {
             _tempB = this->particles[_secondMovement];
 
-            this->writeParticle(_x - (_sign * _neighbour), _y, _tempA);
-            this->writeParticle(_x, _y, _tempB);
+            if(this->particles[_secondMovement].type == NONE_PARTICLE) {
+                int _neighbour = 1;
+                while(this->isEmpty(_x - (_sign * (_neighbour + 1)), _y) && _neighbour < 3) {
+                    _neighbour++;
+                    _secondMovement = this->calcVecPos(_x - (_sign * _neighbour), _y);
+                }
 
-            this->handleUnfittedDrops(_x - (_sign * _neighbour), _y, _secondMovement, _dt);
-            this->activateNeighbours(_x, _y, _width);
+                _tempB = this->particles[_secondMovement];
 
-            return;
+                this->writeParticle(_x - (_sign * _neighbour), _y, _tempA);
+                this->writeParticle(_x, _y, _tempB);
+
+                this->handleUnfittedDrops(_x - (_sign * _neighbour), _y, _secondMovement, _dt);
+                this->activateNeighbours(_x, _y, _width);
+
+                return;
+            } else {
+                if(this->reactions({_x, _y}, {_x - _sign, _y}, _tempA, _tempB)) {
+                    this->activateNeighbours(_x, _y, _width);
+                    return;
+                }
+            }
         }
 
         _p->canUpdate = false;
@@ -674,6 +677,33 @@ void TestGame::imGuiAppWindow(engine::Timestep _dt) {
 void TestGame::imGuiInfo(engine::Timestep _dt) {
     ImGui::Text("FPS: %d", this->app.getFps());
     ImGui::Text("Updating: %d", this->particlesInSecond);
+}
+void TestGame::imGuiControllerWindow(engine::Timestep _dt) {
+    if(ImGui::Button("Reset Scene")) {
+        delete [] this->particles;
+        this->initSimulationWorld();
+    }
+
+    ImGui::SameLine();
+    ImGui::Text("State: %s", this->play ? "playing" : "paused");
+
+    ImGui::Separator();
+    if(ImGui::ImageButton((void*)(intptr_t)this->pauseTexture->getTexture(), ImVec2((float)this->pauseTexture->getWidth(), (float)this->pauseTexture->getHeight())))
+        this->play = false;
+    ImGui::SameLine();
+    if(ImGui::ImageButton((void*)(intptr_t)this->resumeTexture->getTexture(), ImVec2((float)this->resumeTexture->getWidth(), (float)this->resumeTexture->getHeight())))
+        this->play = true;
+    ImGui::SameLine();
+    if(ImGui::ImageButton((void*)(intptr_t)this->oneFrameTexture->getTexture(), ImVec2((float)this->oneFrameTexture->getWidth(), (float)this->oneFrameTexture->getHeight()))) {
+        this->play = true;
+        this->oneStep = true;
+    }
+    ImGui::SameLine();
+    ImGui::ImageButton((void*)(intptr_t)this->advanceTexture->getTexture(), ImVec2((float)this->advanceTexture->getWidth(), (float)this->advanceTexture->getHeight()));
+    if(ImGui::IsItemHovered() && Input::isMousePressed(MouseCode::Button0)) {
+        this->play = true;
+        this->oneStep = true;
+    }
 }
 void TestGame::imGuiDrawingWindow(engine::Timestep _dt) {
     if(ImGui::ImageButton((void*)(intptr_t)this->drawTexture->getTexture(), ImVec2((float)this->drawTexture->getWidth(), (float)this->drawTexture->getHeight()))) {
@@ -900,36 +930,14 @@ void TestGame::imGuiSettings(engine::Timestep _dt) {
 
     ImGui::Separator();
 
-    static ImVec4 _color;
+    static float _color[4];
     if(ImGui::CollapsingHeader("Background Color")) {
-        ImGui::ColorPicker4("##colorPiecker4", (float*)&_color, ImGuiColorEditFlags_DisplayRGB);
-    }
-}
-void TestGame::imGuiControllerWindow(engine::Timestep _dt) {
-    if(ImGui::Button("Reset Scene")) {
-        delete [] this->particles;
-        this->initSimulationWorld();
-    }
-
-    ImGui::SameLine();
-    ImGui::Text("State: %s", this->play ? "playing" : "paused");
-
-    ImGui::Separator();
-    if(ImGui::ImageButton((void*)(intptr_t)this->pauseTexture->getTexture(), ImVec2((float)this->pauseTexture->getWidth(), (float)this->pauseTexture->getHeight())))
-        this->play = false;
-    ImGui::SameLine();
-    if(ImGui::ImageButton((void*)(intptr_t)this->resumeTexture->getTexture(), ImVec2((float)this->resumeTexture->getWidth(), (float)this->resumeTexture->getHeight())))
-        this->play = true;
-    ImGui::SameLine();
-    if(ImGui::ImageButton((void*)(intptr_t)this->oneFrameTexture->getTexture(), ImVec2((float)this->oneFrameTexture->getWidth(), (float)this->oneFrameTexture->getHeight()))) {
-        this->play = true;
-        this->oneStep = true;
-    }
-    ImGui::SameLine();
-    ImGui::ImageButton((void*)(intptr_t)this->advanceTexture->getTexture(), ImVec2((float)this->advanceTexture->getWidth(), (float)this->advanceTexture->getHeight()));
-    if(ImGui::IsItemHovered() && Input::isMousePressed(MouseCode::Button0)) {
-        this->play = true;
-        this->oneStep = true;
+        if(ImGui::ColorPicker4("##colorPiecker4", _color, ImGuiColorEditFlags_DisplayRGB)) {
+            this->backgroundColor.r = (unsigned char)(255 * _color[0]);
+            this->backgroundColor.g = (unsigned char)(255 * _color[1]);
+            this->backgroundColor.b = (unsigned char)(255 * _color[2]);
+            this->backgroundColor.a = (unsigned char)(255);
+        }
     }
 }
 

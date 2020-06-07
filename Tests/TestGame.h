@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef TESTGAME_H
-#define TESTGAME_H
+#ifndef TEST_GAME_H
+#define TEST_GAME_H
 
 #define MAX_BRUSH_THICKNESS 20
 
@@ -46,7 +46,7 @@ class TestGame : public engine::Layer {
         Particle* particles;
         Application& app;
 
-        bool play = true, oneStep = false;
+        bool play = true, oneStep = false, justPressed = true;
         ParticleType selectedParticle = SAND;
 
         Tool usingTool = DRAW;
@@ -88,6 +88,7 @@ class TestGame : public engine::Layer {
             0       ,   /// Snow
             9.8f    ,   /// Gravity
         };
+        Color backgroundColor = Color::Black;
 
     public:
         TestGame();
@@ -137,4 +138,4 @@ class TestGame : public engine::Layer {
         void handleUnfittedDrops(int _x, int _y, int _vecPos, float _dt);
 };
 
-#endif //TESTGAME_H
+#endif //TEST_GAME_H

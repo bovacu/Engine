@@ -45,7 +45,7 @@ namespace engine {
     }
 
     void OpenGLRenderAPI::setClearColor(const glm::vec4& _color) {
-        glClearColor(_color.r, _color.g, _color.b, _color.a);
+        glClearColor(_color.r / 255.f, _color.g / 255.f, _color.b / 255.f, _color.a / 255.f);
     }
 
     void OpenGLRenderAPI::clear() {
