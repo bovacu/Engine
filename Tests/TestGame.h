@@ -4,6 +4,7 @@
 #define TEST_GAME_H
 
 #define MAX_BRUSH_THICKNESS 20
+#define MAX_ZOOM_LEVEL      15.f
 
 #define INFINITE_LIFE_TIME -1.f
 #define MAX_WATER_LIFE      8.f
@@ -25,7 +26,7 @@ class TestGame : public engine::Layer {
                             FUSE                                                                                        /// UTILS
         };
 
-        enum Tool { DRAW, ERASE };
+        enum Tool { DRAW, ERASE, ZOOM };
         float gravity = 10.f;
 
         struct Particle {
@@ -37,20 +38,23 @@ class TestGame : public engine::Layer {
             float lifeTime = INFINITE_LIFE_TIME;
             int lastHeight = 0;
         };
+        struct ReactionInfo {
+            Probability prob;
+            bool reactionExists = false;
+        };
 
     private:
         engine::OrthographicCameraController cameraController;
         glm::vec4 squareColor = { 0.2f, 0.3f, 0.8f, 1.0f };
         Texture2DPtr proceduralTexture;
-        ImGuiTexture2DPtr pauseTexture, resumeTexture, advanceTexture, oneFrameTexture, drawTexture, eraseTexture;
+        int totalOfPixels, drawnPixels;
+        ImGuiTexture2DPtr pauseTexture, resumeTexture, advanceTexture, oneFrameTexture, drawTexture, eraseTexture,
+                            zoomTexture, pointTexture;
         Particle* particles;
         Application& app;
 
         bool play = true, oneStep = false, justPressed = true;
         ParticleType selectedParticle = SAND;
-
-        Tool usingTool = DRAW;
-        int brushSize = 10;
 
         engine::Random random;
 
@@ -90,6 +94,11 @@ class TestGame : public engine::Layer {
         };
         Color backgroundColor = Color::Black;
 
+        Tool usingTool = ZOOM;
+        int brushSize = 10;
+        float zoomLevel = 1.0f;
+        Color zoomDotColor = Color::Red;
+
     public:
         TestGame();
         ~TestGame() override = default;
@@ -113,6 +122,7 @@ class TestGame : public engine::Layer {
         void generateParticles(const Vec2f& _mousePos);
         void generateWithBrush(const Vec2f& _mousePos);
         void removeParticles(const Vec2f& _mousePos);
+        void zoomParticles(const Vec2f& _pos);
 
         bool isInBounds(int _x, int _y);
         int calcVecPos(int _x, int _y);
@@ -134,8 +144,10 @@ class TestGame : public engine::Layer {
         void imGuiSettings(engine::Timestep _dt);
 
         static float probValues(const ParticleType& _firstParticle, const ParticleType& _secondParticle);
-        bool reactions(const Vec2i& _posA, const Vec2i& _posB, Particle& _particleA, const Particle& _particleB);
+        ReactionInfo reactions(const Vec2i& _posA, const Vec2i& _posB, Particle& _particleA, const Particle& _particleB);
         void handleUnfittedDrops(int _x, int _y, int _vecPos, float _dt);
+
+        const char* particleTypeToName(const ParticleType& _type);
 };
 
 #endif //TEST_GAME_H

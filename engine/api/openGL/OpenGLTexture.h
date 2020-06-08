@@ -41,6 +41,7 @@ namespace engine {
             [[nodiscard]] int getBPP() const                                                                            override { return this->bpp; }
 
             void updateTexture()                                                                                        override;
+            uint32_t getRendererID()                                                                                    override { return this->rendererID; }
 
             bool operator==(const Texture& other) const                                                                 override { return this->rendererID == ((OpenGLTexture&)other).rendererID; }
 

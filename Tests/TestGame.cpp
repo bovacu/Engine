@@ -21,6 +21,8 @@ void TestGame::onInit() {
 
     TestGame::textureWidth  = this->proceduralTexture->getWidth();
     TestGame::textureHeight = this->proceduralTexture->getHeight();
+    this->totalOfPixels = TestGame::textureWidth * TestGame::textureHeight;
+    this->drawnPixels = 0;
 
     this->initSimulationWorld();
 
@@ -30,6 +32,8 @@ void TestGame::onInit() {
     this->oneFrameTexture = engine::ImGuiTexture2D::create("assets/textures/archivo-de-video.png");
     this->drawTexture = engine::ImGuiTexture2D::create("assets/textures/editar.png");
     this->eraseTexture = engine::ImGuiTexture2D::create("assets/textures/borrador.png");
+    this->zoomTexture = engine::ImGuiTexture2D::create("assets/textures/buscar.png");
+    this->pointTexture = engine::ImGuiTexture2D::create("assets/textures/point.png");
 }
 void TestGame::onEvent(engine::Event& _e) {
     this->cameraController.onEvent(_e);
@@ -52,7 +56,7 @@ void TestGame::onUpdate(engine::Timestep _dt) {
                 if (Input::isMousePressed(MouseCode::Button0)) {
                     if(this->usingTool == DRAW)
                         this->generateWithBrush(_mousePos);
-                    else
+                    else if (this->usingTool == ERASE)
                         this->removeParticles(_mousePos);
                 }
             }
@@ -353,6 +357,8 @@ void TestGame::updateAcidParticle(int _x, int _y, int _posInVector, Timestep _dt
         _p->velocity.y *= 0.5f;
 
     Particle _tempA = *_p;
+    ReactionInfo _ri;
+    bool _reactionReallyExists = false;
 
     int _width = TestGame::textureWidth;
 
@@ -387,11 +393,12 @@ void TestGame::updateAcidParticle(int _x, int _y, int _posInVector, Timestep _dt
 
                 return;
             } else {
-                if(this->random.probability(0.5f).happened)
-                    if (this->reactions({_x, _y}, {_x, _y - 1}, _tempA, _tempB)) {
-                        this->activateNeighbours(_x, _y, _width);
-                        return;
-                    }
+                _ri = this->reactions({_x, _y}, {_x, _y - 1}, _tempA, _tempB);
+                _reactionReallyExists |= _ri.reactionExists;
+                if (_ri.prob.happened) {
+                    this->activateNeighbours(_x, _y, _width);
+                    return;
+                }
             }
         }
             /// Down-Right OR Down-Left
@@ -415,7 +422,9 @@ void TestGame::updateAcidParticle(int _x, int _y, int _posInVector, Timestep _dt
 
                 return;
             } else {
-                if(this->reactions({_x, _y}, {_x + _sign, _y - 1}, _tempA, _tempB)) {
+                _ri = this->reactions({_x, _y}, {_x + _sign, _y - 1}, _tempA, _tempB);
+                _reactionReallyExists |= _ri.reactionExists;
+                if(_ri.prob.happened) {
                     this->activateNeighbours(_x, _y, _width);
                     return;
                 }
@@ -443,7 +452,9 @@ void TestGame::updateAcidParticle(int _x, int _y, int _posInVector, Timestep _dt
 
                 return;
             } else {
-                if(this->reactions({_x, _y}, {_x - _sign, _y - 1}, _tempA, _tempB)) {
+                _ri = this->reactions({_x, _y}, {_x - _sign, _y - 1}, _tempA, _tempB);
+                _reactionReallyExists |= _ri.reactionExists;
+                if(_ri.prob.happened) {
                     this->activateNeighbours(_x, _y, _width);
                     return;
                 }
@@ -471,7 +482,9 @@ void TestGame::updateAcidParticle(int _x, int _y, int _posInVector, Timestep _dt
 
                 return;
             } else {
-                if(this->reactions({_x, _y}, {_x + _sign, _y}, _tempA, _tempB)) {
+                _ri = this->reactions({_x, _y}, {_x + _sign, _y}, _tempA, _tempB);
+                _reactionReallyExists |= _ri.reactionExists;
+                if(_ri.prob.happened) {
                     this->activateNeighbours(_x, _y, _width);
                     return;
                 }
@@ -499,14 +512,17 @@ void TestGame::updateAcidParticle(int _x, int _y, int _posInVector, Timestep _dt
 
                 return;
             } else {
-                if(this->reactions({_x, _y}, {_x - _sign, _y}, _tempA, _tempB)) {
+                _ri = this->reactions({_x, _y}, {_x - _sign, _y}, _tempA, _tempB);
+                _reactionReallyExists |= _ri.reactionExists;
+                if(_ri.prob.happened) {
                     this->activateNeighbours(_x, _y, _width);
                     return;
                 }
             }
         }
 
-        _p->canUpdate = false;
+        if(!_reactionReallyExists)
+            _p->canUpdate = false;
     }
 }
 void TestGame::handleUnfittedDrops(int _x, int _y, int _vecPos, float _dt) {
@@ -521,8 +537,10 @@ void TestGame::handleUnfittedDrops(int _x, int _y, int _vecPos, float _dt) {
             this->particles[_vecPos].lifeTimer = 0.0f;
         }
 
-        if(this->particles[_vecPos].lifeTimer >= this->particles[_vecPos].lifeTime)
+        if(this->particles[_vecPos].lifeTimer >= this->particles[_vecPos].lifeTime) {
             this->writeParticle(_x, _y, _vecPos, TestGame::noneParticle);
+            this->drawnPixels--;
+        }
     } else if (this->whatToDoWithUnfittingDrops == 1){
         LOG_INFO("EVAPORATING NOT IMPLEMENTED YET");
     }
@@ -571,6 +589,7 @@ void TestGame::generateParticles(const Vec2f& _mousePos) {
         }
 
         this->writeParticle((int)_mousePos.x, (int)_mousePos.y, this->particles[_posInVector]);
+        this->drawnPixels++;
     }
 }
 void TestGame::generateWithBrush(const Vec2f& _mousePos) {
@@ -638,6 +657,13 @@ void TestGame::removeParticles(const Vec2f& _mousePos) {
 }
 
 void TestGame::imGuiAppWindow(engine::Timestep _dt) {
+//    static bool _opened = true;
+//    ImGui::ShowDemoWindow(&_opened);
+
+    if (this->usingTool == ZOOM) {
+        this->zoomParticles(Input::getMousePosition());
+    }
+
     ImGui::Begin("Simulator", nullptr);
         if(this->particlesUpdateTimer >= 1.f) {
             this->particlesInSecond = this->particlesUpdating;
@@ -676,7 +702,18 @@ void TestGame::imGuiAppWindow(engine::Timestep _dt) {
 }
 void TestGame::imGuiInfo(engine::Timestep _dt) {
     ImGui::Text("FPS: %d", this->app.getFps());
+    ImGui::Separator();
     ImGui::Text("Updating: %d", this->particlesInSecond);
+    ImGui::Separator();
+    char buf[32];
+    #if defined(ENGINE_PLATFORM_WINDOWS)
+        sprintf_s(buf, "%d/%d", this->drawnPixels, this->totalOfPixels);
+    #elif defined(ENGINE_PLATFORM_LINUX)
+        sprintf(buf, "%d/%d", this->drawnPixels, this->totalOfPixels);
+    #endif
+    ImGui::Text("Total pixels"); ImGui::SameLine();
+    ImGui::ProgressBar((float)this->drawnPixels / (float)this->totalOfPixels, ImVec2(0.f,0.f), buf);
+    ImGui::Separator();
 }
 void TestGame::imGuiControllerWindow(engine::Timestep _dt) {
     if(ImGui::Button("Reset Scene")) {
@@ -700,24 +737,65 @@ void TestGame::imGuiControllerWindow(engine::Timestep _dt) {
     }
     ImGui::SameLine();
     ImGui::ImageButton((void*)(intptr_t)this->advanceTexture->getTexture(), ImVec2((float)this->advanceTexture->getWidth(), (float)this->advanceTexture->getHeight()));
-    if(ImGui::IsItemHovered() && Input::isMousePressed(MouseCode::Button0)) {
+    if(ImGui::IsItemActive()) {
         this->play = true;
         this->oneStep = true;
     }
 }
 void TestGame::imGuiDrawingWindow(engine::Timestep _dt) {
-    if(ImGui::ImageButton((void*)(intptr_t)this->drawTexture->getTexture(), ImVec2((float)this->drawTexture->getWidth(), (float)this->drawTexture->getHeight()))) {
+    if(this->usingTool == DRAW) {
+        ImGui::PushStyleColor(ImGuiCol_Button, {(float) Color::Green.r, (float) Color::Green.g, (float) Color::Green.b, (float) Color::Green.a});
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, {(float) Color::Green.r, (float) Color::Green.g, (float) Color::Green.b, (float) Color::Green.a});
+        if(ImGui::ImageButton((void*)(intptr_t)this->drawTexture->getTexture(), ImVec2((float)this->drawTexture->getWidth(), (float)this->drawTexture->getHeight()))) {
+            this->usingTool = DRAW;
+        }
+        ImGui::PopStyleColor(2);
+    } else {
+        if(ImGui::ImageButton((void*)(intptr_t)this->drawTexture->getTexture(), ImVec2((float)this->drawTexture->getWidth(), (float)this->drawTexture->getHeight()))) {
         this->usingTool = DRAW;
     }
+    }
     ImGui::SameLine();
-    if(ImGui::ImageButton((void*)(intptr_t)this->eraseTexture->getTexture(), ImVec2((float)this->eraseTexture->getWidth(), (float)this->eraseTexture->getHeight()))) {
+
+    if(this->usingTool == ERASE) {
+        ImGui::PushStyleColor(ImGuiCol_Button, {(float) Color::Green.r, (float) Color::Green.g, (float) Color::Green.b, (float) Color::Green.a});
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, {(float) Color::Green.r, (float) Color::Green.g, (float) Color::Green.b, (float) Color::Green.a});
+        if (ImGui::ImageButton((void*) (intptr_t) this->eraseTexture->getTexture(),ImVec2((float) this->eraseTexture->getWidth(),(float) this->eraseTexture->getHeight()))) {
+            this->usingTool = ERASE;
+        }
+        ImGui::PopStyleColor(2);
+    } else {
+        if (ImGui::ImageButton((void*) (intptr_t) this->eraseTexture->getTexture(),ImVec2((float) this->eraseTexture->getWidth(),(float) this->eraseTexture->getHeight()))) {
         this->usingTool = ERASE;
     }
+    }
+    ImGui::SameLine();
 
+    if(this->usingTool == ZOOM) {
+        ImGui::PushStyleColor(ImGuiCol_Button, {(float) Color::Green.r, (float) Color::Green.g, (float) Color::Green.b, (float) Color::Green.a});
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, {(float) Color::Green.r, (float) Color::Green.g, (float) Color::Green.b, (float) Color::Green.a});
+        if (ImGui::ImageButton((void*) (intptr_t) this->zoomTexture->getTexture(),ImVec2((float) this->zoomTexture->getWidth(),(float) this->zoomTexture->getHeight()))) {
+            this->usingTool = ZOOM;
+        }
+        ImGui::PopStyleColor(2);
+    } else {
+        if (ImGui::ImageButton((void*) (intptr_t) this->zoomTexture->getTexture(),ImVec2((float) this->zoomTexture->getWidth(),(float) this->zoomTexture->getHeight()))) {
+            this->usingTool = ZOOM;
+        }
+    }
     ImGui::Separator();
 
     ImGui::Text("Brush thickness");
-    ImGui::SliderInt("##slider", &this->brushSize, 1, MAX_BRUSH_THICKNESS);
+    ImGui::PushID(0);
+        ImGui::SliderInt("##slider", &this->brushSize, 1, MAX_BRUSH_THICKNESS);
+    ImGui::PopID();
+
+    ImGui::Separator();
+
+    ImGui::Text("Zoom level");
+    ImGui::PushID(1);
+        ImGui::SliderFloat("##slider", &this->zoomLevel, 1.f, MAX_ZOOM_LEVEL, "%.2f");
+    ImGui::PopID();
 
     ImGui::Separator();
 }
@@ -766,6 +844,16 @@ void TestGame::imGuiMaterials(engine::Timestep _dt) {
             }
             ImGui::EndCombo();
         }
+
+        ImGui::SameLine();
+
+        if(ImGui::Button("Select")) {
+            if(strcmp(_liquidSelected, "Water") == 0)
+                this->selectedParticle = WATER;
+            else if(strcmp(_liquidSelected, "Acid") == 0)
+                this->selectedParticle = ACID;
+            _materialUsing = _liquidSelected;
+        }
     ImGui::PopID();
 
     ImGui::Separator();
@@ -773,7 +861,7 @@ void TestGame::imGuiMaterials(engine::Timestep _dt) {
     /// -------------------------------------- DUSTS
 
     const char* _dusts[] = {"Gunpowder", "Salt", "Sand"};
-    static const char* _dustSelected = _dusts[0];
+    static const char* _dustSelected = _dusts[2];
 
     ImGui::Text("Dusts");
     ImGui::PushID(1);
@@ -782,12 +870,12 @@ void TestGame::imGuiMaterials(engine::Timestep _dt) {
                 bool is_selected = (_dustSelected == _dust); // You can store your selection however you want, outside or inside your objects
                 if (ImGui::Selectable(_dust, is_selected)) {
                     _dustSelected = _dust;
-                    if(strcmp(_dustSelected, "Sand") == 0)
-                        this->selectedParticle = SAND;
+                    if(strcmp(_dustSelected, "Gunpowder") == 0)
+                        this->selectedParticle = GUNPOWDER;
                     else if(strcmp(_dustSelected, "Salt") == 0)
                         this->selectedParticle = SALT;
-                    else if(strcmp(_dustSelected, "Gunpowder") == 0)
-                        this->selectedParticle = GUNPOWDER;
+                    else if(strcmp(_dustSelected, "Sand") == 0)
+                        this->selectedParticle = SAND;
 
                     _materialUsing = _dust;
                 }
@@ -795,6 +883,18 @@ void TestGame::imGuiMaterials(engine::Timestep _dt) {
                     ImGui::SetItemDefaultFocus();   // You may set the initial focus when opening the combo (scrolling + for keyboard navigation support)
             }
             ImGui::EndCombo();
+        }
+
+        ImGui::SameLine();
+
+        if(ImGui::Button("Select")) {
+            if(strcmp(_dustSelected, "Gunpowder") == 0)
+                this->selectedParticle = GUNPOWDER;
+            else if(strcmp(_dustSelected, "Salt") == 0)
+                this->selectedParticle = SALT;
+            else if(strcmp(_dustSelected, "Sand") == 0)
+                this->selectedParticle = SAND;
+            _materialUsing = _dustSelected;
         }
     ImGui::PopID();
 
@@ -834,6 +934,26 @@ void TestGame::imGuiMaterials(engine::Timestep _dt) {
             }
             ImGui::EndCombo();
         }
+
+        ImGui::SameLine();
+
+        if(ImGui::Button("Select")) {
+            if(strcmp(_solidSelected, "Dirt") == 0)
+                this->selectedParticle = DIRT;
+            else if(strcmp(_solidSelected, "Ice") == 0)
+                this->selectedParticle = ICE;
+            else if(strcmp(_solidSelected, "Snow") == 0)
+                this->selectedParticle = SNOW;
+            else if(strcmp(_solidSelected, "Steel") == 0)
+                this->selectedParticle = STEEL;
+            else if(strcmp(_solidSelected, "Stone") == 0)
+                this->selectedParticle = STONE;
+            else if(strcmp(_solidSelected, "Wax") == 0)
+                this->selectedParticle = WAX;
+            else if(strcmp(_solidSelected, "Wood") == 0)
+                this->selectedParticle = WOOD;
+            _materialUsing = _solidSelected;
+        }
     ImGui::PopID();
 
     ImGui::Separator();
@@ -863,6 +983,18 @@ void TestGame::imGuiMaterials(engine::Timestep _dt) {
                     ImGui::SetItemDefaultFocus();   // You may set the initial focus when opening the combo (scrolling + for keyboard navigation support)
             }
             ImGui::EndCombo();
+        }
+
+        ImGui::SameLine();
+
+        if(ImGui::Button("Select")) {
+            if(strcmp(_gasSelected, "Gas") == 0)
+                this->selectedParticle = GAS;
+            else if(strcmp(_gasSelected, "Smoke") == 0)
+                this->selectedParticle = SMOKE;
+            else if(strcmp(_gasSelected, "Steam") == 0)
+                this->selectedParticle = STEAM;
+            _materialUsing = _gasSelected;
         }
     ImGui::PopID();
 
@@ -894,8 +1026,21 @@ void TestGame::imGuiMaterials(engine::Timestep _dt) {
             }
             ImGui::EndCombo();
         }
+
+        ImGui::SameLine();
+
+        if(ImGui::Button("Select")) {
+            if(strcmp(_otherSelected, "Cloud") == 0)
+                this->selectedParticle = CLOUD;
+            else if(strcmp(_otherSelected, "Fire") == 0)
+                this->selectedParticle = FIRE;
+            else if(strcmp(_otherSelected, "Plant") == 0)
+                this->selectedParticle = PLANT;
+            _materialUsing = _otherSelected;
+        }
     ImGui::PopID();
 
+    ImGui::Separator();
 
     /// -------------------------------------- USABLE
 
@@ -919,26 +1064,48 @@ void TestGame::imGuiMaterials(engine::Timestep _dt) {
             }
             ImGui::EndCombo();
         }
+
+        ImGui::SameLine();
+
+        if(ImGui::Button("Select")) {
+            if(strcmp(_usableSelected, "Fuse") == 0)
+                this->selectedParticle = FUSE;
+            _materialUsing = _usableSelected;
+        }
     ImGui::PopID();
 
     ImGui::Separator();
 
 }
 void TestGame::imGuiSettings(engine::Timestep _dt) {
-    ImGui::Button("Save Simulation"); ImGui::SameLine();
+    ImGui::Button("Save Simulation");
+    ImGui::SameLine();
     ImGui::Button("Load Simulation");
 
     ImGui::Separator();
 
-    static float _color[4];
+    static float _background[4];
     if(ImGui::CollapsingHeader("Background Color")) {
-        if(ImGui::ColorPicker4("##colorPiecker4", _color, ImGuiColorEditFlags_DisplayRGB)) {
-            this->backgroundColor.r = (unsigned char)(255 * _color[0]);
-            this->backgroundColor.g = (unsigned char)(255 * _color[1]);
-            this->backgroundColor.b = (unsigned char)(255 * _color[2]);
+        if(ImGui::ColorPicker4("##colorPiecker4", _background, ImGuiColorEditFlags_DisplayRGB)) {
+            this->backgroundColor.r = (unsigned char)(255 * _background[0]);
+            this->backgroundColor.g = (unsigned char)(255 * _background[1]);
+            this->backgroundColor.b = (unsigned char)(255 * _background[2]);
             this->backgroundColor.a = (unsigned char)(255);
         }
     }
+
+    ImGui::Separator();
+
+    static float _zoomDot[4];
+    if(ImGui::CollapsingHeader("Zoom Dot Color")) {
+        if(ImGui::ColorPicker4("##colorPiecker4", _zoomDot, ImGuiColorEditFlags_DisplayRGB)) {
+            this->zoomDotColor.r = (unsigned char)(255 * _zoomDot[0]);
+            this->zoomDotColor.g = (unsigned char)(255 * _zoomDot[1]);
+            this->zoomDotColor.b = (unsigned char)(255 * _zoomDot[2]);
+            this->zoomDotColor.a = (unsigned char)(255);
+        }
+    }
+    ImGui::Separator();
 }
 
 float TestGame::probValues(const TestGame::ParticleType& _firstParticle,
@@ -952,26 +1119,26 @@ float TestGame::probValues(const TestGame::ParticleType& _firstParticle,
 
     return 0.0f;
 }
-bool TestGame::reactions(const Vec2i& _posA, const Vec2i& _posB, TestGame::Particle& _particleA,
+TestGame::ReactionInfo TestGame::reactions(const Vec2i& _posA, const Vec2i& _posB, TestGame::Particle& _particleA,
                          const TestGame::Particle& _particleB) {
-    float _prob = TestGame::probValues(_particleA.type, _particleB.type);
-    float _chanceToReact = 1.f - _prob;
-    float _onLeftProb = this->random.randomf(0.0f, 1.0f);
-    bool _reacting = _onLeftProb >= _chanceToReact;
+
+    ReactionInfo _ri;
 
     if(_particleA.type == ACID) {
         if(_particleB.type == STONE) {
-            if(_reacting) {
+            _ri.reactionExists = true;
+            if((_ri.prob = this->random.probability(TestGame::probValues(_particleA.type, _particleB.type))).happened) {
                 this->writeParticle(_posB.x, _posB.y, TestGame::noneParticle);
-                if(this->random.randomf(0.0f, 1.0f) >= 0.85f)
+                this->drawnPixels--;
+                if(this->random.randomf(0.0f, 1.0f) >= 0.85f) {
                     this->writeParticle(_posA.x, _posA.y, TestGame::noneParticle);
+                    this->drawnPixels--;
+                }
             }
-
-            return true;
         }
     }
 
-    return false;
+    return _ri;
 }
 void TestGame::activateNeighbours(int _x, int _y, int _width) {
     if(this->isInBounds(_x, _y - 1))
@@ -997,6 +1164,82 @@ void TestGame::activateNeighbours(int _x, int _y, int _width) {
 
     if(this->isInBounds(_x + 1, _y - 1))
         this->particles[(_x + 1) + _width * (_y - 1)].canUpdate = true;
+}
+
+void TestGame::zoomParticles(const Vec2f& _pos) {
+    auto _io = ImGui::GetIO();
+    float _spacing = 8.f;
+    ImGui::BeginTooltip();
+        float _toolTipHeight = ImGui::GetWindowHeight();
+
+        float region_sz = 32.0f;
+        float region_x = _pos.x - region_sz * 0.5f;
+        if (region_x < 0.0f) region_x = 0.0f;
+        else if (region_x > (float)textureWidth - region_sz) region_x = (float)textureWidth - region_sz;
+
+        float region_y = _pos.y + region_sz * 0.5f;
+        if (region_y < region_sz) region_y = region_sz;
+        else if (region_y > (float)textureHeight) region_y = (float)textureHeight;
+
+        ImGui::Text("X: %d, Y: %d", (int)_pos.x, (int)_pos.y);
+        float _textHeight = 2 * ImGui::GetItemRectSize().y;
+
+        const char* _name = "None";
+        if(this->isInBounds((int)_pos.x, (int)_pos.y))
+            _name = this->particleTypeToName(this->particles[this->calcVecPos((int)_pos.x, (int)_pos.y)].type);
+        ImGui::Text("Particle: %s", _name);
+
+        ImVec2 uv0 = ImVec2((region_x) / (float)textureWidth, (region_y) / (float)textureHeight);
+        ImVec2 uv1 = ImVec2((region_x + region_sz) / (float)textureWidth, (region_y - region_sz) / (float)textureHeight);
+        ImGui::Image((void*)(intptr_t)this->proceduralTexture->getRendererID(),
+                     ImVec2(region_sz * this->zoomLevel, region_sz * this->zoomLevel), uv0, uv1,
+                     ImVec4(1.0f, 1.0f, 1.0f, 1.0f),
+                     ImVec4(1.0f, 1.0f, 1.0f, 0.5f));
+
+        float _imageWidth = ImGui::GetItemRectSize().x;
+
+        const ImVec2 p = ImGui::GetCursorScreenPos();
+        float x = p.x + 4.0f, y = p.y + 4.0f;
+
+        float _yForDot = _toolTipHeight - _textHeight - _spacing * 2;
+
+    ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(x - _spacing / 2.f + _imageWidth / 2.f, y - _yForDot + _imageWidth / 2.f),
+            ImVec2(x + this->zoomLevel - _spacing / 2.f + _imageWidth / 2.f, y - this->zoomLevel - _yForDot + _imageWidth / 2.f),
+            ImColor(ImVec4((float)this->zoomDotColor.r / 255.f, (float)this->zoomDotColor.g / 255.f, (float)this->zoomDotColor.b / 255.f, (float)this->zoomDotColor.a / 255.f)));
+
+
+
+    ImGui::EndTooltip();
+}
+
+const char* TestGame::particleTypeToName(const TestGame::ParticleType& _type) {
+    const char* _name;
+    switch(_type) {
+        case NONE_PARTICLE  : _name = "None"; return _name;
+        case SAND           : _name = "Sand"; return _name;
+        case GUNPOWDER      : _name = "Gunpowder"; return _name;
+        case SALT           : _name = "Salt"; return _name;
+        case WATER          : _name = "Water"; return _name;
+        case ACID           : _name = "Acid"; return _name;
+        case LAVA           : _name = "Lava"; return _name;
+        case POISON_L       : _name = "Liquid Poison"; return _name;
+        case STONE          : _name = "Stone"; return _name;
+        case WOOD           : _name = "Wood"; return _name;
+        case ICE            : _name = "Ice"; return _name;
+        case SNOW           : _name = "Snow"; return _name;
+        case STEEL          : _name = "Steel"; return _name;
+        case WAX            : _name = "Wax"; return _name;
+        case DIRT           : _name = "Dirt"; return _name;
+        case STEAM          : _name = "Steam"; return _name;
+        case SMOKE          : _name = "Smoke"; return _name;
+        case GAS            : _name = "Gas"; return _name;
+        case POISON_G       : _name = "Gas Poison"; return _name;
+        case CLOUD          : _name = "Cloud"; return _name;
+        case FIRE           : _name = "Fire"; return _name;
+        case PLANT          : _name = "Plant"; return _name;
+        case FUSE           : _name = "Fuse"; return _name;
+    }
+    return "Not known particle";
 }
 
 

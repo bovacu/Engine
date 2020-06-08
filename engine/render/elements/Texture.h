@@ -28,6 +28,7 @@ namespace engine {
             virtual void setBuffer(unsigned char* _buffer)                                                                          = 0;
 
             [[nodiscard]] virtual int getBPP() const                                                                                = 0;
+            [[nodiscard]] virtual uint32_t getRendererID()                                                                          = 0;
 
             virtual void updateTexture()                                                                                            = 0;
 
