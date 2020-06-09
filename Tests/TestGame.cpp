@@ -37,8 +37,15 @@ void TestGame::onInit() {
 }
 void TestGame::onEvent(engine::Event& _e) {
     this->cameraController.onEvent(_e);
+
+    if(_e.getEventType() == EventType::MouseScrolled && this->usingTool == ZOOM) {
+        EventDispatcher dispatcher(_e);
+        dispatcher.dispatchEvent<MouseScrolledEvent>(ENGINE_BIND_EVENT_FN(TestGame::onMouseScrolled));
+    }
 }
 void TestGame::onUpdate(engine::Timestep _dt) {
+
+    this->checkForShortcuts();
 
     if(Input::isKeyJustPressed(KEY_SPACE))
         this->play = !this->play;
@@ -797,6 +804,16 @@ void TestGame::imGuiDrawingWindow(engine::Timestep _dt) {
         ImGui::SliderFloat("##slider", &this->zoomLevel, 1.f, MAX_ZOOM_LEVEL, "%.2f");
     ImGui::PopID();
 
+    ImGui::Text("Zoomed image width");
+    ImGui::PushID(2);
+    ImGui::SliderFloat("##slider", &this->zoomImageWidth, 16.f, 256.f, "%.2f");
+    ImGui::PopID();
+
+    ImGui::Text("Zoomed image height");
+    ImGui::PushID(3);
+    ImGui::SliderFloat("##slider", &this->zoomImageHeight, 16.f, 256.f, "%.2f");
+    ImGui::PopID();
+
     ImGui::Separator();
 }
 void TestGame::imGuiConditions(engine::Timestep _dt) {
@@ -1174,26 +1191,25 @@ void TestGame::zoomParticles(const Vec2f& _pos) {
 
         float _mouseExtra[2] = {0.f, 0.f};
 
-        float region_sz = 32.0f;
-        float region_x = _pos.x - region_sz * 0.5f;
+        float region_x = _pos.x - this->zoomImageWidth * 0.5f;
         if (region_x < 0.0f) {
             region_x = 0.0f;
-            _mouseExtra[0] = (region_sz * 0.5f - ((_pos.x >= 0.f) ? _pos.x : 0.0f)) * this->zoomLevel;
+            _mouseExtra[0] = (this->zoomImageWidth * 0.5f - ((_pos.x >= 0.f) ? _pos.x : 0.0f)) * this->zoomLevel;
         }
-        else if (region_x > (float)textureWidth - region_sz) {
-            region_x = (float)textureWidth - region_sz;
-            _mouseExtra[0] = -(region_sz * 0.5f - ((_pos.x < (float)textureWidth) ?
+        else if (region_x > (float)textureWidth - this->zoomImageWidth) {
+            region_x = (float)textureWidth - this->zoomImageWidth;
+            _mouseExtra[0] = -(this->zoomImageWidth * 0.5f - ((_pos.x < (float)textureWidth) ?
                                                    (float)textureWidth - _pos.x : 1.0f)) * this->zoomLevel;
         }
 
-        float region_y = _pos.y + region_sz * 0.5f;
-        if (region_y < region_sz) {
-            region_y = region_sz;
-            _mouseExtra[1] = (region_sz * 0.5f - ((_pos.y >= 0.f) ? _pos.y : 0.0f)) * this->zoomLevel;
+        float region_y = _pos.y + this->zoomImageHeight * 0.5f;
+        if (region_y < this->zoomImageHeight) {
+            region_y = this->zoomImageHeight;
+            _mouseExtra[1] = (this->zoomImageHeight * 0.5f - ((_pos.y >= 0.f) ? _pos.y : 0.0f)) * this->zoomLevel;
         }
         else if (region_y > (float)textureHeight) {
             region_y = (float) textureHeight;
-            _mouseExtra[1] = -(region_sz * 0.5f - ((_pos.y < (float)textureHeight) ?
+            _mouseExtra[1] = -(this->zoomImageHeight * 0.5f - ((_pos.y < (float)textureHeight) ?
                                                    (float)textureHeight - _pos.y : 1.0f)) * this->zoomLevel;
         }
 
@@ -1220,13 +1236,14 @@ void TestGame::zoomParticles(const Vec2f& _pos) {
         _textHeight += ImGui::GetItemRectSize().y;
 
         ImVec2 uv0 = ImVec2((region_x) / (float)textureWidth, (region_y) / (float)textureHeight);
-        ImVec2 uv1 = ImVec2((region_x + region_sz) / (float)textureWidth, (region_y - region_sz) / (float)textureHeight);
+        ImVec2 uv1 = ImVec2((region_x + this->zoomImageWidth) / (float)textureWidth, (region_y - this->zoomImageHeight) / (float)textureHeight);
         ImGui::Image((void*)(intptr_t)this->proceduralTexture->getRendererID(),
-                     ImVec2(region_sz * this->zoomLevel, region_sz * this->zoomLevel), uv0, uv1,
+                     ImVec2(this->zoomImageWidth * this->zoomLevel, this->zoomImageHeight * this->zoomLevel), uv0, uv1,
                      ImVec4(1.0f, 1.0f, 1.0f, 1.0f),
                      ImVec4(1.0f, 1.0f, 1.0f, 0.5f));
 
         float _imageWidth = ImGui::GetItemRectSize().x;
+        float _imageHeight = ImGui::GetItemRectSize().y;
 
         const ImVec2 p = ImGui::GetCursorScreenPos();
         float x = p.x, y = p.y;
@@ -1235,14 +1252,12 @@ void TestGame::zoomParticles(const Vec2f& _pos) {
         float _yForDot = _toolTipHeight - _textHeight - ImGui::GetStyle().ItemSpacing.y * 3.f - _topSpacing;
 
         ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(x + (_imageWidth / 2.f) - _mouseExtra[0],
-            y - _yForDot + (_imageWidth / 2.f) + _mouseExtra[1]),
+            y - _yForDot + (_imageHeight / 2.f) + _mouseExtra[1]),
 
             ImVec2(x + this->zoomLevel + (_imageWidth / 2.f) - _mouseExtra[0],
-                    y - this->zoomLevel - _yForDot + (_imageWidth / 2.f) + _mouseExtra[1]),
+                    y - this->zoomLevel - _yForDot + (_imageHeight / 2.f) + _mouseExtra[1]),
 
             ImColor(ImVec4((float)this->zoomDotColor.r / 255.f, (float)this->zoomDotColor.g / 255.f, (float)this->zoomDotColor.b / 255.f, (float)this->zoomDotColor.a / 255.f)));
-
-
 
     ImGui::EndTooltip();
 }
@@ -1275,6 +1290,21 @@ const char* TestGame::particleTypeToName(const TestGame::ParticleType& _type) {
         case FUSE           : _name = "Fuse"; return _name;
     }
     return "Not known particle";
+}
+
+void TestGame::checkForShortcuts() {
+    if(Input::isKeyJustPressed(KEY_1))
+        this->usingTool = DRAW;
+    else if(Input::isKeyJustPressed(KEY_2))
+        this->usingTool = ERASE;
+    else if(Input::isKeyJustPressed(KEY_3))
+        this->usingTool = ZOOM;
+}
+
+bool TestGame::onMouseScrolled(MouseScrolledEvent& _e) {
+    this->zoomLevel += _e.getScrollY() * 0.5f;
+    this->zoomLevel = engine::functions::clamp(this->zoomLevel, 1.0f, MAX_ZOOM_LEVEL);
+    return true;
 }
 
 

@@ -96,8 +96,9 @@ class TestGame : public engine::Layer {
 
         Tool usingTool = DRAW;
         int brushSize = 10;
-        float zoomLevel = 4.0f;
+        float zoomLevel = 1.0f;
         Color zoomDotColor = Color::Red;
+        float zoomImageWidth = 32, zoomImageHeight = 32;
 
     public:
         TestGame();
@@ -117,9 +118,12 @@ class TestGame : public engine::Layer {
         void updateWaterParticle(int _x, int _y, int _posInVector, Timestep _dt);
         void updateStoneParticle(int _x, int _y, int _posInVector, Timestep _dt);
         void updateAcidParticle(int _x, int _y, int _posInVector, Timestep _dt);
+        void handleUnfittedDrops(int _x, int _y, int _vecPos, float _dt);
 
         Color particleTypeToColor(const ParticleType& _particle);
-        void generateParticles(const Vec2f& _mousePos);
+        const char* particleTypeToName(const ParticleType& _type);
+        void checkForShortcuts();
+
         void generateWithBrush(const Vec2f& _mousePos);
         void removeParticles(const Vec2f& _mousePos);
         void zoomParticles(const Vec2f& _pos);
@@ -131,6 +135,7 @@ class TestGame : public engine::Layer {
         bool isSurrounded(int _x, int _y);
         void activateNeighbours(int _x, int _y, int _width);
 
+        void generateParticles(const Vec2f& _mousePos);
         void writeParticle(int _x, int _y, const Particle& _particle);
         void writeParticle(int _x, int _y,int _vecPos, const Particle& _particle);
 
@@ -145,9 +150,8 @@ class TestGame : public engine::Layer {
 
         static float probValues(const ParticleType& _firstParticle, const ParticleType& _secondParticle);
         ReactionInfo reactions(const Vec2i& _posA, const Vec2i& _posB, Particle& _particleA, const Particle& _particleB);
-        void handleUnfittedDrops(int _x, int _y, int _vecPos, float _dt);
 
-        const char* particleTypeToName(const ParticleType& _type);
+        bool onMouseScrolled(MouseScrolledEvent& _e);
 };
 
 #endif //TEST_GAME_H

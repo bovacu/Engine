@@ -75,16 +75,16 @@ namespace engine {
     }
 
     bool OrthographicCameraController::onMouseScrolled(MouseScrolledEvent& _e) {
-        this->zoomLevel -= _e.getScrollY() * 0.05f;
-        this->zoomLevel = std::max(this->zoomLevel, 0.05f);
-
-        if(OrthographicCamera::usingAspectRatio)
-            this->camera.setProjection(-this->aspectRatio * this->zoomLevel, this->aspectRatio * this->zoomLevel, -this->zoomLevel, this->zoomLevel);
-        else {
-            auto& _app = Application::get();
-            this->camera.setProjection(-_app.getWindowSize().x * this->zoomLevel, _app.getWindowSize().x * this->zoomLevel, -_app.getWindowSize().y *this->zoomLevel,
-                                       _app.getWindowSize().y * this->zoomLevel);
-        }
+//        this->zoomLevel -= _e.getScrollY() * 0.05f;
+//        this->zoomLevel = std::max(this->zoomLevel, 0.05f);
+//
+//        if(OrthographicCamera::usingAspectRatio)
+//            this->camera.setProjection(-this->aspectRatio * this->zoomLevel, this->aspectRatio * this->zoomLevel, -this->zoomLevel, this->zoomLevel);
+//        else {
+//            auto& _app = Application::get();
+//            this->camera.setProjection(-_app.getWindowSize().x * this->zoomLevel, _app.getWindowSize().x * this->zoomLevel, -_app.getWindowSize().y *this->zoomLevel,
+//                                       _app.getWindowSize().y * this->zoomLevel);
+//        }
         return false;
     }
 
