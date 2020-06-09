@@ -94,9 +94,9 @@ class TestGame : public engine::Layer {
         };
         Color backgroundColor = Color::Black;
 
-        Tool usingTool = ZOOM;
+        Tool usingTool = DRAW;
         int brushSize = 10;
-        float zoomLevel = 1.0f;
+        float zoomLevel = 4.0f;
         Color zoomDotColor = Color::Red;
 
     public:

@@ -657,8 +657,8 @@ void TestGame::removeParticles(const Vec2f& _mousePos) {
 }
 
 void TestGame::imGuiAppWindow(engine::Timestep _dt) {
-//    static bool _opened = true;
-//    ImGui::ShowDemoWindow(&_opened);
+    static bool _opened = true;
+    ImGui::ShowDemoWindow(&_opened);
 
     if (this->usingTool == ZOOM) {
         this->zoomParticles(Input::getMousePosition());
@@ -1172,22 +1172,52 @@ void TestGame::zoomParticles(const Vec2f& _pos) {
     ImGui::BeginTooltip();
         float _toolTipHeight = ImGui::GetWindowHeight();
 
+        float _mouseExtra[2] = {0.f, 0.f};
+
         float region_sz = 32.0f;
         float region_x = _pos.x - region_sz * 0.5f;
-        if (region_x < 0.0f) region_x = 0.0f;
-        else if (region_x > (float)textureWidth - region_sz) region_x = (float)textureWidth - region_sz;
+        if (region_x < 0.0f) {
+            region_x = 0.0f;
+            _mouseExtra[0] = (region_sz * 0.5f - ((_pos.x >= 0.f) ? _pos.x : 0.0f)) * this->zoomLevel;
+        }
+        else if (region_x > (float)textureWidth - region_sz) {
+            region_x = (float)textureWidth - region_sz;
+            _mouseExtra[0] = -(region_sz * 0.5f - ((_pos.x < (float)textureWidth) ?
+                                                   (float)textureWidth - _pos.x : 1.0f)) * this->zoomLevel;
+        }
 
         float region_y = _pos.y + region_sz * 0.5f;
-        if (region_y < region_sz) region_y = region_sz;
-        else if (region_y > (float)textureHeight) region_y = (float)textureHeight;
+        if (region_y < region_sz) {
+            region_y = region_sz;
+            _mouseExtra[1] = (region_sz * 0.5f - ((_pos.y >= 0.f) ? _pos.y : 0.0f)) * this->zoomLevel;
+        }
+        else if (region_y > (float)textureHeight) {
+            region_y = (float) textureHeight;
+            _mouseExtra[1] = -(region_sz * 0.5f - ((_pos.y < (float)textureHeight) ?
+                                                   (float)textureHeight - _pos.y : 1.0f)) * this->zoomLevel;
+        }
 
         ImGui::Text("X: %d, Y: %d", (int)_pos.x, (int)_pos.y);
-        float _textHeight = 2 * ImGui::GetItemRectSize().y;
+        float _textHeight = ImGui::GetItemRectSize().y;
 
         const char* _name = "None";
-        if(this->isInBounds((int)_pos.x, (int)_pos.y))
-            _name = this->particleTypeToName(this->particles[this->calcVecPos((int)_pos.x, (int)_pos.y)].type);
+        Color _color = this->backgroundColor;
+
+        float _y = (_pos.y >= 0 ? _pos.y : 0.0f);
+        _y = (_pos.y <= (float)textureHeight ? _y : (float)textureHeight);
+
+        float _x = (_pos.x >= 0 ? _pos.x : 0.0f);
+        _x = (_pos.x <= (float)textureWidth ? _x : (float)textureWidth - 1);
+
+        if(this->isInBounds((int)_x, (int)_y)) {
+            int _posVec = this->calcVecPos((int) _x, (int) _y);
+            _name = this->particleTypeToName(this->particles[_posVec].type);
+            _color = this->particles[_posVec].color;
+        }
         ImGui::Text("Particle: %s", _name);
+        _textHeight += ImGui::GetItemRectSize().y;
+        ImGui::Text("R: %d, G: %d, B: %d, A: %d", _color.r, _color.g, _color.b, _color.a);
+        _textHeight += ImGui::GetItemRectSize().y;
 
         ImVec2 uv0 = ImVec2((region_x) / (float)textureWidth, (region_y) / (float)textureHeight);
         ImVec2 uv1 = ImVec2((region_x + region_sz) / (float)textureWidth, (region_y - region_sz) / (float)textureHeight);
@@ -1199,12 +1229,17 @@ void TestGame::zoomParticles(const Vec2f& _pos) {
         float _imageWidth = ImGui::GetItemRectSize().x;
 
         const ImVec2 p = ImGui::GetCursorScreenPos();
-        float x = p.x + 4.0f, y = p.y + 4.0f;
+        float x = p.x, y = p.y;
 
-        float _yForDot = _toolTipHeight - _textHeight - _spacing * 2;
+        float _topSpacing = ImGui::GetStyle().ItemSpacing.y * 3.f;
+        float _yForDot = _toolTipHeight - _textHeight - ImGui::GetStyle().ItemSpacing.y * 3.f - _topSpacing;
 
-    ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(x - _spacing / 2.f + _imageWidth / 2.f, y - _yForDot + _imageWidth / 2.f),
-            ImVec2(x + this->zoomLevel - _spacing / 2.f + _imageWidth / 2.f, y - this->zoomLevel - _yForDot + _imageWidth / 2.f),
+        ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(x + (_imageWidth / 2.f) - _mouseExtra[0],
+            y - _yForDot + (_imageWidth / 2.f) + _mouseExtra[1]),
+
+            ImVec2(x + this->zoomLevel + (_imageWidth / 2.f) - _mouseExtra[0],
+                    y - this->zoomLevel - _yForDot + (_imageWidth / 2.f) + _mouseExtra[1]),
+
             ImColor(ImVec4((float)this->zoomDotColor.r / 255.f, (float)this->zoomDotColor.g / 255.f, (float)this->zoomDotColor.b / 255.f, (float)this->zoomDotColor.a / 255.f)));
 
 
