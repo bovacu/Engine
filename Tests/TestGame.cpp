@@ -6,6 +6,7 @@ TestGame::Particle TestGame::sandParticle;
 TestGame::Particle TestGame::waterParticle;
 TestGame::Particle TestGame::stoneParticle;
 TestGame::Particle TestGame::acidParticle;
+TestGame::Particle TestGame::dirtParticle;
 
 int TestGame::textureWidth = 0;
 int TestGame::textureHeight = 0;
@@ -56,6 +57,10 @@ void TestGame::onUpdate(engine::Timestep _dt) {
             this->oneStep = false;
         }
 
+        int _textureWidth = this->proceduralTexture->getWidth();
+
+        this->rain();
+
         /// ADDING NEW PARTICLES
         if(!ImGui::IsAnyWindowHovered() && !ImGui::IsAnyItemActive()) {
             auto _mousePos = Input::getMousePosition();
@@ -68,8 +73,6 @@ void TestGame::onUpdate(engine::Timestep _dt) {
                 }
             }
         }
-
-        int _textureWidth = this->proceduralTexture->getWidth();
 
         /// UPDATING PARTICLES
         for(int _y = 0; _y < (int)this->proceduralTexture->getHeight(); _y++) {
@@ -84,6 +87,7 @@ void TestGame::onUpdate(engine::Timestep _dt) {
                         case WATER  : this->updateWaterParticle(_x, _y, _pos, _dt); break;
                         case ACID   : this->updateAcidParticle(_x, _y, _pos, _dt);  break;
                         case STONE  : this->updateStoneParticle(_x, _y, _pos, _dt); break;
+                        case DIRT   : this->updateDirtParticle(_x, _y, _pos, _dt);  break;
                         default     :                                               break;
                     }
                 }
@@ -98,6 +102,7 @@ void TestGame::onUpdate(engine::Timestep _dt) {
                         case WATER  : this->updateWaterParticle(_x, _y, _pos, _dt); break;
                         case ACID   : this->updateAcidParticle(_x, _y, _pos, _dt);  break;
                         case STONE  : this->updateStoneParticle(_x, _y, _pos, _dt); break;
+                        case DIRT   : this->updateDirtParticle(_x, _y, _pos, _dt);  break;
                         default     :                                               break;
                     }
                 }
@@ -151,8 +156,24 @@ void TestGame::initSimulationWorld() {
     TestGame::acidParticle.type = ACID;
     TestGame::acidParticle.color = this->particleTypeToColor(ACID);
 
+    TestGame::dirtParticle.type = DIRT;
+    TestGame::dirtParticle.color = this->particleTypeToColor(DIRT);
+
     this->proceduralTexture->updateTexture();
 
+}
+void TestGame::checkForShortcuts() {
+    if(Input::isKeyJustPressed(KEY_1))
+        this->usingTool = DRAW;
+    else if(Input::isKeyJustPressed(KEY_2))
+        this->usingTool = ERASE;
+    else if(Input::isKeyJustPressed(KEY_3))
+        this->usingTool = ZOOM;
+}
+bool TestGame::onMouseScrolled(MouseScrolledEvent& _e) {
+    this->zoomLevel += _e.getScrollY();
+    this->zoomLevel = engine::functions::clamp(this->zoomLevel, 1.0f, MAX_ZOOM_LEVEL);
+    return true;
 }
 
 void TestGame::updateSandParticle(int _x, int _y, int _posInVector, Timestep _dt) {
@@ -162,8 +183,8 @@ void TestGame::updateSandParticle(int _x, int _y, int _posInVector, Timestep _dt
     int _vX = _x + (int)_p->velocity.x;
     int _vY = _y - (int)_p->velocity.y;
 
-//    if(!this->isEmpty(_x, _y - 1))
-//        _p->velocity.y *= (this->weatherConditions[4]) * 0.5f;
+    if(!this->isEmpty(_x, _y - 1))
+        _p->velocity.y *= (this->weatherConditions[4]) * 0.5f;
 
     Particle _tempA = *_p;
 
@@ -180,12 +201,12 @@ void TestGame::updateSandParticle(int _x, int _y, int _posInVector, Timestep _dt
     } else if(this->is(_vX, _vY, ParticleType::WATER)) {
         int _vecForB = _vX + _width * _vY;
         _tempB = this->particles[_vecForB];
+        _tempB.canUpdate = true;
         _tempA.velocity.x = 0;
         _tempA.velocity.y *= 0.5f;
         this->writeParticle(_vX, _vY, _vecForB, _tempA);
         this->writeParticle(_x, _y, _posInVector, _tempB);
         this->activateNeighbours(_x, _y, _width);
-
     } else {
 
         /// Down
@@ -254,7 +275,7 @@ void TestGame::updateWaterParticle(int _x, int _y, int _posInVector, Timestep _d
         this->writeParticle(_vX, _vY, *_p);
         this->writeParticle(_x, _y, _tempB);
 
-        this->handleUnfittedDrops(_x, _y, _pos, _dt);
+        this->handleUnfittedDrops(_vX, _vY, _pos, _dt);
         this->activateNeighbours(_x, _y, _width);
         
     } else {
@@ -532,6 +553,48 @@ void TestGame::updateAcidParticle(int _x, int _y, int _posInVector, Timestep _dt
             _p->canUpdate = false;
     }
 }
+void TestGame::updateDirtParticle(int _x, int _y, int _posInVector, Timestep _dt) {
+    Particle* _p = &this->particles[_posInVector];
+    _p->velocity.y = functions::clamp(_p->velocity.y + (this->weatherConditions[4] * _dt), -this->weatherConditions[4], this->weatherConditions[4] );
+
+    int _vX = _x + (int)_p->velocity.x;
+    int _vY = _y - (int)_p->velocity.y;
+
+    if(!this->isEmpty(_x, _y - 1))
+        _p->velocity.y *= (this->weatherConditions[4]) * 0.5f;
+
+    Particle _tempA = *_p;
+
+    int _width = TestGame::textureWidth;
+
+    Particle _tempB;
+    if(isEmpty(_vX, _vY)) {
+        _tempB = this->particles[_vX + _width * _vY];
+        _tempA.velocity.x = 0;
+        this->writeParticle(_vX, _vY, _tempA);
+        this->writeParticle(_x, _y, _tempB);
+        this->activateNeighbours(_x, _y, _width);
+
+    } else {
+
+        /// Down
+        bool _inWater = false;
+        if(this->isEmpty(_x, _y - 1) || (_inWater = this->is(_x, _y - 1, ParticleType::WATER))) {
+            if(_inWater) _p->velocity.y *= 0.5f;
+            else _p->velocity.y += (this->weatherConditions[4] * _dt);
+
+            int _vecForB = _x + _width * (_y - 1);
+            _tempB = this->particles[_vecForB];
+
+            this->writeParticle(_x, _y - 1, _vecForB, _tempA);
+            this->writeParticle(_x, _y, _posInVector, _tempB);
+            this->activateNeighbours(_x, _y, _width);
+
+        } else {
+            _p->canUpdate = false;
+        }
+    }
+}
 void TestGame::handleUnfittedDrops(int _x, int _y, int _vecPos, float _dt) {
     if(this->whatToDoWithUnfittingDrops == 2)
         return;
@@ -562,9 +625,10 @@ Color TestGame::particleTypeToColor(const TestGame::ParticleType& _particle) {
         case STEAM          : return this->PARTICLE_COLORS[11];
         case SMOKE          : return this->PARTICLE_COLORS[this->random.randomi(12, 14)];
         case NONE_PARTICLE  : return this->PARTICLE_COLORS[15];
+        case DIRT           : return this->PARTICLE_COLORS[this->random.randomi(16, 18)];
     }
 
-    return this->PARTICLE_COLORS[7];
+    return this->PARTICLE_COLORS[15];
 }
 void TestGame::generateParticles(const Vec2f& _mousePos) {
     int _posInVector = this->calcVecPos((int)_mousePos.x, (int)_mousePos.y);
@@ -592,6 +656,13 @@ void TestGame::generateParticles(const Vec2f& _mousePos) {
                 this->particles[_posInVector].color = this->particleTypeToColor(STONE);
                 break;
             }
+
+            case DIRT   : {
+                this->particles[_posInVector] = TestGame::dirtParticle;
+                this->particles[_posInVector].color = this->particleTypeToColor(DIRT);
+                break;
+            }
+
             default     : { LOG_ERROR("MATERIAL NOT IMPLEMENTED IN GENERATE_PARTICLES"); }
         }
 
@@ -627,6 +698,84 @@ void TestGame::generateWithBrush(const Vec2f& _mousePos) {
             }
         }
     }
+}
+void TestGame::zoomParticles(const Vec2f& _pos) {
+    auto _io = ImGui::GetIO();
+    float _spacing = 8.f;
+    ImGui::BeginTooltip();
+    float _toolTipHeight = ImGui::GetWindowHeight();
+
+    float _mouseExtra[2] = {0.f, 0.f};
+
+    float region_x = _pos.x - this->zoomImageWidth * 0.5f;
+    if (region_x < 0.0f) {
+        region_x = 0.0f;
+        _mouseExtra[0] = (this->zoomImageWidth * 0.5f - ((_pos.x >= 0.f) ? _pos.x : 0.0f)) * this->zoomLevel;
+    }
+    else if (region_x > (float)textureWidth - this->zoomImageWidth) {
+        region_x = (float)textureWidth - this->zoomImageWidth;
+        _mouseExtra[0] = -(this->zoomImageWidth * 0.5f - ((_pos.x < (float)textureWidth) ?
+                                                          (float)textureWidth - _pos.x : 1.0f)) * this->zoomLevel;
+    }
+
+    float region_y = _pos.y + this->zoomImageHeight * 0.5f;
+    if (region_y < this->zoomImageHeight) {
+        region_y = this->zoomImageHeight;
+        _mouseExtra[1] = (this->zoomImageHeight * 0.5f - ((_pos.y >= 0.f) ? _pos.y : 0.0f)) * this->zoomLevel;
+    }
+    else if (region_y > (float)textureHeight) {
+        region_y = (float) textureHeight;
+        _mouseExtra[1] = -(this->zoomImageHeight * 0.5f - ((_pos.y < (float)textureHeight) ?
+                                                           (float)textureHeight - _pos.y : 1.0f)) * this->zoomLevel;
+    }
+
+    ImGui::Text("X: %d, Y: %d", (int)_pos.x, (int)_pos.y);
+    float _textHeight = ImGui::GetItemRectSize().y;
+
+    const char* _name = "None";
+    Color _color = this->backgroundColor;
+
+    float _y = (_pos.y >= 0 ? _pos.y : 0.0f);
+    _y = (_pos.y <= (float)textureHeight ? _y : (float)textureHeight);
+
+    float _x = (_pos.x >= 0 ? _pos.x : 0.0f);
+    _x = (_pos.x <= (float)textureWidth ? _x : (float)textureWidth - 1);
+
+    if(this->isInBounds((int)_x, (int)_y)) {
+        int _posVec = this->calcVecPos((int) _x, (int) _y);
+        _name = this->particleTypeToName(this->particles[_posVec].type);
+        _color = this->particles[_posVec].color;
+    }
+    ImGui::Text("Particle: %s", _name);
+    _textHeight += ImGui::GetItemRectSize().y;
+    ImGui::Text("R: %d, G: %d, B: %d, A: %d", _color.r, _color.g, _color.b, _color.a);
+    _textHeight += ImGui::GetItemRectSize().y;
+
+    ImVec2 uv0 = ImVec2((region_x) / (float)textureWidth, (region_y) / (float)textureHeight);
+    ImVec2 uv1 = ImVec2((region_x + this->zoomImageWidth) / (float)textureWidth, (region_y - this->zoomImageHeight) / (float)textureHeight);
+    ImGui::Image((void*)(intptr_t)this->proceduralTexture->getRendererID(),
+                 ImVec2(this->zoomImageWidth * this->zoomLevel, this->zoomImageHeight * this->zoomLevel), uv0, uv1,
+                 ImVec4(1.0f, 1.0f, 1.0f, 1.0f),
+                 ImVec4(1.0f, 1.0f, 1.0f, 0.5f));
+
+    float _imageWidth = ImGui::GetItemRectSize().x;
+    float _imageHeight = ImGui::GetItemRectSize().y;
+
+    const ImVec2 p = ImGui::GetCursorScreenPos();
+    float x = p.x, y = p.y;
+
+    float _topSpacing = ImGui::GetStyle().ItemSpacing.y * 3.f;
+    float _yForDot = _toolTipHeight - _textHeight - ImGui::GetStyle().ItemSpacing.y * 3.f - _topSpacing;
+
+    ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(x + (_imageWidth / 2.f) - _mouseExtra[0],
+                                                     y - _yForDot + (_imageHeight / 2.f) + _mouseExtra[1]),
+
+                                              ImVec2(x + this->zoomLevel + (_imageWidth / 2.f) - _mouseExtra[0],
+                                                     y - this->zoomLevel - _yForDot + (_imageHeight / 2.f) + _mouseExtra[1]),
+
+                                              ImColor(ImVec4((float)this->zoomDotColor.r / 255.f, (float)this->zoomDotColor.g / 255.f, (float)this->zoomDotColor.b / 255.f, (float)this->zoomDotColor.a / 255.f)));
+
+    ImGui::EndTooltip();
 }
 
 bool TestGame::isInBounds(int _x, int _y) {
@@ -664,8 +813,8 @@ void TestGame::removeParticles(const Vec2f& _mousePos) {
 }
 
 void TestGame::imGuiAppWindow(engine::Timestep _dt) {
-    static bool _opened = true;
-    ImGui::ShowDemoWindow(&_opened);
+//    static bool _opened = true;
+//    ImGui::ShowDemoWindow(&_opened);
 
     if (this->usingTool == ZOOM) {
         this->zoomParticles(Input::getMousePosition());
@@ -827,7 +976,33 @@ void TestGame::imGuiConditions(engine::Timestep _dt) {
 void TestGame::imGuiWeather(engine::Timestep _dt) {
     ImGui::SliderFloat("Wind",          &this->weatherConditions[0], 0, 10);
     ImGui::SliderFloat("Temperature",   &this->weatherConditions[1], -50, 200);
+
+    ImGui::Separator();
+
     ImGui::SliderFloat("Rain",          &this->weatherConditions[2], 0, 10);
+    const char* _liquids[] = { "Acid", "Water"};
+    static const char* _liquidSelected = _liquids[1];
+
+    ImGui::PushID(0);
+    if (ImGui::BeginCombo("##combo", _liquidSelected, ImGuiComboFlags_HeightSmall)){ // The second parameter is the label previewed before opening the combo. {
+        for (auto & _liquid : _liquids) {
+            bool is_selected = (_liquidSelected == _liquid); // You can store your selection however you want, outside or inside your objects
+            if (ImGui::Selectable(_liquid, is_selected)) {
+                _liquidSelected = _liquid;
+                if(strcmp(_liquidSelected, "Water") == 0)
+                    this->rainType = WATER;
+                else if(strcmp(_liquidSelected, "Acid") == 0)
+                    this->rainType = ACID;
+            }
+            if (is_selected)
+                ImGui::SetItemDefaultFocus();   // You may set the initial focus when opening the combo (scrolling + for keyboard navigation support)
+        }
+        ImGui::EndCombo();
+    }
+    ImGui::PopID();
+
+    ImGui::Separator();
+
     ImGui::SliderFloat("Snow",          &this->weatherConditions[3], 0, 10);
     ImGui::Separator();
     ImGui::SliderFloat("Gravity",       &this->weatherConditions[4], -50, 50);
@@ -1183,85 +1358,6 @@ void TestGame::activateNeighbours(int _x, int _y, int _width) {
         this->particles[(_x + 1) + _width * (_y - 1)].canUpdate = true;
 }
 
-void TestGame::zoomParticles(const Vec2f& _pos) {
-    auto _io = ImGui::GetIO();
-    float _spacing = 8.f;
-    ImGui::BeginTooltip();
-        float _toolTipHeight = ImGui::GetWindowHeight();
-
-        float _mouseExtra[2] = {0.f, 0.f};
-
-        float region_x = _pos.x - this->zoomImageWidth * 0.5f;
-        if (region_x < 0.0f) {
-            region_x = 0.0f;
-            _mouseExtra[0] = (this->zoomImageWidth * 0.5f - ((_pos.x >= 0.f) ? _pos.x : 0.0f)) * this->zoomLevel;
-        }
-        else if (region_x > (float)textureWidth - this->zoomImageWidth) {
-            region_x = (float)textureWidth - this->zoomImageWidth;
-            _mouseExtra[0] = -(this->zoomImageWidth * 0.5f - ((_pos.x < (float)textureWidth) ?
-                                                   (float)textureWidth - _pos.x : 1.0f)) * this->zoomLevel;
-        }
-
-        float region_y = _pos.y + this->zoomImageHeight * 0.5f;
-        if (region_y < this->zoomImageHeight) {
-            region_y = this->zoomImageHeight;
-            _mouseExtra[1] = (this->zoomImageHeight * 0.5f - ((_pos.y >= 0.f) ? _pos.y : 0.0f)) * this->zoomLevel;
-        }
-        else if (region_y > (float)textureHeight) {
-            region_y = (float) textureHeight;
-            _mouseExtra[1] = -(this->zoomImageHeight * 0.5f - ((_pos.y < (float)textureHeight) ?
-                                                   (float)textureHeight - _pos.y : 1.0f)) * this->zoomLevel;
-        }
-
-        ImGui::Text("X: %d, Y: %d", (int)_pos.x, (int)_pos.y);
-        float _textHeight = ImGui::GetItemRectSize().y;
-
-        const char* _name = "None";
-        Color _color = this->backgroundColor;
-
-        float _y = (_pos.y >= 0 ? _pos.y : 0.0f);
-        _y = (_pos.y <= (float)textureHeight ? _y : (float)textureHeight);
-
-        float _x = (_pos.x >= 0 ? _pos.x : 0.0f);
-        _x = (_pos.x <= (float)textureWidth ? _x : (float)textureWidth - 1);
-
-        if(this->isInBounds((int)_x, (int)_y)) {
-            int _posVec = this->calcVecPos((int) _x, (int) _y);
-            _name = this->particleTypeToName(this->particles[_posVec].type);
-            _color = this->particles[_posVec].color;
-        }
-        ImGui::Text("Particle: %s", _name);
-        _textHeight += ImGui::GetItemRectSize().y;
-        ImGui::Text("R: %d, G: %d, B: %d, A: %d", _color.r, _color.g, _color.b, _color.a);
-        _textHeight += ImGui::GetItemRectSize().y;
-
-        ImVec2 uv0 = ImVec2((region_x) / (float)textureWidth, (region_y) / (float)textureHeight);
-        ImVec2 uv1 = ImVec2((region_x + this->zoomImageWidth) / (float)textureWidth, (region_y - this->zoomImageHeight) / (float)textureHeight);
-        ImGui::Image((void*)(intptr_t)this->proceduralTexture->getRendererID(),
-                     ImVec2(this->zoomImageWidth * this->zoomLevel, this->zoomImageHeight * this->zoomLevel), uv0, uv1,
-                     ImVec4(1.0f, 1.0f, 1.0f, 1.0f),
-                     ImVec4(1.0f, 1.0f, 1.0f, 0.5f));
-
-        float _imageWidth = ImGui::GetItemRectSize().x;
-        float _imageHeight = ImGui::GetItemRectSize().y;
-
-        const ImVec2 p = ImGui::GetCursorScreenPos();
-        float x = p.x, y = p.y;
-
-        float _topSpacing = ImGui::GetStyle().ItemSpacing.y * 3.f;
-        float _yForDot = _toolTipHeight - _textHeight - ImGui::GetStyle().ItemSpacing.y * 3.f - _topSpacing;
-
-        ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(x + (_imageWidth / 2.f) - _mouseExtra[0],
-            y - _yForDot + (_imageHeight / 2.f) + _mouseExtra[1]),
-
-            ImVec2(x + this->zoomLevel + (_imageWidth / 2.f) - _mouseExtra[0],
-                    y - this->zoomLevel - _yForDot + (_imageHeight / 2.f) + _mouseExtra[1]),
-
-            ImColor(ImVec4((float)this->zoomDotColor.r / 255.f, (float)this->zoomDotColor.g / 255.f, (float)this->zoomDotColor.b / 255.f, (float)this->zoomDotColor.a / 255.f)));
-
-    ImGui::EndTooltip();
-}
-
 const char* TestGame::particleTypeToName(const TestGame::ParticleType& _type) {
     const char* _name;
     switch(_type) {
@@ -1292,19 +1388,64 @@ const char* TestGame::particleTypeToName(const TestGame::ParticleType& _type) {
     return "Not known particle";
 }
 
-void TestGame::checkForShortcuts() {
-    if(Input::isKeyJustPressed(KEY_1))
-        this->usingTool = DRAW;
-    else if(Input::isKeyJustPressed(KEY_2))
-        this->usingTool = ERASE;
-    else if(Input::isKeyJustPressed(KEY_3))
-        this->usingTool = ZOOM;
+void TestGame::wind() {
+
+}
+void TestGame::rain() {
+    if(this->weatherConditions[2] > 0) {
+        const int SCREEN_DIVISIONS = 10;
+        int _init = 0;
+        int _limit = TestGame::textureWidth / SCREEN_DIVISIONS;
+        for(int _i = 0; _i < SCREEN_DIVISIONS; _i++) {
+            for(int _j = _init; _j < _limit; _j++) {
+                if(this->random.probability(0.00025f * this->weatherConditions[2]).happened && this->isEmpty(_j, TestGame::textureHeight - 1)) {
+                    int _posInVector = this->calcVecPos(_j, TestGame::textureHeight - 1);
+                    switch(this->rainType) {
+                        case WATER : {
+                            this->particles[_posInVector] = TestGame::waterParticle;
+                            this->particles[_posInVector].color = this->particleTypeToColor(WATER);
+                            this->particles[_posInVector].lifeTime = this->random.randomf(MIN_WATER_LIFE, MAX_WATER_LIFE);
+                            this->particles[_posInVector].velocity.y = 3.f;
+                            break;
+                        }
+
+                        case ACID : {
+                            this->particles[_posInVector] = TestGame::acidParticle;
+                            this->particles[_posInVector].color = this->particleTypeToColor(ACID);
+                            this->particles[_posInVector].lifeTime = this->random.randomf(MIN_WATER_LIFE, MAX_WATER_LIFE);
+                            this->particles[_posInVector].velocity.y = 3.f;
+                            break;
+                        }
+                    }
+
+                    this->drawnPixels++;
+
+                    if(_j += SCREEN_DIVISIONS / 2 < _limit)
+                        _j += SCREEN_DIVISIONS / 2;
+                    else
+                        continue;
+                }
+            }
+
+            _init += TestGame::textureWidth / SCREEN_DIVISIONS;
+            _limit += TestGame::textureWidth / SCREEN_DIVISIONS;
+        }
+    }
+}
+void TestGame::snow() {
+
 }
 
-bool TestGame::onMouseScrolled(MouseScrolledEvent& _e) {
-    this->zoomLevel += _e.getScrollY() * 0.5f;
-    this->zoomLevel = engine::functions::clamp(this->zoomLevel, 1.0f, MAX_ZOOM_LEVEL);
-    return true;
+bool TestGame::isLiquid(int _x, int _y) {
+    return false;
+}
+
+bool TestGame::isLiquid(int _posInVector) {
+    return false;
+}
+
+bool TestGame::isLiquid(const TestGame::Particle& _p) {
+    return false;
 }
 
 
