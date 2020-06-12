@@ -98,7 +98,7 @@ class TestGame : public engine::Layer {
             9.8f    ,   /// Gravity
         };
 
-        ParticleType rainType;
+        ParticleType rainType = WATER;
 
         Color backgroundColor = Color::Black;
 
