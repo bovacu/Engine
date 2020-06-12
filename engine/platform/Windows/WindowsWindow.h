@@ -14,13 +14,13 @@ namespace engine {
         private:
             GLFWwindow* window;
             GLFWmonitor* monitor;
-            Vec2f windowPosition;
             GraphicsContextPtr context;
 
             struct WindowData {
                 std::string title;
                 int width, height;
                 bool vSync;
+                Vec2i position;
 
                 EventCallbackFn eventCallback;
             };
@@ -48,6 +48,9 @@ namespace engine {
 
             void setVSync(bool enabled)                             override;
             [[nodiscard]] bool isVSyncActive() const                override;
+
+            [[nodiscard]] Vec2i getPosition() const                 override  { return Vec2i(this->data.position.x, this->data.position.y); }
+            void setPosition(const Vec2i& _position)                override  { this->data.position = Vec2i(_position.x, _position.y); }
 
             [[nodiscard]] void* getNativeWindow() const             override { return this->window; }
 

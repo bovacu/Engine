@@ -67,7 +67,10 @@ namespace engine {
         int _windowWidth, _windowHeight;
         glfwGetWindowSize(this->window, &_windowWidth, &_windowHeight);
 
-        glfwSetWindowPos(this->window, _monitorX + (_mode->width - _windowWidth) / 2, _monitorY + (_mode->height - _windowHeight) / 2);
+        this->data.position.x = _monitorX + (_mode->width - _windowWidth) / 2;
+        this->data.position.y = _monitorY + (_mode->height - _windowHeight) / 2;
+
+        glfwSetWindowPos(this->window, this->data.position.x, this->data.position.y);
 
         // Set GLFW callbacks
         glfwSetWindowSizeCallback(this->window, [](GLFWwindow* _window, int _width, int _height) {
@@ -76,6 +79,17 @@ namespace engine {
             _data.height = _height;
 
             WindowResizedEvent _event(_width, _height);
+            _data.eventCallback(_event);
+        });
+
+        glfwSetWindowPosCallback(this->window, [](GLFWwindow* _window, int _x, int _y) {
+            WindowData& _data = *(WindowData*)glfwGetWindowUserPointer(_window);
+            _data.position.x = _x;
+            _data.position.y = _y;
+
+            LOG_INFO_CORE("x: {0}, y: {1}", _x, _y);
+
+            WindowMovedEvent _event(_x, _y);
             _data.eventCallback(_event);
         });
 
@@ -187,7 +201,7 @@ namespace engine {
             // backup window position and window size
             int _x, _y;
             glfwGetWindowPos( this->window, &_x, &_y );
-            this->windowPosition = {(float)_x, (float)_y};
+            this->data.position = {_x, _y};
             glfwGetWindowSize( this->window, &this->data.width, &this->data.height );
 
             // get resolution of monitor
@@ -199,7 +213,7 @@ namespace engine {
         }
         else {
             // restore last window size and position
-            glfwSetWindowMonitor( this->window, nullptr,  (int)this->windowPosition.x, (int)this->windowPosition.y
+            glfwSetWindowMonitor( this->window, nullptr, this->data.position.x, this->data.position.y
                     , this->data.width, this->data.height, 0 );
             this->setWindowSize(this->data.width, this->data.height);
         }

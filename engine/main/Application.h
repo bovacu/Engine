@@ -117,6 +117,9 @@ namespace engine {
             void setFullscreen(bool _fullscreen);
             [[nodiscard]] bool isFullscreen() const             {  return this->window->isFullscreen(); }
 
+            void setPosition(const Vec2i& _position)            { this->window->setPosition(_position); }
+            Vec2i getPosition() const                           { return this->window->getPosition(); }
+
         public:
             void onRun();
             void onEvent(Event& _event);

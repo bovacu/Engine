@@ -148,6 +148,8 @@ class TestGame : public engine::Layer {
         void imGuiMaterials(engine::Timestep _dt);
         void imGuiSettings(engine::Timestep _dt);
 
+        void imGuiWorldSizePopUp(engine::Timestep _dt);
+
         static float probValues(const ParticleType& _firstParticle, const ParticleType& _secondParticle);
         ReactionInfo reactions(const Vec2i& _posA, const Vec2i& _posB, Particle& _particleA, const Particle& _particleB);
 

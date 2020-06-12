@@ -22,6 +22,25 @@ namespace engine {
                 return _sst.str();
             }
 
+            EVENT_CLASS_TYPE(WindowMoved);
+            EVENT_CLASS_CATEGORY(EventCategoryGame);
+    };
+
+    class WindowMovedEvent    : public Event {
+        private:
+            unsigned int x, y;
+
+        public:
+            WindowMovedEvent(unsigned int _x, unsigned int _y) : x(_x), y(_y) {}
+            inline unsigned int getX() { return this->x; };
+            inline unsigned int getY() { return this->y; }
+
+            std::string toString() const override {
+                std::stringstream _sst;
+                _sst << "WindowMovedEvent -> (x = " << this->x << ", y = " << this->y << ")";
+                return _sst.str();
+            }
+
             EVENT_CLASS_TYPE(WindowResized);
             EVENT_CLASS_CATEGORY(EventCategoryGame);
     };
