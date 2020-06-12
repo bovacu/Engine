@@ -628,84 +628,6 @@ void TestGame::generateWithBrush(const Vec2f& _mousePos) {
         }
     }
 }
-void TestGame::zoomParticles(const Vec2f& _pos) {
-    auto _io = ImGui::GetIO();
-    float _spacing = 8.f;
-    ImGui::BeginTooltip();
-    float _toolTipHeight = ImGui::GetWindowHeight();
-
-    float _mouseExtra[2] = {0.f, 0.f};
-
-    float region_x = _pos.x - this->zoomImageWidth * 0.5f;
-    if (region_x < 0.0f) {
-        region_x = 0.0f;
-        _mouseExtra[0] = (this->zoomImageWidth * 0.5f - ((_pos.x >= 0.f) ? _pos.x : 0.0f)) * this->zoomLevel;
-    }
-    else if (region_x > (float)textureWidth - this->zoomImageWidth) {
-        region_x = (float)textureWidth - this->zoomImageWidth;
-        _mouseExtra[0] = -(this->zoomImageWidth * 0.5f - ((_pos.x < (float)textureWidth) ?
-                                                          (float)textureWidth - _pos.x : 1.0f)) * this->zoomLevel;
-    }
-
-    float region_y = _pos.y + this->zoomImageHeight * 0.5f;
-    if (region_y < this->zoomImageHeight) {
-        region_y = this->zoomImageHeight;
-        _mouseExtra[1] = (this->zoomImageHeight * 0.5f - ((_pos.y >= 0.f) ? _pos.y : 0.0f)) * this->zoomLevel;
-    }
-    else if (region_y > (float)textureHeight) {
-        region_y = (float) textureHeight;
-        _mouseExtra[1] = -(this->zoomImageHeight * 0.5f - ((_pos.y < (float)textureHeight) ?
-                                                           (float)textureHeight - _pos.y : 1.0f)) * this->zoomLevel;
-    }
-
-    ImGui::Text("X: %d, Y: %d", (int)_pos.x, (int)_pos.y);
-    float _textHeight = ImGui::GetItemRectSize().y;
-
-    const char* _name = "None";
-    Color _color = this->backgroundColor;
-
-    float _y = (_pos.y >= 0 ? _pos.y : 0.0f);
-    _y = (_pos.y <= (float)textureHeight ? _y : (float)textureHeight);
-
-    float _x = (_pos.x >= 0 ? _pos.x : 0.0f);
-    _x = (_pos.x <= (float)textureWidth ? _x : (float)textureWidth - 1);
-
-    if(this->isInBounds((int)_x, (int)_y)) {
-        int _posVec = this->calcVecPos((int) _x, (int) _y);
-        _name = this->particleTypeToName(this->particles[_posVec].type);
-        _color = this->particles[_posVec].color;
-    }
-    ImGui::Text("Particle: %s", _name);
-    _textHeight += ImGui::GetItemRectSize().y;
-    ImGui::Text("R: %d, G: %d, B: %d, A: %d", _color.r, _color.g, _color.b, _color.a);
-    _textHeight += ImGui::GetItemRectSize().y;
-
-    ImVec2 uv0 = ImVec2((region_x) / (float)textureWidth, (region_y) / (float)textureHeight);
-    ImVec2 uv1 = ImVec2((region_x + this->zoomImageWidth) / (float)textureWidth, (region_y - this->zoomImageHeight) / (float)textureHeight);
-    ImGui::Image((void*)(intptr_t)this->proceduralTexture->getRendererID(),
-                 ImVec2(this->zoomImageWidth * this->zoomLevel, this->zoomImageHeight * this->zoomLevel), uv0, uv1,
-                 ImVec4(1.0f, 1.0f, 1.0f, 1.0f),
-                 ImVec4(1.0f, 1.0f, 1.0f, 0.5f));
-
-    float _imageWidth = ImGui::GetItemRectSize().x;
-    float _imageHeight = ImGui::GetItemRectSize().y;
-
-    const ImVec2 p = ImGui::GetCursorScreenPos();
-    float x = p.x, y = p.y;
-
-    float _topSpacing = ImGui::GetStyle().ItemSpacing.y * 3.f;
-    float _yForDot = _toolTipHeight - _textHeight - ImGui::GetStyle().ItemSpacing.y * 3.f - _topSpacing;
-
-    ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(x + (_imageWidth / 2.f) - _mouseExtra[0],
-                                                     y - _yForDot + (_imageHeight / 2.f) + _mouseExtra[1]),
-
-                                              ImVec2(x + this->zoomLevel + (_imageWidth / 2.f) - _mouseExtra[0],
-                                                     y - this->zoomLevel - _yForDot + (_imageHeight / 2.f) + _mouseExtra[1]),
-
-                                              ImColor(ImVec4((float)this->zoomDotColor.r / 255.f, (float)this->zoomDotColor.g / 255.f, (float)this->zoomDotColor.b / 255.f, (float)this->zoomDotColor.a / 255.f)));
-
-    ImGui::EndTooltip();
-}
 
 bool TestGame::isInBounds(int _x, int _y) {
     return _x >= 0 && _x <= (int)this->proceduralTexture->getWidth() - 1 &&
@@ -742,8 +664,8 @@ void TestGame::removeParticles(const Vec2f& _mousePos) {
 }
 
 void TestGame::imGuiAppWindow(engine::Timestep _dt) {
-//    static bool _opened = true;
-//    ImGui::ShowDemoWindow(&_opened);
+    static bool _opened = true;
+    ImGui::ShowDemoWindow(&_opened);
 
     if (this->usingTool == ZOOM) {
         this->zoomParticles(Input::getMousePosition());
@@ -1201,38 +1123,6 @@ void TestGame::imGuiSettings(engine::Timestep _dt) {
         }
     }
     ImGui::Separator();
-
-    if(ImGui::Button("World Size")) {
-        ImGui::OpenPopup("World Size Options");
-    }
-
-    this->imGuiWorldSizePopUp(_dt);
-
-    ImGui::Separator();
-}
-
-void TestGame::imGuiWorldSizePopUp(engine::Timestep _dt) {
-    int _width = TestGame::textureWidth, _height = TestGame::textureHeight;
-    auto _mainWindowPos = this->app.getPosition();
-
-    static int _futurePopWidth = 0, _futurePopHeight = 0;
-
-    ImGui::SetNextWindowPos({(float)_mainWindowPos.x + this->app.getWindowSize().x / 2.f - _futurePopWidth / 2.f,
-                             _mainWindowPos.y + this->app.getWindowSize().y / 2.f - _futurePopHeight / 2.f});
-    if(ImGui::BeginPopupModal("World Size Options", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-        _futurePopWidth = ImGui::GetWindowSize().x;
-        _futurePopHeight = ImGui::GetWindowSize().y;
-        ImGui::Text("World Width"); ImGui::SameLine(100); ImGui::InputInt("", &_width);
-        ImGui::Text("World Height"); ImGui::SameLine(100); ImGui::InputInt("", &_height);
-
-        ImGui::Separator();
-
-        ImGui::Button("Apply"); ImGui::SameLine();
-        if(ImGui::Button("Cancel"))
-            ImGui::CloseCurrentPopup();
-
-        ImGui::EndPopup();
-    }
 }
 
 float TestGame::probValues(const TestGame::ParticleType& _firstParticle,
@@ -1293,6 +1183,84 @@ void TestGame::activateNeighbours(int _x, int _y, int _width) {
         this->particles[(_x + 1) + _width * (_y - 1)].canUpdate = true;
 }
 
+void TestGame::zoomParticles(const Vec2f& _pos) {
+    auto _io = ImGui::GetIO();
+    float _spacing = 8.f;
+    ImGui::BeginTooltip();
+        float _toolTipHeight = ImGui::GetWindowHeight();
+
+        float _mouseExtra[2] = {0.f, 0.f};
+
+        float region_x = _pos.x - this->zoomImageWidth * 0.5f;
+        if (region_x < 0.0f) {
+            region_x = 0.0f;
+            _mouseExtra[0] = (this->zoomImageWidth * 0.5f - ((_pos.x >= 0.f) ? _pos.x : 0.0f)) * this->zoomLevel;
+        }
+        else if (region_x > (float)textureWidth - this->zoomImageWidth) {
+            region_x = (float)textureWidth - this->zoomImageWidth;
+            _mouseExtra[0] = -(this->zoomImageWidth * 0.5f - ((_pos.x < (float)textureWidth) ?
+                                                   (float)textureWidth - _pos.x : 1.0f)) * this->zoomLevel;
+        }
+
+        float region_y = _pos.y + this->zoomImageHeight * 0.5f;
+        if (region_y < this->zoomImageHeight) {
+            region_y = this->zoomImageHeight;
+            _mouseExtra[1] = (this->zoomImageHeight * 0.5f - ((_pos.y >= 0.f) ? _pos.y : 0.0f)) * this->zoomLevel;
+        }
+        else if (region_y > (float)textureHeight) {
+            region_y = (float) textureHeight;
+            _mouseExtra[1] = -(this->zoomImageHeight * 0.5f - ((_pos.y < (float)textureHeight) ?
+                                                   (float)textureHeight - _pos.y : 1.0f)) * this->zoomLevel;
+        }
+
+        ImGui::Text("X: %d, Y: %d", (int)_pos.x, (int)_pos.y);
+        float _textHeight = ImGui::GetItemRectSize().y;
+
+        const char* _name = "None";
+        Color _color = this->backgroundColor;
+
+        float _y = (_pos.y >= 0 ? _pos.y : 0.0f);
+        _y = (_pos.y <= (float)textureHeight ? _y : (float)textureHeight);
+
+        float _x = (_pos.x >= 0 ? _pos.x : 0.0f);
+        _x = (_pos.x <= (float)textureWidth ? _x : (float)textureWidth - 1);
+
+        if(this->isInBounds((int)_x, (int)_y)) {
+            int _posVec = this->calcVecPos((int) _x, (int) _y);
+            _name = this->particleTypeToName(this->particles[_posVec].type);
+            _color = this->particles[_posVec].color;
+        }
+        ImGui::Text("Particle: %s", _name);
+        _textHeight += ImGui::GetItemRectSize().y;
+        ImGui::Text("R: %d, G: %d, B: %d, A: %d", _color.r, _color.g, _color.b, _color.a);
+        _textHeight += ImGui::GetItemRectSize().y;
+
+        ImVec2 uv0 = ImVec2((region_x) / (float)textureWidth, (region_y) / (float)textureHeight);
+        ImVec2 uv1 = ImVec2((region_x + this->zoomImageWidth) / (float)textureWidth, (region_y - this->zoomImageHeight) / (float)textureHeight);
+        ImGui::Image((void*)(intptr_t)this->proceduralTexture->getRendererID(),
+                     ImVec2(this->zoomImageWidth * this->zoomLevel, this->zoomImageHeight * this->zoomLevel), uv0, uv1,
+                     ImVec4(1.0f, 1.0f, 1.0f, 1.0f),
+                     ImVec4(1.0f, 1.0f, 1.0f, 0.5f));
+
+        float _imageWidth = ImGui::GetItemRectSize().x;
+        float _imageHeight = ImGui::GetItemRectSize().y;
+
+        const ImVec2 p = ImGui::GetCursorScreenPos();
+        float x = p.x, y = p.y;
+
+        float _topSpacing = ImGui::GetStyle().ItemSpacing.y * 3.f;
+        float _yForDot = _toolTipHeight - _textHeight - ImGui::GetStyle().ItemSpacing.y * 3.f - _topSpacing;
+
+        ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(x + (_imageWidth / 2.f) - _mouseExtra[0],
+            y - _yForDot + (_imageHeight / 2.f) + _mouseExtra[1]),
+
+            ImVec2(x + this->zoomLevel + (_imageWidth / 2.f) - _mouseExtra[0],
+                    y - this->zoomLevel - _yForDot + (_imageHeight / 2.f) + _mouseExtra[1]),
+
+            ImColor(ImVec4((float)this->zoomDotColor.r / 255.f, (float)this->zoomDotColor.g / 255.f, (float)this->zoomDotColor.b / 255.f, (float)this->zoomDotColor.a / 255.f)));
+
+    ImGui::EndTooltip();
+}
 
 const char* TestGame::particleTypeToName(const TestGame::ParticleType& _type) {
     const char* _name;
@@ -1323,6 +1291,7 @@ const char* TestGame::particleTypeToName(const TestGame::ParticleType& _type) {
     }
     return "Not known particle";
 }
+
 void TestGame::checkForShortcuts() {
     if(Input::isKeyJustPressed(KEY_1))
         this->usingTool = DRAW;
@@ -1331,6 +1300,7 @@ void TestGame::checkForShortcuts() {
     else if(Input::isKeyJustPressed(KEY_3))
         this->usingTool = ZOOM;
 }
+
 bool TestGame::onMouseScrolled(MouseScrolledEvent& _e) {
     this->zoomLevel += _e.getScrollY() * 0.5f;
     this->zoomLevel = engine::functions::clamp(this->zoomLevel, 1.0f, MAX_ZOOM_LEVEL);

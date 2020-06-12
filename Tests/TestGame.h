@@ -37,7 +37,9 @@ class TestGame : public engine::Layer {
             float lifeTimer = 0.0f;
             float lifeTime = INFINITE_LIFE_TIME;
             int lastHeight = 0;
+            float temperature;
         };
+
         struct ReactionInfo {
             Probability prob;
             bool reactionExists = false;
@@ -62,10 +64,10 @@ class TestGame : public engine::Layer {
         int particlesInSecond = 0;
         float particlesUpdateTimer = 0.0f;
 
-        static Particle noneParticle, sandParticle, waterParticle, stoneParticle, acidParticle;
+        static Particle noneParticle, sandParticle, waterParticle, stoneParticle, acidParticle, dirtParticle;
         static int textureWidth, textureHeight;
 
-        Color PARTICLE_COLORS[16] = {
+        Color PARTICLE_COLORS[19] = {
                 { 202, 188, 145, 255 }, /// SAND_0
                 { 194, 178, 128, 255 }, /// SAND_1
                 { 186, 168, 111, 255 }, /// SAND_2
@@ -81,7 +83,10 @@ class TestGame : public engine::Layer {
                 {  43,  50,  48, 255 }, /// SMOKE_0
                 {  39,  45,  43, 255 }, /// SMOKE_1
                 {  34,  40,  38, 255 }, /// SMOKE_2
-                {   0,   0,   0,   0 }  /// TRANSPARENT
+                {   0,   0,   0,   0 }, /// TRANSPARENT
+                {  83,  66,  41, 255 }, /// DIRT_0
+                {  69,  55,  35, 255 }, /// DIRT_1
+                {  55,  44,  28, 255 }, /// DIRT_2
         };
 
         int whatToDoWithUnfittingDrops = 0; /// 0 = leave them alone, 1 = remove them, 2 = evaporate them
@@ -92,11 +97,14 @@ class TestGame : public engine::Layer {
             0       ,   /// Snow
             9.8f    ,   /// Gravity
         };
+
+        ParticleType rainType;
+
         Color backgroundColor = Color::Black;
 
         Tool usingTool = DRAW;
         int brushSize = 10;
-        float zoomLevel = 1.0f;
+        float zoomLevel = 3.0f;
         Color zoomDotColor = Color::Red;
         float zoomImageWidth = 32, zoomImageHeight = 32;
 
@@ -118,7 +126,12 @@ class TestGame : public engine::Layer {
         void updateWaterParticle(int _x, int _y, int _posInVector, Timestep _dt);
         void updateStoneParticle(int _x, int _y, int _posInVector, Timestep _dt);
         void updateAcidParticle(int _x, int _y, int _posInVector, Timestep _dt);
+        void updateDirtParticle(int _x, int _y, int _posInVector, Timestep _dt);
         void handleUnfittedDrops(int _x, int _y, int _vecPos, float _dt);
+
+        void wind();
+        void rain();
+        void snow();
 
         Color particleTypeToColor(const ParticleType& _particle);
         const char* particleTypeToName(const ParticleType& _type);
@@ -131,9 +144,13 @@ class TestGame : public engine::Layer {
         bool isInBounds(int _x, int _y);
         int calcVecPos(int _x, int _y);
         bool isEmpty(int _x, int _y);
-        bool is(int _x, int _y, const ParticleType& _particle);
         bool isSurrounded(int _x, int _y);
         void activateNeighbours(int _x, int _y, int _width);
+
+        bool is(int _x, int _y, const ParticleType& _particle);
+        bool isLiquid(int _x, int _y);
+        bool isLiquid(int _posInVector);
+        bool isLiquid(const Particle& _p);
 
         void generateParticles(const Vec2f& _mousePos);
         void writeParticle(int _x, int _y, const Particle& _particle);
