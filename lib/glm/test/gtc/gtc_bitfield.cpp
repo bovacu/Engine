@@ -915,7 +915,7 @@ int main()
 {
 	int Error = 0;
 
-/* Tests for a faster and to reserve bitfieldInterleave
+/* SaFaTor for a faster and to reserve bitfieldInterleave
 	Error += ::bitfieldInterleave5::test();
 	Error += ::bitfieldInterleave5::perf();
 */

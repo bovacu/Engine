@@ -1,29 +1,29 @@
-#include "TestGame.h"
+#include "Safator.h"
 #include <imgui.h>
 
-TestGame::Particle TestGame::noneParticle;
-TestGame::Particle TestGame::sandParticle;
-TestGame::Particle TestGame::waterParticle;
-TestGame::Particle TestGame::stoneParticle;
-TestGame::Particle TestGame::acidParticle;
-TestGame::Particle TestGame::dirtParticle;
+Safator::Particle Safator::noneParticle;
+Safator::Particle Safator::sandParticle;
+Safator::Particle Safator::waterParticle;
+Safator::Particle Safator::stoneParticle;
+Safator::Particle Safator::acidParticle;
+Safator::Particle Safator::dirtParticle;
 
-int TestGame::textureWidth = 0;
-int TestGame::textureHeight = 0;
+int Safator::textureWidth = 0;
+int Safator::textureHeight = 0;
 
-TestGame::TestGame() :  engine::Layer("Prueba"),
-                        cameraController(false), squareColor({ 0.2f, 0.3f, 0.8f, 1.0f }),
-                        app(Application::get()) {
+Safator::Safator() : engine::Layer("Prueba"),
+                     cameraController(false), squareColor({ 0.2f, 0.3f, 0.8f, 1.0f }),
+                     app(Application::get()) {
 }
 
-void TestGame::onInit() {
-    this->app.setTitle("Particle simulator");
+void Safator::onInit() {
+    this->app.setTitle("Safator");
     this->proceduralTexture = Texture2D::create((uint32_t)this->app.getWindowSize().x, (uint32_t)this->app.getWindowSize().y, true);
     this->circleTexture = Texture2D::create(48, 48, true);
 
-    TestGame::textureWidth  = this->proceduralTexture->getWidth();
-    TestGame::textureHeight = this->proceduralTexture->getHeight();
-    this->totalOfPixels = TestGame::textureWidth * TestGame::textureHeight;
+    Safator::textureWidth  = this->proceduralTexture->getWidth();
+    Safator::textureHeight = this->proceduralTexture->getHeight();
+    this->totalOfPixels = Safator::textureWidth * Safator::textureHeight;
     this->drawnPixels = 0;
 
     this->initSimulationWorld();
@@ -39,15 +39,15 @@ void TestGame::onInit() {
 
     this->generateCircleTexture();
 }
-void TestGame::onEvent(engine::Event& _e) {
+void Safator::onEvent(engine::Event& _e) {
     this->cameraController.onEvent(_e);
 
     if(_e.getEventType() == EventType::MouseScrolled) {
         EventDispatcher dispatcher(_e);
-        dispatcher.dispatchEvent<MouseScrolledEvent>(ENGINE_BIND_EVENT_FN(TestGame::onMouseScrolled));
+        dispatcher.dispatchEvent<MouseScrolledEvent>(ENGINE_BIND_EVENT_FN(Safator::onMouseScrolled));
     }
 }
-void TestGame::onUpdate(engine::Timestep _dt) {
+void Safator::onUpdate(engine::Timestep _dt) {
 
     this->checkForShortcuts();
 
@@ -70,7 +70,7 @@ void TestGame::onUpdate(engine::Timestep _dt) {
                     if(this->usingTool == DRAW)
                         this->generateWithBrush(_mousePos);
                     else if (this->usingTool == ERASE)
-                        this->removeParticles(_mousePos);
+                        this->removeWithBrush(_mousePos);
                 }
             }
         }
@@ -115,10 +115,10 @@ void TestGame::onUpdate(engine::Timestep _dt) {
         this->proceduralTexture->updateTexture();
     }
 }
-void TestGame::onFixedUpdate(engine::Timestep _dt) {
+void Safator::onFixedUpdate(engine::Timestep _dt) {
 //    this->world.fixedUpdate(_dt);
 }
-void TestGame::onRender(engine::Timestep _dt) {
+void Safator::onRender(engine::Timestep _dt) {
     engine::Render2D::resetStats();
     engine::RenderCommand::setClearColor(this->backgroundColor);
     engine::RenderCommand::clear();
@@ -134,44 +134,44 @@ void TestGame::onRender(engine::Timestep _dt) {
 
     engine::Render2D::endRender();
 }
-void TestGame::onImGuiRender(engine::Timestep _dt) {
+void Safator::onImGuiRender(engine::Timestep _dt) {
     this->imGuiAppWindow(_dt);
     this->particlesUpdating = 0;
 }
-void TestGame::onEnd() {
+void Safator::onEnd() {
     delete this->particles;
 }
 
-void TestGame::initSimulationWorld() {
+void Safator::initSimulationWorld() {
     this->particles = new Particle[this->proceduralTexture->getWidth() * this->proceduralTexture->getHeight()];
 
     for(int _y = 0; _y < this->app.getWindowSize().y; _y++) {
         for (int _x = 0; _x < this->app.getWindowSize().x; _x++) {
             int _posInVector = this->calcVecPos(_x, _y);
-            this->particles[_posInVector] = TestGame::noneParticle;
-            this->proceduralTexture->setPixel(_x, _y, TestGame::noneParticle.color);
+            this->particles[_posInVector] = Safator::noneParticle;
+            this->proceduralTexture->setPixel(_x, _y, Safator::noneParticle.color);
         }
     }
 
-    TestGame::sandParticle.type = SAND;
-    TestGame::sandParticle.color = this->particleTypeToColor(SAND);
+    Safator::sandParticle.type = SAND;
+    Safator::sandParticle.color = this->particleTypeToColor(SAND);
 
-    TestGame::waterParticle.type = WATER;
-    TestGame::waterParticle.color = this->particleTypeToColor(WATER);
+    Safator::waterParticle.type = WATER;
+    Safator::waterParticle.color = this->particleTypeToColor(WATER);
 
-    TestGame::stoneParticle.type = STONE;
-    TestGame::stoneParticle.color = this->particleTypeToColor(STONE);
+    Safator::stoneParticle.type = STONE;
+    Safator::stoneParticle.color = this->particleTypeToColor(STONE);
 
-    TestGame::acidParticle.type = ACID;
-    TestGame::acidParticle.color = this->particleTypeToColor(ACID);
+    Safator::acidParticle.type = ACID;
+    Safator::acidParticle.color = this->particleTypeToColor(ACID);
 
-    TestGame::dirtParticle.type = DIRT;
-    TestGame::dirtParticle.color = this->particleTypeToColor(DIRT);
+    Safator::dirtParticle.type = DIRT;
+    Safator::dirtParticle.color = this->particleTypeToColor(DIRT);
 
     this->proceduralTexture->updateTexture();
 
 }
-void TestGame::checkForShortcuts() {
+void Safator::checkForShortcuts() {
     if(Input::isKeyJustPressed(KEY_1))
         this->usingTool = DRAW;
     else if(Input::isKeyJustPressed(KEY_2))
@@ -179,7 +179,7 @@ void TestGame::checkForShortcuts() {
     else if(Input::isKeyJustPressed(KEY_3))
         this->usingTool = ZOOM;
 }
-bool TestGame::onMouseScrolled(MouseScrolledEvent& _e) {
+bool Safator::onMouseScrolled(MouseScrolledEvent& _e) {
     if(this->usingTool == ZOOM) {
         this->zoomLevel += _e.getScrollY();
         this->zoomLevel = engine::functions::clamp(this->zoomLevel, 1.0f, MAX_ZOOM_LEVEL);
@@ -199,7 +199,7 @@ bool TestGame::onMouseScrolled(MouseScrolledEvent& _e) {
     return true;
 }
 
-void TestGame::updateSandParticle(int _x, int _y, int _posInVector, Timestep _dt) {
+void Safator::updateSandParticle(int _x, int _y, int _posInVector, Timestep _dt) {
     Particle* _p = &this->particles[_posInVector];
     _p->velocity.y = functions::clamp(_p->velocity.y + (this->weatherConditions[4] * _dt), -this->weatherConditions[4], this->weatherConditions[4] );
 
@@ -211,7 +211,7 @@ void TestGame::updateSandParticle(int _x, int _y, int _posInVector, Timestep _dt
 
     Particle _tempA = *_p;
 
-    int _width = TestGame::textureWidth;
+    int _width = Safator::textureWidth;
 
     Particle _tempB;
     if(isEmpty(_vX, _vY)) {
@@ -278,7 +278,7 @@ void TestGame::updateSandParticle(int _x, int _y, int _posInVector, Timestep _dt
         }
     }
 }
-void TestGame::updateWaterParticle(int _x, int _y, int _posInVector, Timestep _dt) {
+void Safator::updateWaterParticle(int _x, int _y, int _posInVector, Timestep _dt) {
     Particle* _p = &this->particles[_posInVector];
     int _sign = this->random.randomi(0, 1) == 0 ? -1 : 1;
     _p->velocity.y = functions::clamp(_p->velocity.y + (this->weatherConditions[4] * _dt), -this->weatherConditions[4], this->weatherConditions[4] );
@@ -289,7 +289,7 @@ void TestGame::updateWaterParticle(int _x, int _y, int _posInVector, Timestep _d
     if(!this->isEmpty(_x, _y - 1))
         _p->velocity.y *= 0.5f;
 
-    int _width = TestGame::textureWidth;
+    int _width = Safator::textureWidth;
 
     Particle _tempB;
     if(isEmpty(_vX, _vY)) {
@@ -393,10 +393,10 @@ void TestGame::updateWaterParticle(int _x, int _y, int _posInVector, Timestep _d
         }
     }
 }
-void TestGame::updateStoneParticle(int _x, int _y, int _posInVector, Timestep _dt) {
+void Safator::updateStoneParticle(int _x, int _y, int _posInVector, Timestep _dt) {
 
 }
-void TestGame::updateAcidParticle(int _x, int _y, int _posInVector, Timestep _dt) {
+void Safator::updateAcidParticle(int _x, int _y, int _posInVector, Timestep _dt) {
     Particle* _p = &this->particles[_posInVector];
     int _sign = this->random.randomi(0, 1) == 0 ? -1 : 1;
     _p->velocity.y = functions::clamp(_p->velocity.y + (this->weatherConditions[4] * _dt), -this->weatherConditions[4], this->weatherConditions[4] );
@@ -411,7 +411,7 @@ void TestGame::updateAcidParticle(int _x, int _y, int _posInVector, Timestep _dt
     ReactionInfo _ri;
     bool _reactionReallyExists = false;
 
-    int _width = TestGame::textureWidth;
+    int _width = Safator::textureWidth;
 
     Particle _tempB;
     if(isEmpty(_vX, _vY)) {
@@ -576,7 +576,7 @@ void TestGame::updateAcidParticle(int _x, int _y, int _posInVector, Timestep _dt
             _p->canUpdate = false;
     }
 }
-void TestGame::updateDirtParticle(int _x, int _y, int _posInVector, Timestep _dt) {
+void Safator::updateDirtParticle(int _x, int _y, int _posInVector, Timestep _dt) {
     Particle* _p = &this->particles[_posInVector];
     _p->velocity.y = functions::clamp(_p->velocity.y + (this->weatherConditions[4] * _dt), -this->weatherConditions[4], this->weatherConditions[4] );
 
@@ -588,12 +588,13 @@ void TestGame::updateDirtParticle(int _x, int _y, int _posInVector, Timestep _dt
 
     Particle _tempA = *_p;
 
-    int _width = TestGame::textureWidth;
+    int _width = Safator::textureWidth;
+    int _sign = this->random.randomi(0, 1) == 0 ? -1 : 1;
 
     Particle _tempB;
     if(isEmpty(_vX, _vY)) {
         _tempB = this->particles[_vX + _width * _vY];
-        _tempA.velocity.x = 0;
+//        _tempA.velocity.x = 0;
         this->writeParticle(_vX, _vY, _tempA);
         this->writeParticle(_x, _y, _tempB);
         this->activateNeighbours(_x, _y, _width);
@@ -602,23 +603,56 @@ void TestGame::updateDirtParticle(int _x, int _y, int _posInVector, Timestep _dt
 
         /// Down
         bool _inWater = false;
-        if(this->isEmpty(_x, _y - 1) || (_inWater = this->is(_x, _y - 1, ParticleType::WATER))) {
+            /// Down-Left
+        if (this->isEmpty(_x - _sign, _y - 1)) {
             if(_inWater) _p->velocity.y *= 0.5f;
             else _p->velocity.y += (this->weatherConditions[4] * _dt);
 
-            int _vecForB = _x + _width * (_y - 1);
-            _tempB = this->particles[_vecForB];
+            int _vecForB = (_x - _sign) + _width * (_y - 1);
+            _tempB = this->particles[(_x - _sign) + _width * (_y - 1)];
 
-            this->writeParticle(_x, _y - 1, _vecForB, _tempA);
-            this->writeParticle(_x, _y, _posInVector, _tempB);
+            int _neighbour = 1;
+            int _pos = this->calcVecPos(_x - _sign, _y - 1);
+            while(this->isEmpty(_x - (_sign * (_neighbour + 1)), _y - 1) && _neighbour <= 2) {
+                _neighbour++;
+                _pos = this->calcVecPos(_x - (_sign * _neighbour), _y - 1);
+            }
+
+            _tempB = this->particles[_pos];
+            this->writeParticle(_x - (_sign * _neighbour), _y - 1, *_p);
+            this->writeParticle(_x, _y, _tempB);
+
             this->activateNeighbours(_x, _y, _width);
 
-        } else {
+        }
+
+        else if (this->isEmpty(_x + _sign, _y - 1)) {
+            if(_inWater) _p->velocity.y *= 0.5f;
+            else _p->velocity.y += (this->weatherConditions[4] * _dt);
+
+            int _vecForB = (_x + _sign) + _width * (_y - 1);
+            _tempB = this->particles[(_x + _sign) + _width * (_y - 1)];
+
+            int _neighbour = 1;
+            int _pos = this->calcVecPos(_x + _sign, _y - 1);
+            while(this->isEmpty(_x + (_sign * (_neighbour + 1)), _y - 1) && _neighbour <= 2) {
+                _neighbour++;
+                _pos = this->calcVecPos(_x + (_sign * _neighbour), _y - 1);
+            }
+
+            _tempB = this->particles[_pos];
+            this->writeParticle(_x + (_sign * _neighbour), _y - 1, *_p);
+            this->writeParticle(_x, _y, _tempB);
+
+            this->activateNeighbours(_x, _y, _width);
+        }
+            /// Down-Right
+        else {
             _p->canUpdate = false;
         }
     }
 }
-void TestGame::handleUnfittedDrops(int _x, int _y, int _vecPos, float _dt) {
+void Safator::handleUnfittedDrops(int _x, int _y, int _vecPos, float _dt) {
     if(this->whatToDoWithUnfittingDrops == 2)
         return;
 
@@ -631,7 +665,7 @@ void TestGame::handleUnfittedDrops(int _x, int _y, int _vecPos, float _dt) {
         }
 
         if(this->particles[_vecPos].lifeTimer >= this->particles[_vecPos].lifeTime) {
-            this->writeParticle(_x, _y, _vecPos, TestGame::noneParticle);
+            this->writeParticle(_x, _y, _vecPos, Safator::noneParticle);
             this->drawnPixels--;
         }
     } else if (this->whatToDoWithUnfittingDrops == 1){
@@ -639,7 +673,7 @@ void TestGame::handleUnfittedDrops(int _x, int _y, int _vecPos, float _dt) {
     }
 }
 
-Color TestGame::particleTypeToColor(const TestGame::ParticleType& _particle) {
+Color Safator::particleTypeToColor(const Safator::ParticleType& _particle) {
     switch (_particle) {
         case SAND           : return this->PARTICLE_COLORS[this->random.randomi(0, 4)];
         case WATER          : return this->PARTICLE_COLORS[5];
@@ -653,47 +687,7 @@ Color TestGame::particleTypeToColor(const TestGame::ParticleType& _particle) {
 
     return this->PARTICLE_COLORS[15];
 }
-void TestGame::generateParticles(const Vec2f& _mousePos) {
-    int _posInVector = this->calcVecPos((int)_mousePos.x, (int)_mousePos.y);
-    if(this->particles[_posInVector].type == NONE_PARTICLE) {
-        switch(this->selectedParticle) {
-            case SAND   : {
-                this->particles[_posInVector] = TestGame::sandParticle;
-                this->particles[_posInVector].color = this->particleTypeToColor(SAND);
-                break;
-            }
-            case WATER  : {
-                this->particles[_posInVector] = TestGame::waterParticle;
-                this->particles[_posInVector].color = this->particleTypeToColor(WATER);
-                this->particles[_posInVector].lifeTime = this->random.randomf(MIN_WATER_LIFE, MAX_WATER_LIFE);
-                break;
-            }
-            case ACID   : {
-                this->particles[_posInVector] = TestGame::acidParticle;
-                this->particles[_posInVector].color = this->particleTypeToColor(ACID);
-                this->particles[_posInVector].lifeTime = this->random.randomf(MIN_WATER_LIFE, MAX_WATER_LIFE);
-                break;
-            }
-            case STONE   : {
-                this->particles[_posInVector] = TestGame::stoneParticle;
-                this->particles[_posInVector].color = this->particleTypeToColor(STONE);
-                break;
-            }
-
-            case DIRT   : {
-                this->particles[_posInVector] = TestGame::dirtParticle;
-                this->particles[_posInVector].color = this->particleTypeToColor(DIRT);
-                break;
-            }
-
-            default     : { LOG_ERROR("MATERIAL NOT IMPLEMENTED IN GENERATE_PARTICLES"); }
-        }
-
-        this->writeParticle((int)_mousePos.x, (int)_mousePos.y, this->particles[_posInVector]);
-        this->drawnPixels++;
-    }
-}
-void TestGame::generateWithBrush(const Vec2f& _mousePos) {
+void Safator::generateWithBrush(const Vec2f& _mousePos) {
 
     if(this->brushSize == 1) {
         this->generateParticles(_mousePos);
@@ -728,7 +722,21 @@ void TestGame::generateWithBrush(const Vec2f& _mousePos) {
         }
     }
 }
-void TestGame::zoomParticles(const Vec2f& _pos) {
+void Safator::removeWithBrush(const Vec2f& _mousePos) {
+    for(int _y = (int)_mousePos.y - (int)(this->circleTexture->getHeight() / 2); _y < (int)_mousePos.y + (int)(this->circleTexture->getHeight() / 2); _y++) {
+        for(int _x = (int)_mousePos.x - (int)(this->circleTexture->getWidth() / 2); _x < (int)_mousePos.x + (int)(this->circleTexture->getWidth() / 2); _x++) {
+            if(this->isInBounds(_x, _y)) {
+                float dx = (float)_x - _mousePos.x;
+                float dy = (float)_y - _mousePos.y;
+                float distanceSquared = dx * dx + dy * dy;
+
+                if (distanceSquared < (float)(this->brushCircleWH * this->brushCircleWH) && this->particles[this->calcVecPos(_x, _y)].type != NONE_PARTICLE)
+                    this->removeParticles({(float)_x, (float)_y});
+            }
+        }
+    }
+}
+void Safator::zoomParticles(const Vec2f& _pos) {
     auto _io = ImGui::GetIO();
     float _spacing = 8.f;
     ImGui::BeginTooltip();
@@ -807,41 +815,83 @@ void TestGame::zoomParticles(const Vec2f& _pos) {
     ImGui::EndTooltip();
 }
 
-bool TestGame::isInBounds(int _x, int _y) {
+void Safator::generateParticles(const Vec2f& _mousePos) {
+    int _posInVector = this->calcVecPos((int)_mousePos.x, (int)_mousePos.y);
+    if(this->particles[_posInVector].type == NONE_PARTICLE) {
+        switch(this->selectedParticle) {
+            case SAND   : {
+                this->particles[_posInVector] = Safator::sandParticle;
+                this->particles[_posInVector].color = this->particleTypeToColor(SAND);
+                break;
+            }
+            case WATER  : {
+                this->particles[_posInVector] = Safator::waterParticle;
+                this->particles[_posInVector].color = this->particleTypeToColor(WATER);
+                this->particles[_posInVector].lifeTime = this->random.randomf(MIN_WATER_LIFE, MAX_WATER_LIFE);
+                break;
+            }
+            case ACID   : {
+                this->particles[_posInVector] = Safator::acidParticle;
+                this->particles[_posInVector].color = this->particleTypeToColor(ACID);
+                this->particles[_posInVector].lifeTime = this->random.randomf(MIN_WATER_LIFE, MAX_WATER_LIFE);
+                break;
+            }
+            case STONE   : {
+                this->particles[_posInVector] = Safator::stoneParticle;
+                this->particles[_posInVector].color = this->particleTypeToColor(STONE);
+                break;
+            }
+
+            case DIRT   : {
+                this->particles[_posInVector] = Safator::dirtParticle;
+                this->particles[_posInVector].color = this->particleTypeToColor(DIRT);
+                break;
+            }
+
+            default     : { LOG_ERROR("MATERIAL NOT IMPLEMENTED IN GENERATE_PARTICLES"); }
+        }
+
+        this->writeParticle((int)_mousePos.x, (int)_mousePos.y, this->particles[_posInVector]);
+        this->drawnPixels++;
+    }
+}
+void Safator::removeParticles(const Vec2f& _mousePos) {
+    this->writeParticle((int)_mousePos.x, (int)_mousePos.y, Safator::noneParticle);
+    this->activateNeighbours((int)_mousePos.x, (int)_mousePos.y, Safator::textureWidth);
+    this->drawnPixels--;
+}
+
+bool Safator::isInBounds(int _x, int _y) {
     return _x >= 0 && _x <= (int)this->proceduralTexture->getWidth() - 1 &&
            _y >= 0 && _y <= (int)this->proceduralTexture->getHeight() - 1;
 }
-bool TestGame::isEmpty(int _x, int _y) {
+bool Safator::isEmpty(int _x, int _y) {
     return this->isInBounds(_x, _y) && this->particles[this->calcVecPos(_x, _y)].type == NONE_PARTICLE;
 }
-bool TestGame::is(int _x, int _y, const ParticleType& _particle) {
+bool Safator::is(int _x, int _y, const ParticleType& _particle) {
     return this->isInBounds(_x, _y) && this->particles[this->calcVecPos(_x, _y)].type == _particle;
 }
-bool TestGame::isSurrounded(int _x, int _y) {
+bool Safator::isSurrounded(int _x, int _y) {
     return  this->particles[this->calcVecPos(_x - 1, _y)].type != NONE_PARTICLE &&
             this->particles[this->calcVecPos(_x + 1, _y)].type != NONE_PARTICLE &&
             this->particles[this->calcVecPos(_x, _y + 1)].type != NONE_PARTICLE &&
             this->particles[this->calcVecPos(_x, _y - 1)].type != NONE_PARTICLE;
 }
 
-int TestGame::calcVecPos(int _x, int _y) {
+int Safator::calcVecPos(int _x, int _y) {
     return _x + ((int)this->proceduralTexture->getWidth() * _y);
 }
-void TestGame::writeParticle(int _x, int _y, const TestGame::Particle& _particle) {
+void Safator::writeParticle(int _x, int _y, const Safator::Particle& _particle) {
     this->particles[this->calcVecPos(_x, _y)] = _particle;
     this->proceduralTexture->setPixel(_x, _y, _particle.color);
 }
-void TestGame::writeParticle(int _x, int _y, int _vecPos, const TestGame::Particle& _particle) {
+void Safator::writeParticle(int _x, int _y, int _vecPos, const Safator::Particle& _particle) {
     this->particles[_vecPos] = _particle;
     this->proceduralTexture->setPixel(_x, _y, _particle.color);
 }
-void TestGame::removeParticles(const Vec2f& _mousePos) {
-    int _posInVector = this->calcVecPos((int)_mousePos.x, (int)_mousePos.y);
-    this->particles[_posInVector].type  = NONE_PARTICLE;
-    this->particles[_posInVector].color = this->particleTypeToColor(NONE_PARTICLE);
-}
 
-void TestGame::imGuiAppWindow(engine::Timestep _dt) {
+
+void Safator::imGuiAppWindow(engine::Timestep _dt) {
 //    static bool _opened = true;
 //    ImGui::ShowDemoWindow(&_opened);
 
@@ -885,7 +935,7 @@ void TestGame::imGuiAppWindow(engine::Timestep _dt) {
         }
     ImGui::End();
 }
-void TestGame::imGuiInfo(engine::Timestep _dt) {
+void Safator::imGuiInfo(engine::Timestep _dt) {
     ImGui::Text("FPS: %d", this->app.getFps());
     ImGui::Separator();
     ImGui::Text("Updating: %d", this->particlesInSecond);
@@ -900,7 +950,7 @@ void TestGame::imGuiInfo(engine::Timestep _dt) {
     ImGui::ProgressBar((float)this->drawnPixels / (float)this->totalOfPixels, ImVec2(0.f,0.f), buf);
     ImGui::Separator();
 }
-void TestGame::imGuiControllerWindow(engine::Timestep _dt) {
+void Safator::imGuiControllerWindow(engine::Timestep _dt) {
     if(ImGui::Button("Reset Scene")) {
         delete [] this->particles;
         this->drawnPixels = 0;
@@ -928,7 +978,7 @@ void TestGame::imGuiControllerWindow(engine::Timestep _dt) {
         this->oneStep = true;
     }
 }
-void TestGame::imGuiDrawingWindow(engine::Timestep _dt) {
+void Safator::imGuiDrawingWindow(engine::Timestep _dt) {
     if(this->usingTool == DRAW) {
         ImGui::PushStyleColor(ImGuiCol_Button, {(float) Color::Green.r, (float) Color::Green.g, (float) Color::Green.b, (float) Color::Green.a});
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, {(float) Color::Green.r, (float) Color::Green.g, (float) Color::Green.b, (float) Color::Green.a});
@@ -995,7 +1045,7 @@ void TestGame::imGuiDrawingWindow(engine::Timestep _dt) {
 
     ImGui::Separator();
 }
-void TestGame::imGuiConditions(engine::Timestep _dt) {
+void Safator::imGuiConditions(engine::Timestep _dt) {
     ImGui::Text("Unfitted drops");
     ImGui::Indent(30.f);
     ImGui::RadioButton("Remove", &this->whatToDoWithUnfittingDrops, 0);
@@ -1003,7 +1053,7 @@ void TestGame::imGuiConditions(engine::Timestep _dt) {
     ImGui::RadioButton("Live", &this->whatToDoWithUnfittingDrops, 2);
     ImGui::Unindent(30.f);
 }
-void TestGame::imGuiWeather(engine::Timestep _dt) {
+void Safator::imGuiWeather(engine::Timestep _dt) {
     ImGui::SliderFloat("Wind",          &this->weatherConditions[0], 0, 10);
     ImGui::SliderFloat("Temperature",   &this->weatherConditions[1], -50, 200);
 
@@ -1037,7 +1087,7 @@ void TestGame::imGuiWeather(engine::Timestep _dt) {
     ImGui::Separator();
     ImGui::SliderFloat("Gravity",       &this->weatherConditions[4], -50, 50);
 }
-void TestGame::imGuiMaterials(engine::Timestep _dt) {
+void Safator::imGuiMaterials(engine::Timestep _dt) {
     static const char* _materialUsing = "Sand";
 
     ImGui::Text("Current: %s", _materialUsing);
@@ -1299,7 +1349,7 @@ void TestGame::imGuiMaterials(engine::Timestep _dt) {
     ImGui::Separator();
 
 }
-void TestGame::imGuiSettings(engine::Timestep _dt) {
+void Safator::imGuiSettings(engine::Timestep _dt) {
     ImGui::Button("Save Simulation");
     ImGui::SameLine();
     ImGui::Button("Load Simulation");
@@ -1338,8 +1388,8 @@ void TestGame::imGuiSettings(engine::Timestep _dt) {
     ImGui::Separator();
 }
 
-void TestGame::imGuiWorldSizePopUp(engine::Timestep _dt) {
-    int _width = TestGame::textureWidth, _height = TestGame::textureHeight;
+void Safator::imGuiWorldSizePopUp(engine::Timestep _dt) {
+    int _width = Safator::textureWidth, _height = Safator::textureHeight;
     auto _mainWindowPos = this->app.getPosition();
 
     static int _futurePopWidth = 0, _futurePopHeight = 0;
@@ -1362,8 +1412,8 @@ void TestGame::imGuiWorldSizePopUp(engine::Timestep _dt) {
     }
 }
 
-float TestGame::probValues(const TestGame::ParticleType& _firstParticle,
-                           const TestGame::ParticleType& _secondParticle) {
+float Safator::probValues(const Safator::ParticleType& _firstParticle,
+                          const Safator::ParticleType& _secondParticle) {
     if(_firstParticle == ACID) {
         if(_secondParticle == STONE)                 /// REMOVES STONE
             return 1.f / 25.f;
@@ -1373,19 +1423,19 @@ float TestGame::probValues(const TestGame::ParticleType& _firstParticle,
 
     return 0.0f;
 }
-TestGame::ReactionInfo TestGame::reactions(const Vec2i& _posA, const Vec2i& _posB, TestGame::Particle& _particleA,
-                         const TestGame::Particle& _particleB) {
+Safator::ReactionInfo Safator::reactions(const Vec2i& _posA, const Vec2i& _posB, Safator::Particle& _particleA,
+                                         const Safator::Particle& _particleB) {
 
     ReactionInfo _ri;
 
     if(_particleA.type == ACID) {
         if(_particleB.type == STONE) {
             _ri.reactionExists = true;
-            if((_ri.prob = this->random.probability(TestGame::probValues(_particleA.type, _particleB.type))).happened) {
-                this->writeParticle(_posB.x, _posB.y, TestGame::noneParticle);
+            if((_ri.prob = this->random.probability(Safator::probValues(_particleA.type, _particleB.type))).happened) {
+                this->writeParticle(_posB.x, _posB.y, Safator::noneParticle);
                 this->drawnPixels--;
                 if(this->random.randomf(0.0f, 1.0f) >= 0.85f) {
-                    this->writeParticle(_posA.x, _posA.y, TestGame::noneParticle);
+                    this->writeParticle(_posA.x, _posA.y, Safator::noneParticle);
                     this->drawnPixels--;
                 }
             }
@@ -1394,7 +1444,7 @@ TestGame::ReactionInfo TestGame::reactions(const Vec2i& _posA, const Vec2i& _pos
 
     return _ri;
 }
-void TestGame::activateNeighbours(int _x, int _y, int _width) {
+void Safator::activateNeighbours(int _x, int _y, int _width) {
     if(this->isInBounds(_x, _y - 1))
         this->particles[_x + _width * (_y - 1)].canUpdate = true;
 
@@ -1420,7 +1470,7 @@ void TestGame::activateNeighbours(int _x, int _y, int _width) {
         this->particles[(_x + 1) + _width * (_y - 1)].canUpdate = true;
 }
 
-const char* TestGame::particleTypeToName(const TestGame::ParticleType& _type) {
+const char* Safator::particleTypeToName(const Safator::ParticleType& _type) {
     const char* _name;
     switch(_type) {
         case NONE_PARTICLE  : _name = "None"; return _name;
@@ -1450,21 +1500,21 @@ const char* TestGame::particleTypeToName(const TestGame::ParticleType& _type) {
     return "Not known particle";
 }
 
-void TestGame::wind() {
+void Safator::wind() {
 
 }
-void TestGame::rain() {
+void Safator::rain() {
     if(this->weatherConditions[2] > 0) {
         const int SCREEN_DIVISIONS = 10;
         int _init = 0;
-        int _limit = TestGame::textureWidth / SCREEN_DIVISIONS;
+        int _limit = Safator::textureWidth / SCREEN_DIVISIONS;
         for(int _i = 0; _i < SCREEN_DIVISIONS; _i++) {
             for(int _j = _init; _j < _limit; _j++) {
-                if(this->random.probability(0.00025f * this->weatherConditions[2]).happened && this->isEmpty(_j, TestGame::textureHeight - 1)) {
-                    int _posInVector = this->calcVecPos(_j, TestGame::textureHeight - 1);
+                if(this->random.probability(0.00025f * this->weatherConditions[2]).happened && this->isEmpty(_j, Safator::textureHeight - 1)) {
+                    int _posInVector = this->calcVecPos(_j, Safator::textureHeight - 1);
                     switch(this->rainType) {
                         case WATER : {
-                            this->particles[_posInVector] = TestGame::waterParticle;
+                            this->particles[_posInVector] = Safator::waterParticle;
                             this->particles[_posInVector].color = this->particleTypeToColor(WATER);
                             this->particles[_posInVector].lifeTime = this->random.randomf(MIN_WATER_LIFE, MAX_WATER_LIFE);
                             this->particles[_posInVector].velocity.y = 3.f;
@@ -1472,7 +1522,7 @@ void TestGame::rain() {
                         }
 
                         case ACID : {
-                            this->particles[_posInVector] = TestGame::acidParticle;
+                            this->particles[_posInVector] = Safator::acidParticle;
                             this->particles[_posInVector].color = this->particleTypeToColor(ACID);
                             this->particles[_posInVector].lifeTime = this->random.randomf(MIN_WATER_LIFE, MAX_WATER_LIFE);
                             this->particles[_posInVector].velocity.y = 3.f;
@@ -1491,20 +1541,20 @@ void TestGame::rain() {
                 }
             }
 
-            _init += TestGame::textureWidth / SCREEN_DIVISIONS;
-            _limit += TestGame::textureWidth / SCREEN_DIVISIONS;
+            _init += Safator::textureWidth / SCREEN_DIVISIONS;
+            _limit += Safator::textureWidth / SCREEN_DIVISIONS;
         }
     }
 }
-void TestGame::snow() {
+void Safator::snow() {
 
 }
 
-bool TestGame::isSolid(const ParticleType &_type) {
+bool Safator::isSolid(const ParticleType &_type) {
     return _type == STONE;
 }
 
-void TestGame::generateCircleTexture() {
+void Safator::generateCircleTexture() {
     for(int _i = 0; _i < (int)this->circleTexture->getWidth(); _i++)
         for(int _j = 0; _j < (int)this->circleTexture->getHeight(); _j++)
             this->circleTexture->setPixel(_i, _j, Color::Transparent);
@@ -1512,7 +1562,7 @@ void TestGame::generateCircleTexture() {
     this->circleMidPoints({(int)(this->circleTexture->getWidth() / 2), (int)(this->circleTexture->getHeight() / 2)}, this->brushCircleWH, Color::White);
     this->circleTexture->updateTexture();
 }
-void TestGame::circleMidPoints(const Vec2i& _center, int _radius, const Color& _color) {
+void Safator::circleMidPoints(const Vec2i& _center, int _radius, const Color& _color) {
     int _x = 0;
     int _y = _radius - 1;
     int _p = (5 - _radius * 4) / 4;
@@ -1528,7 +1578,7 @@ void TestGame::circleMidPoints(const Vec2i& _center, int _radius, const Color& _
         circlePoints(_center, {_x, _y}, _color);
     }
 }
-void TestGame::circlePoints(const Vec2i& _center, const Vec2i& _pos, const Color& _color) {
+void Safator::circlePoints(const Vec2i& _center, const Vec2i& _pos, const Color& _color) {
     if (_pos.x == 0) {
         this->circleTexture->setPixel(_center.x, _center.y + _pos.y, _color);
         this->circleTexture->setPixel(_center.x, _center.y - _pos.y, _color);
@@ -1550,7 +1600,7 @@ void TestGame::circlePoints(const Vec2i& _center, const Vec2i& _pos, const Color
         this->circleTexture->setPixel(_center.x - _pos.y, _center.y - _pos.x, _color);
     }
 }
-Vec2i TestGame::randomPointInsideCircle(const Vec2i& _mousePos, int _radius) {
+Vec2i Safator::randomPointInsideCircle(const Vec2i& _mousePos, int _radius) {
     float _a = this->random.randomf(0, 1);
     float _b = this->random.randomf(0, 1);
     return {(int)(_b * (float)_radius * cos( 2 * PI * _a / _b)), (int)(_b * (float)_radius * sin(2 * PI * _a / _b))};

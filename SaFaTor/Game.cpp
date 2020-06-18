@@ -1,11 +1,11 @@
 #include "engine/main/Engine.h"
 #include "engine/main/EngineExecuter.h"
 
-#include "TestGame.h"
+#include "Safator.h"
 
 class Test : public engine::Application {
     public:
-        Test() { engine::Application::pushLayer(new TestGame()); }
+        Test() { engine::Application::pushLayer(new Safator()); }
         ~Test() {  }
 };
 

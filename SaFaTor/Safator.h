@@ -14,7 +14,7 @@
 
 using namespace engine;
 
-class TestGame : public engine::Layer {
+class Safator : public engine::Layer {
 
     public:
         enum ParticleType { NONE_PARTICLE,                                                                              /// NOTHING
@@ -110,8 +110,8 @@ class TestGame : public engine::Layer {
         float zoomImageWidth = 32, zoomImageHeight = 32;
 
     public:
-        TestGame();
-        ~TestGame() override = default;
+        Safator();
+        ~Safator() override = default;
 
         void onInit()                               override;
         void onEvent(engine::Event& _e)             override;
@@ -138,6 +138,7 @@ class TestGame : public engine::Layer {
         static const char* particleTypeToName(const ParticleType& _type);
         void checkForShortcuts();
 
+        void removeWithBrush(const Vec2f& _mousePos);
         void generateWithBrush(const Vec2f& _mousePos);
         void removeParticles(const Vec2f& _mousePos);
         void zoomParticles(const Vec2f& _pos);
