@@ -12,13 +12,14 @@ int TestGame::textureWidth = 0;
 int TestGame::textureHeight = 0;
 
 TestGame::TestGame() :  engine::Layer("Prueba"),
-                        cameraController(true), squareColor({ 0.2f, 0.3f, 0.8f, 1.0f }),
+                        cameraController(false), squareColor({ 0.2f, 0.3f, 0.8f, 1.0f }),
                         app(Application::get()) {
 }
 
 void TestGame::onInit() {
     this->app.setTitle("Particle simulator");
     this->proceduralTexture = Texture2D::create((uint32_t)this->app.getWindowSize().x, (uint32_t)this->app.getWindowSize().y, true);
+    this->circleTexture = Texture2D::create(48, 48, true);
 
     TestGame::textureWidth  = this->proceduralTexture->getWidth();
     TestGame::textureHeight = this->proceduralTexture->getHeight();
@@ -35,11 +36,13 @@ void TestGame::onInit() {
     this->eraseTexture = engine::ImGuiTexture2D::create("assets/textures/borrador.png");
     this->zoomTexture = engine::ImGuiTexture2D::create("assets/textures/buscar.png");
     this->pointTexture = engine::ImGuiTexture2D::create("assets/textures/point.png");
+
+    this->generateCircleTexture();
 }
 void TestGame::onEvent(engine::Event& _e) {
     this->cameraController.onEvent(_e);
 
-    if(_e.getEventType() == EventType::MouseScrolled && this->usingTool == ZOOM) {
+    if(_e.getEventType() == EventType::MouseScrolled) {
         EventDispatcher dispatcher(_e);
         dispatcher.dispatchEvent<MouseScrolledEvent>(ENGINE_BIND_EVENT_FN(TestGame::onMouseScrolled));
     }
@@ -80,7 +83,7 @@ void TestGame::onUpdate(engine::Timestep _dt) {
                 for (int _x = 0; _x < (int) this->proceduralTexture->getWidth(); _x++) {
                     int _pos = _x + _textureWidth * _y;
                     ParticleType _type = this->particles[_pos].type;
-                    if(_type == ParticleType::NONE_PARTICLE || _type == ParticleType::STONE || !this->particles[_pos].canUpdate) continue;
+                    if(_type == ParticleType::NONE_PARTICLE || this->isSolid(_type) || !this->particles[_pos].canUpdate) continue;
                     this->particlesUpdating++;
                     switch (_type) {
                         case SAND   : this->updateSandParticle(_x, _y, _pos, _dt);  break;
@@ -121,8 +124,14 @@ void TestGame::onRender(engine::Timestep _dt) {
     engine::RenderCommand::clear();
 
     engine::Render2D::beginRender(this->cameraController.getCamera());
+
         engine::Render2D::drawTextureRect({0.0f, 0.0f},
                 {(float)this->proceduralTexture->getWidth(), (float)this->proceduralTexture->getHeight()}, this->proceduralTexture);
+
+
+        engine::Render2D::drawTextureRect({Input::getMouseX() - this->app.getWindowSize().x / 2, Input::getMouseY() - this->app.getWindowSize().y / 2},
+                {(float)this->circleTexture->getWidth(), (float)this->circleTexture->getHeight()}, this->circleTexture);
+
     engine::Render2D::endRender();
 }
 void TestGame::onImGuiRender(engine::Timestep _dt) {
@@ -171,8 +180,22 @@ void TestGame::checkForShortcuts() {
         this->usingTool = ZOOM;
 }
 bool TestGame::onMouseScrolled(MouseScrolledEvent& _e) {
-    this->zoomLevel += _e.getScrollY();
-    this->zoomLevel = engine::functions::clamp(this->zoomLevel, 1.0f, MAX_ZOOM_LEVEL);
+    if(this->usingTool == ZOOM) {
+        this->zoomLevel += _e.getScrollY();
+        this->zoomLevel = engine::functions::clamp(this->zoomLevel, 1.0f, MAX_ZOOM_LEVEL);
+    } else if(this->usingTool == DRAW || this->usingTool == ERASE) {
+        this->brushSize += (int)_e.getScrollY();
+        this->brushSize = (int)engine::functions::clamp((float)this->brushSize, 1.0f, MAX_BRUSH_THICKNESS);
+
+        int _lastSize = this->brushCircleWH;
+
+        this->brushCircleWH += (int)_e.getScrollY();
+        this->brushCircleWH = (int)engine::functions::clamp((float)this->brushCircleWH, 1.0f, MAX_BRUSH_THICKNESS);
+
+        if(_lastSize != this->brushCircleWH)
+            this->generateCircleTexture();
+    }
+
     return true;
 }
 
@@ -675,24 +698,30 @@ void TestGame::generateWithBrush(const Vec2f& _mousePos) {
     if(this->brushSize == 1) {
         this->generateParticles(_mousePos);
     } else {
-        if(this->selectedParticle != STONE) {
-            std::vector<std::pair<int, int>> _spawnedPositions;
+        if(!this->isSolid(this->selectedParticle)) {
+            std::vector<Vec2i> _spawnedPositions;
             for(int _i = 0; _i < this->brushSize; _i++) {
-                auto _randPos = std::make_pair<int, int>(this->random.randomi(-this->brushSize, this->brushSize), this->random.randomi(-this->brushSize, this->brushSize));
+                Vec2i _randPos = this->randomPointInsideCircle({(int)_mousePos.x, (int)_mousePos.y}, this->brushCircleWH);
+
                 while(std::find(_spawnedPositions.begin(), _spawnedPositions.end(), _randPos) != _spawnedPositions.end() ||
-                      (_randPos.first  + _mousePos.x < 0 || _randPos.first  + _mousePos.x >= (float)this->proceduralTexture->getWidth() - 1) ||
-                      (_randPos.second + _mousePos.y < 0 || _randPos.second + _mousePos.y >= (float)this->proceduralTexture->getHeight() - 1))
-                    _randPos = std::make_pair<int, int>(this->random.randomi(-this->brushSize, this->brushSize), this->random.randomi(-this->brushSize, this->brushSize));
+                      (_randPos.x  + _mousePos.x < 0 || _randPos.x  + _mousePos.x >= (float)this->proceduralTexture->getWidth() - 1) ||
+                      (_randPos.y + _mousePos.y < 0 || _randPos.y + _mousePos.y >= (float)this->proceduralTexture->getHeight() - 1)) {
+                    _randPos = this->randomPointInsideCircle({(int)_mousePos.x, (int)_mousePos.y}, this->brushCircleWH);
+                }
 
                 _spawnedPositions.emplace_back(_randPos);
-                this->generateParticles({_mousePos.x + _randPos.first, _mousePos.y + _randPos.second});
+                this->generateParticles({_mousePos.x + _randPos.x, _mousePos.y + _randPos.y});
             }
         } else {
-            for(int _y = -this->brushSize / 2; _y < this->brushSize / 2; _y++) {
-                for(int _x = -this->brushSize / 2; _x < this->brushSize / 2; _x++) {
-                    if(((float)_x  + _mousePos.x >= 0 && (float)_x  + _mousePos.x <= (float)this->proceduralTexture->getWidth() - 1) &&
-                       ((float)_y + _mousePos.y >= 0 && (float)_y + _mousePos.y <= (float)this->proceduralTexture->getHeight() - 1)) {
-                        this->generateParticles({_mousePos.x + (float)_x, _mousePos.y + (float)_y});
+            for(int _y = (int)_mousePos.y - (int)(this->circleTexture->getHeight() / 2); _y < (int)_mousePos.y + (int)(this->circleTexture->getHeight() / 2); _y++) {
+                for(int _x = (int)_mousePos.x - (int)(this->circleTexture->getWidth() / 2); _x < (int)_mousePos.x + (int)(this->circleTexture->getWidth() / 2); _x++) {
+                    if(this->isInBounds(_x, _y)) {
+                        float dx = (float)_x - _mousePos.x;
+                        float dy = (float)_y - _mousePos.y;
+                        float distanceSquared = dx * dx + dy * dy;
+
+                        if (distanceSquared < (float)(this->brushCircleWH * this->brushCircleWH))
+                            this->generateParticles({(float)_x, (float)_y});
                     }
                 }
             }
@@ -874,6 +903,7 @@ void TestGame::imGuiInfo(engine::Timestep _dt) {
 void TestGame::imGuiControllerWindow(engine::Timestep _dt) {
     if(ImGui::Button("Reset Scene")) {
         delete [] this->particles;
+        this->drawnPixels = 0;
         this->initSimulationWorld();
     }
 
@@ -1317,8 +1347,8 @@ void TestGame::imGuiWorldSizePopUp(engine::Timestep _dt) {
     ImGui::SetNextWindowPos({(float)_mainWindowPos.x + this->app.getWindowSize().x / 2.f - _futurePopWidth / 2.f,
                              _mainWindowPos.y + this->app.getWindowSize().y / 2.f - _futurePopHeight / 2.f});
     if(ImGui::BeginPopupModal("World Size Options", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-        _futurePopWidth = ImGui::GetWindowSize().x;
-        _futurePopHeight = ImGui::GetWindowSize().y;
+        _futurePopWidth = (int)ImGui::GetWindowSize().x;
+        _futurePopHeight = (int)ImGui::GetWindowSize().y;
         ImGui::Text("World Width"); ImGui::SameLine(100); ImGui::InputInt("", &_width);
         ImGui::Text("World Height"); ImGui::SameLine(100); ImGui::InputInt("", &_height);
 
@@ -1448,6 +1478,8 @@ void TestGame::rain() {
                             this->particles[_posInVector].velocity.y = 3.f;
                             break;
                         }
+
+                        default: ;
                     }
 
                     this->drawnPixels++;
@@ -1468,16 +1500,60 @@ void TestGame::snow() {
 
 }
 
-bool TestGame::isLiquid(int _x, int _y) {
-    return false;
+bool TestGame::isSolid(const ParticleType &_type) {
+    return _type == STONE;
 }
 
-bool TestGame::isLiquid(int _posInVector) {
-    return false;
-}
+void TestGame::generateCircleTexture() {
+    for(int _i = 0; _i < (int)this->circleTexture->getWidth(); _i++)
+        for(int _j = 0; _j < (int)this->circleTexture->getHeight(); _j++)
+            this->circleTexture->setPixel(_i, _j, Color::Transparent);
 
-bool TestGame::isLiquid(const TestGame::Particle& _p) {
-    return false;
+    this->circleMidPoints({(int)(this->circleTexture->getWidth() / 2), (int)(this->circleTexture->getHeight() / 2)}, this->brushCircleWH, Color::White);
+    this->circleTexture->updateTexture();
+}
+void TestGame::circleMidPoints(const Vec2i& _center, int _radius, const Color& _color) {
+    int _x = 0;
+    int _y = _radius - 1;
+    int _p = (5 - _radius * 4) / 4;
+    circlePoints(_center, {_x, _y}, _color);
+    while (_x < _y) {
+        _x++;
+        if (_p < 0) {
+            _p += 2 * _x + 1;
+        } else {
+            _y--;
+            _p += 2 * (_x - _y) + 1;
+        }
+        circlePoints(_center, {_x, _y}, _color);
+    }
+}
+void TestGame::circlePoints(const Vec2i& _center, const Vec2i& _pos, const Color& _color) {
+    if (_pos.x == 0) {
+        this->circleTexture->setPixel(_center.x, _center.y + _pos.y, _color);
+        this->circleTexture->setPixel(_center.x, _center.y - _pos.y, _color);
+        this->circleTexture->setPixel(_center.x + _pos.y, _center.y, _color);
+        this->circleTexture->setPixel(_center.x - _pos.y, _center.y, _color);
+    } else if (_pos.x == _pos.y) {
+        this->circleTexture->setPixel(_center.x + _pos.x, _center.y + _pos.y, _color);
+        this->circleTexture->setPixel(_center.x - _pos.x, _center.y + _pos.y, _color);
+        this->circleTexture->setPixel(_center.x + _pos.x, _center.y - _pos.y, _color);
+        this->circleTexture->setPixel(_center.x - _pos.x, _center.y - _pos.y, _color);
+    } else if (_pos.x < _pos.y) {
+        this->circleTexture->setPixel(_center.x + _pos.x, _center.y + _pos.y, _color);
+        this->circleTexture->setPixel(_center.x - _pos.x, _center.y + _pos.y, _color);
+        this->circleTexture->setPixel(_center.x + _pos.x, _center.y - _pos.y, _color);
+        this->circleTexture->setPixel(_center.x - _pos.x, _center.y - _pos.y, _color);
+        this->circleTexture->setPixel(_center.x + _pos.y, _center.y + _pos.x, _color);
+        this->circleTexture->setPixel(_center.x - _pos.y, _center.y + _pos.x, _color);
+        this->circleTexture->setPixel(_center.x + _pos.y, _center.y - _pos.x, _color);
+        this->circleTexture->setPixel(_center.x - _pos.y, _center.y - _pos.x, _color);
+    }
+}
+Vec2i TestGame::randomPointInsideCircle(const Vec2i& _mousePos, int _radius) {
+    float _a = this->random.randomf(0, 1);
+    float _b = this->random.randomf(0, 1);
+    return {(int)(_b * (float)_radius * cos( 2 * PI * _a / _b)), (int)(_b * (float)_radius * sin(2 * PI * _a / _b))};
 }
 
 

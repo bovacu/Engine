@@ -25,6 +25,7 @@
 */
 
 #define BIT(x) (1 << x)
+#define PI 3.14159265359
 
 namespace engine {
 
@@ -160,6 +161,7 @@ namespace engine {
 		static const Color Brown;
 		static const Color Purple;
 		static const Color Gray;
+		static const Color Transparent;
 	};
 
     struct Probability {

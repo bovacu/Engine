@@ -48,7 +48,7 @@ class TestGame : public engine::Layer {
     private:
         engine::OrthographicCameraController cameraController;
         glm::vec4 squareColor = { 0.2f, 0.3f, 0.8f, 1.0f };
-        Texture2DPtr proceduralTexture;
+        Texture2DPtr proceduralTexture, circleTexture;
         int totalOfPixels, drawnPixels;
         ImGuiTexture2DPtr pauseTexture, resumeTexture, advanceTexture, oneFrameTexture, drawTexture, eraseTexture,
                             zoomTexture, pointTexture;
@@ -77,8 +77,8 @@ class TestGame : public engine::Layer {
                 { 170, 164, 157, 255 }, /// ROCK_0
                 { 149, 141, 133, 255 }, /// ROCK_1
                 { 123, 113, 103, 255 }, /// ROCK_2
-                { 176, 191,  26, 255 }, /// ACID_0
-                { 203, 227,  21, 255 }, /// ACID_1
+                { 255, 254,  47, 255 }, /// ACID_0
+                { 255, 229,  47, 255 }, /// ACID_1
                 { 199, 213, 224, 255 }, /// STEAM_0
                 {  43,  50,  48, 255 }, /// SMOKE_0
                 {  39,  45,  43, 255 }, /// SMOKE_1
@@ -104,6 +104,7 @@ class TestGame : public engine::Layer {
 
         Tool usingTool = DRAW;
         int brushSize = 10;
+        int brushCircleWH = brushSize;
         float zoomLevel = 3.0f;
         Color zoomDotColor = Color::Red;
         float zoomImageWidth = 32, zoomImageHeight = 32;
@@ -134,7 +135,7 @@ class TestGame : public engine::Layer {
         void snow();
 
         Color particleTypeToColor(const ParticleType& _particle);
-        const char* particleTypeToName(const ParticleType& _type);
+        static const char* particleTypeToName(const ParticleType& _type);
         void checkForShortcuts();
 
         void generateWithBrush(const Vec2f& _mousePos);
@@ -148,9 +149,8 @@ class TestGame : public engine::Layer {
         void activateNeighbours(int _x, int _y, int _width);
 
         bool is(int _x, int _y, const ParticleType& _particle);
-        bool isLiquid(int _x, int _y);
-        bool isLiquid(int _posInVector);
-        bool isLiquid(const Particle& _p);
+
+        bool isSolid(const ParticleType& _type);
 
         void generateParticles(const Vec2f& _mousePos);
         void writeParticle(int _x, int _y, const Particle& _particle);
@@ -171,6 +171,11 @@ class TestGame : public engine::Layer {
         ReactionInfo reactions(const Vec2i& _posA, const Vec2i& _posB, Particle& _particleA, const Particle& _particleB);
 
         bool onMouseScrolled(MouseScrolledEvent& _e);
+
+        void generateCircleTexture();
+        void circleMidPoints(const Vec2i& _center, int _radius, const Color& _color);
+        void circlePoints(const Vec2i& _center, const Vec2i& _pos, const Color& _color);
+        Vec2i randomPointInsideCircle(const Vec2i& _mousePos, int _radius);
 };
 
 #endif //TEST_GAME_H

@@ -13,6 +13,7 @@ namespace engine {
 	const Color Color::Brown(139, 69, 19, 255);
 	const Color Color::Purple(128, 0, 128, 255);
 	const Color Color::Gray(128, 128, 128, 255);
+	const Color Color::Transparent(0, 0, 0, 0);
 
     namespace functions {
 
