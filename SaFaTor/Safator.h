@@ -25,9 +25,7 @@ class Safator : public engine::Layer {
                             CLOUD   , FIRE      , PLANT ,                                                               /// VARIOUS
                             FUSE                                                                                        /// UTILS
         };
-
         enum Tool { DRAW, ERASE, ZOOM };
-        float gravity = 10.f;
 
         struct Particle {
             Vec2f velocity  {0.0f, 0.0f};
@@ -39,75 +37,97 @@ class Safator : public engine::Layer {
             int lastHeight = 0;
             float temperature;
         };
-
         struct ReactionInfo {
             Probability prob;
             bool reactionExists = false;
         };
+        struct DrawInfo {
+            int brushSize = 10;
+            int brushCircleWH = brushSize;
+        } drawInfo;
+        struct ZoomInfo {
+            float level = 3.0f;
+            Color dotColor = Color::Red;
+            float imageWidth = 32, imageHeight = 32;
+        } zoomInfo;
+        struct EraseInfo {
+            Color circleColor = Color::Red;
+        } eraseInfo;
 
     private:
-        engine::OrthographicCameraController cameraController;
-        glm::vec4 squareColor = { 0.2f, 0.3f, 0.8f, 1.0f };
-        Texture2DPtr proceduralTexture, circleTexture;
-        int totalOfPixels, drawnPixels;
-        ImGuiTexture2DPtr pauseTexture, resumeTexture, advanceTexture, oneFrameTexture, drawTexture, eraseTexture,
-                            zoomTexture, pointTexture;
-        Particle* particles;
-        Application& app;
+        engine::OrthographicCameraController    cameraController;
+        Color                                   backgroundColor = Color::Black;
 
-        bool play = true, oneStep = false, justPressed = true;
-        ParticleType selectedParticle = SAND;
+        Texture2DPtr                            worldTexture,
+                                                circleTexture;
 
-        engine::Random random;
+        int                                     totalOfPixels,
+                                                drawnPixels;
 
-        int particlesUpdating = 0;
-        int particlesInSecond = 0;
-        float particlesUpdateTimer = 0.0f;
+        ImGuiTexture2DPtr                       pauseTexture,
+                                                resumeTexture,
+                                                advanceTexture,
+                                                oneFrameTexture,
+                                                drawTexture,
+                                                eraseTexture,
+                                                zoomTexture;
 
-        static Particle noneParticle, sandParticle, waterParticle, stoneParticle, acidParticle, dirtParticle;
-        static int textureWidth, textureHeight;
+        Particle*                               particles;
+        Application&                            app;
 
-        Color PARTICLE_COLORS[19] = {
-                { 202, 188, 145, 255 }, /// SAND_0
-                { 194, 178, 128, 255 }, /// SAND_1
-                { 186, 168, 111, 255 }, /// SAND_2
-                { 177, 157,  94, 255 }, /// SAND_3
-                { 166, 145,  80, 255 }, /// SAND_4
-                {  90, 188, 216, 125 }, /// WATER_0
-                { 170, 164, 157, 255 }, /// ROCK_0
-                { 149, 141, 133, 255 }, /// ROCK_1
-                { 123, 113, 103, 255 }, /// ROCK_2
-                { 255, 254,  47, 255 }, /// ACID_0
-                { 255, 229,  47, 255 }, /// ACID_1
-                { 199, 213, 224, 255 }, /// STEAM_0
-                {  43,  50,  48, 255 }, /// SMOKE_0
-                {  39,  45,  43, 255 }, /// SMOKE_1
-                {  34,  40,  38, 255 }, /// SMOKE_2
-                {   0,   0,   0,   0 }, /// TRANSPARENT
-                {  83,  66,  41, 255 }, /// DIRT_0
-                {  69,  55,  35, 255 }, /// DIRT_1
-                {  55,  44,  28, 255 }, /// DIRT_2
-        };
+        ParticleType                            selectedParticle = SAND;
+        ParticleType                            rainType = WATER;
+        Tool                                    tool = DRAW;
 
-        int whatToDoWithUnfittingDrops = 0; /// 0 = leave them alone, 1 = remove them, 2 = evaporate them
-        float weatherConditions[5] = {
-            0       ,   /// Wind
-            20      ,   /// Temperature (Celsius)
-            0       ,   /// Rain
-            0       ,   /// Snow
-            9.8f    ,   /// Gravity
-        };
+        bool                                    play = true,
+                                                oneStep = false;
 
-        ParticleType rainType = WATER;
+        engine::Random                          random;
 
-        Color backgroundColor = Color::Black;
+        int                                     whatToDoWithUnfittingDrops = 0; /// 0 = leave them alone, 1 = remove them, 2 = evaporate them
+        int                                     particlesUpdating = 0;
+        int                                     particlesInSecond = 0;
+        float                                   particlesUpdateTimer = 0.0f;
 
-        Tool usingTool = DRAW;
-        int brushSize = 10;
-        int brushCircleWH = brushSize;
-        float zoomLevel = 3.0f;
-        Color zoomDotColor = Color::Red;
-        float zoomImageWidth = 32, zoomImageHeight = 32;
+        Particle                                noneParticle,
+                                                sandParticle,
+                                                waterParticle,
+                                                stoneParticle,
+                                                acidParticle,
+                                                dirtParticle;
+
+        int                                     textureWidth,
+                                                textureHeight;
+
+        Color                                   PARTICLE_COLORS[19] = {
+                                                    { 202, 188, 145, 255 }, /// SAND_0
+                                                    { 194, 178, 128, 255 }, /// SAND_1
+                                                    { 186, 168, 111, 255 }, /// SAND_2
+                                                    { 177, 157,  94, 255 }, /// SAND_3
+                                                    { 166, 145,  80, 255 }, /// SAND_4
+                                                    {  90, 188, 216, 125 }, /// WATER_0
+                                                    { 170, 164, 157, 255 }, /// ROCK_0
+                                                    { 149, 141, 133, 255 }, /// ROCK_1
+                                                    { 123, 113, 103, 255 }, /// ROCK_2
+                                                    { 255, 254,  47, 255 }, /// ACID_0
+                                                    { 255, 229,  47, 255 }, /// ACID_1
+                                                    { 199, 213, 224, 255 }, /// STEAM_0
+                                                    {  43,  50,  48, 255 }, /// SMOKE_0
+                                                    {  39,  45,  43, 255 }, /// SMOKE_1
+                                                    {  34,  40,  38, 255 }, /// SMOKE_2
+                                                    {   0,   0,   0,   0 }, /// TRANSPARENT
+                                                    {  83,  66,  41, 255 }, /// DIRT_0
+                                                    {  69,  55,  35, 255 }, /// DIRT_1
+                                                    {  55,  44,  28, 255 }, /// DIRT_2
+                                                };
+
+        float                                   weatherConditions[5] = {
+                                                    0       ,   /// Wind
+                                                    20      ,   /// Temperature (Celsius)
+                                                    0       ,   /// Rain
+                                                    0       ,   /// Snow
+                                                    9.8f    ,   /// Gravity
+                                                };
 
     public:
         Safator();
@@ -136,6 +156,8 @@ class Safator : public engine::Layer {
 
         Color particleTypeToColor(const ParticleType& _particle);
         static const char* particleTypeToName(const ParticleType& _type);
+
+        bool onMouseScrolled(MouseScrolledEvent& _e);
         void checkForShortcuts();
 
         void removeWithBrush(const Vec2f& _mousePos);
@@ -143,14 +165,13 @@ class Safator : public engine::Layer {
         void removeParticles(const Vec2f& _mousePos);
         void zoomParticles(const Vec2f& _pos);
 
-        bool isInBounds(int _x, int _y);
         int calcVecPos(int _x, int _y);
+        void activateNeighbours(int _x, int _y);
+
         bool isEmpty(int _x, int _y);
         bool isSurrounded(int _x, int _y);
-        void activateNeighbours(int _x, int _y, int _width);
-
+        bool isInBounds(int _x, int _y);
         bool is(int _x, int _y, const ParticleType& _particle);
-
         bool isSolid(const ParticleType& _type);
 
         void generateParticles(const Vec2f& _mousePos);
@@ -165,13 +186,10 @@ class Safator : public engine::Layer {
         void imGuiDrawingWindow(engine::Timestep _dt);
         void imGuiMaterials(engine::Timestep _dt);
         void imGuiSettings(engine::Timestep _dt);
-
         void imGuiWorldSizePopUp(engine::Timestep _dt);
 
         static float probValues(const ParticleType& _firstParticle, const ParticleType& _secondParticle);
         ReactionInfo reactions(const Vec2i& _posA, const Vec2i& _posB, Particle& _particleA, const Particle& _particleB);
-
-        bool onMouseScrolled(MouseScrolledEvent& _e);
 
         void generateCircleTexture();
         void circleMidPoints(const Vec2i& _center, int _radius, const Color& _color);

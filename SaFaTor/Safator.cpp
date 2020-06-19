@@ -1,41 +1,28 @@
 #include "Safator.h"
 #include <imgui.h>
 
-Safator::Particle Safator::noneParticle;
-Safator::Particle Safator::sandParticle;
-Safator::Particle Safator::waterParticle;
-Safator::Particle Safator::stoneParticle;
-Safator::Particle Safator::acidParticle;
-Safator::Particle Safator::dirtParticle;
+Safator::Safator() : engine::Layer("Prueba"), cameraController(false), app(Application::get()) {  }
 
-int Safator::textureWidth = 0;
-int Safator::textureHeight = 0;
-
-Safator::Safator() : engine::Layer("Prueba"),
-                     cameraController(false), squareColor({ 0.2f, 0.3f, 0.8f, 1.0f }),
-                     app(Application::get()) {
-}
 
 void Safator::onInit() {
     this->app.setTitle("Safator");
-    this->proceduralTexture = Texture2D::create((uint32_t)this->app.getWindowSize().x, (uint32_t)this->app.getWindowSize().y, true);
-    this->circleTexture = Texture2D::create(48, 48, true);
+    this->worldTexture      = Texture2D::create((uint32_t)this->app.getWindowSize().x, (uint32_t)this->app.getWindowSize().y, true);
+    this->circleTexture     = Texture2D::create(48, 48, true);
 
-    Safator::textureWidth  = this->proceduralTexture->getWidth();
-    Safator::textureHeight = this->proceduralTexture->getHeight();
-    this->totalOfPixels = Safator::textureWidth * Safator::textureHeight;
-    this->drawnPixels = 0;
+    this->textureWidth      = this->worldTexture->getWidth();
+    this->textureHeight     = this->worldTexture->getHeight();
+    this->totalOfPixels     = this->textureWidth * this->textureHeight;
+    this->drawnPixels       = 0;
 
     this->initSimulationWorld();
 
-    this->pauseTexture = engine::ImGuiTexture2D::create("assets/textures/pause.png");
-    this->resumeTexture = engine::ImGuiTexture2D::create("assets/textures/play-button.png");
-    this->advanceTexture = engine::ImGuiTexture2D::create("assets/textures/fast-forward.png");
-    this->oneFrameTexture = engine::ImGuiTexture2D::create("assets/textures/archivo-de-video.png");
-    this->drawTexture = engine::ImGuiTexture2D::create("assets/textures/editar.png");
-    this->eraseTexture = engine::ImGuiTexture2D::create("assets/textures/borrador.png");
-    this->zoomTexture = engine::ImGuiTexture2D::create("assets/textures/buscar.png");
-    this->pointTexture = engine::ImGuiTexture2D::create("assets/textures/point.png");
+    this->pauseTexture      = engine::ImGuiTexture2D::create("assets/textures/pause.png");
+    this->resumeTexture     = engine::ImGuiTexture2D::create("assets/textures/play-button.png");
+    this->advanceTexture    = engine::ImGuiTexture2D::create("assets/textures/fast-forward.png");
+    this->oneFrameTexture   = engine::ImGuiTexture2D::create("assets/textures/archivo-de-video.png");
+    this->drawTexture       = engine::ImGuiTexture2D::create("assets/textures/editar.png");
+    this->eraseTexture      = engine::ImGuiTexture2D::create("assets/textures/borrador.png");
+    this->zoomTexture       = engine::ImGuiTexture2D::create("assets/textures/buscar.png");
 
     this->generateCircleTexture();
 }
@@ -60,16 +47,16 @@ void Safator::onUpdate(engine::Timestep _dt) {
             this->oneStep = false;
         }
 
-        int _textureWidth = this->proceduralTexture->getWidth();
+        int _textureWidth = this->worldTexture->getWidth();
 
         /// ADDING NEW PARTICLES
         if(!ImGui::IsAnyWindowHovered() && !ImGui::IsAnyItemActive()) {
             auto _mousePos = Input::getMousePosition();
-            if(_mousePos >= 0 && _mousePos.x < this->proceduralTexture->getWidth() && _mousePos.y < this->proceduralTexture->getHeight()) {
+            if(_mousePos >= 0 && _mousePos.x < this->worldTexture->getWidth() && _mousePos.y < this->worldTexture->getHeight()) {
                 if (Input::isMousePressed(MouseCode::Button0)) {
-                    if(this->usingTool == DRAW)
+                    if(this->tool == DRAW)
                         this->generateWithBrush(_mousePos);
-                    else if (this->usingTool == ERASE)
+                    else if (this->tool == ERASE)
                         this->removeWithBrush(_mousePos);
                 }
             }
@@ -78,9 +65,9 @@ void Safator::onUpdate(engine::Timestep _dt) {
         this->rain();
 
         /// UPDATING PARTICLES
-        for(int _y = 0; _y < (int)this->proceduralTexture->getHeight(); _y++) {
+        for(int _y = 0; _y < (int)this->worldTexture->getHeight(); _y++) {
             if(this->random.randomi(0, 1) == 0) {
-                for (int _x = 0; _x < (int) this->proceduralTexture->getWidth(); _x++) {
+                for (int _x = 0; _x < (int) this->worldTexture->getWidth(); _x++) {
                     int _pos = _x + _textureWidth * _y;
                     ParticleType _type = this->particles[_pos].type;
                     if(_type == ParticleType::NONE_PARTICLE || this->isSolid(_type) || !this->particles[_pos].canUpdate) continue;
@@ -95,7 +82,7 @@ void Safator::onUpdate(engine::Timestep _dt) {
                     }
                 }
             } else {
-                for (int _x = (int)this->proceduralTexture->getWidth() - 1; _x > 0; _x--) {
+                for (int _x = (int)this->worldTexture->getWidth() - 1; _x > 0; _x--) {
                     int _pos = _x + _textureWidth * _y;
                     ParticleType _type = this->particles[_pos].type;
                     if(_type == ParticleType::NONE_PARTICLE || _type == ParticleType::STONE || !this->particles[_pos].canUpdate) continue;
@@ -112,11 +99,10 @@ void Safator::onUpdate(engine::Timestep _dt) {
             }
         }
 
-        this->proceduralTexture->updateTexture();
+        this->worldTexture->updateTexture();
     }
 }
 void Safator::onFixedUpdate(engine::Timestep _dt) {
-//    this->world.fixedUpdate(_dt);
 }
 void Safator::onRender(engine::Timestep _dt) {
     engine::Render2D::resetStats();
@@ -126,7 +112,7 @@ void Safator::onRender(engine::Timestep _dt) {
     engine::Render2D::beginRender(this->cameraController.getCamera());
 
         engine::Render2D::drawTextureRect({0.0f, 0.0f},
-                {(float)this->proceduralTexture->getWidth(), (float)this->proceduralTexture->getHeight()}, this->proceduralTexture);
+                                          {(float)this->worldTexture->getWidth(), (float)this->worldTexture->getHeight()}, this->worldTexture);
 
 
         engine::Render2D::drawTextureRect({Input::getMouseX() - this->app.getWindowSize().x / 2, Input::getMouseY() - this->app.getWindowSize().y / 2},
@@ -142,62 +128,64 @@ void Safator::onEnd() {
     delete this->particles;
 }
 
+
 void Safator::initSimulationWorld() {
-    this->particles = new Particle[this->proceduralTexture->getWidth() * this->proceduralTexture->getHeight()];
+    this->particles = new Particle[this->textureWidth * this->textureHeight];
 
     for(int _y = 0; _y < this->app.getWindowSize().y; _y++) {
         for (int _x = 0; _x < this->app.getWindowSize().x; _x++) {
             int _posInVector = this->calcVecPos(_x, _y);
-            this->particles[_posInVector] = Safator::noneParticle;
-            this->proceduralTexture->setPixel(_x, _y, Safator::noneParticle.color);
+            this->particles[_posInVector] = this->noneParticle;
+            this->worldTexture->setPixel(_x, _y, this->noneParticle.color);
         }
     }
 
-    Safator::sandParticle.type = SAND;
-    Safator::sandParticle.color = this->particleTypeToColor(SAND);
+    this->sandParticle.type     = SAND;
+    this->sandParticle.color    = this->particleTypeToColor(SAND);
 
-    Safator::waterParticle.type = WATER;
-    Safator::waterParticle.color = this->particleTypeToColor(WATER);
+    this->waterParticle.type    = WATER;
+    this->waterParticle.color   = this->particleTypeToColor(WATER);
 
-    Safator::stoneParticle.type = STONE;
-    Safator::stoneParticle.color = this->particleTypeToColor(STONE);
+    this->stoneParticle.type    = STONE;
+    this->stoneParticle.color   = this->particleTypeToColor(STONE);
 
-    Safator::acidParticle.type = ACID;
-    Safator::acidParticle.color = this->particleTypeToColor(ACID);
+    this->acidParticle.type     = ACID;
+    this->acidParticle.color    = this->particleTypeToColor(ACID);
 
-    Safator::dirtParticle.type = DIRT;
-    Safator::dirtParticle.color = this->particleTypeToColor(DIRT);
+    this->dirtParticle.type     = DIRT;
+    this->dirtParticle.color    = this->particleTypeToColor(DIRT);
 
-    this->proceduralTexture->updateTexture();
+    this->worldTexture->updateTexture();
 
 }
 void Safator::checkForShortcuts() {
     if(Input::isKeyJustPressed(KEY_1))
-        this->usingTool = DRAW;
+        this->tool = DRAW;
     else if(Input::isKeyJustPressed(KEY_2))
-        this->usingTool = ERASE;
+        this->tool = ERASE;
     else if(Input::isKeyJustPressed(KEY_3))
-        this->usingTool = ZOOM;
+        this->tool = ZOOM;
 }
 bool Safator::onMouseScrolled(MouseScrolledEvent& _e) {
-    if(this->usingTool == ZOOM) {
-        this->zoomLevel += _e.getScrollY();
-        this->zoomLevel = engine::functions::clamp(this->zoomLevel, 1.0f, MAX_ZOOM_LEVEL);
-    } else if(this->usingTool == DRAW || this->usingTool == ERASE) {
-        this->brushSize += (int)_e.getScrollY();
-        this->brushSize = (int)engine::functions::clamp((float)this->brushSize, 1.0f, MAX_BRUSH_THICKNESS);
+    if(this->tool == ZOOM) {
+        this->zoomInfo.level += _e.getScrollY();
+        this->zoomInfo.level = engine::functions::clamp(this->zoomInfo.level, 1.0f, MAX_ZOOM_LEVEL);
+    } else if(this->tool == DRAW || this->tool == ERASE) {
+        this->drawInfo.brushSize += (int)_e.getScrollY();
+        this->drawInfo.brushSize = (int)engine::functions::clamp((float)this->drawInfo.brushSize, 1.0f, MAX_BRUSH_THICKNESS);
 
-        int _lastSize = this->brushCircleWH;
+        int _lastSize = this->drawInfo.brushCircleWH;
 
-        this->brushCircleWH += (int)_e.getScrollY();
-        this->brushCircleWH = (int)engine::functions::clamp((float)this->brushCircleWH, 1.0f, MAX_BRUSH_THICKNESS);
+        this->drawInfo.brushCircleWH += (int)_e.getScrollY();
+        this->drawInfo.brushCircleWH = (int)engine::functions::clamp((float)this->drawInfo.brushCircleWH, 1.0f, MAX_BRUSH_THICKNESS);
 
-        if(_lastSize != this->brushCircleWH)
+        if(_lastSize != this->drawInfo.brushCircleWH)
             this->generateCircleTexture();
     }
 
     return true;
 }
+
 
 void Safator::updateSandParticle(int _x, int _y, int _posInVector, Timestep _dt) {
     Particle* _p = &this->particles[_posInVector];
@@ -211,25 +199,23 @@ void Safator::updateSandParticle(int _x, int _y, int _posInVector, Timestep _dt)
 
     Particle _tempA = *_p;
 
-    int _width = Safator::textureWidth;
-
     Particle _tempB;
     if(isEmpty(_vX, _vY)) {
-        _tempB = this->particles[_vX + _width * _vY];
+        _tempB = this->particles[_vX + this->textureWidth * _vY];
         _tempA.velocity.x = 0;
         this->writeParticle(_vX, _vY, _tempA);
         this->writeParticle(_x, _y, _tempB);
-        this->activateNeighbours(_x, _y, _width);
+        this->activateNeighbours(_x, _y);
 
     } else if(this->is(_vX, _vY, ParticleType::WATER)) {
-        int _vecForB = _vX + _width * _vY;
+        int _vecForB = _vX + this->textureWidth * _vY;
         _tempB = this->particles[_vecForB];
         _tempB.canUpdate = true;
         _tempA.velocity.x = 0;
         _tempA.velocity.y *= 0.5f;
         this->writeParticle(_vX, _vY, _vecForB, _tempA);
         this->writeParticle(_x, _y, _posInVector, _tempB);
-        this->activateNeighbours(_x, _y, _width);
+        this->activateNeighbours(_x, _y);
     } else {
 
         /// Down
@@ -238,12 +224,12 @@ void Safator::updateSandParticle(int _x, int _y, int _posInVector, Timestep _dt)
             if(_inWater) _p->velocity.y *= 0.5f;
             else _p->velocity.y += (this->weatherConditions[4] * _dt);
 
-            int _vecForB = _x + _width * (_y - 1);
+            int _vecForB = _x + this->textureWidth * (_y - 1);
             _tempB = this->particles[_vecForB];
 
             this->writeParticle(_x, _y - 1, _vecForB, _tempA);
             this->writeParticle(_x, _y, _posInVector, _tempB);
-            this->activateNeighbours(_x, _y, _width);
+            this->activateNeighbours(_x, _y);
 
         }
         /// Down-Left
@@ -252,13 +238,13 @@ void Safator::updateSandParticle(int _x, int _y, int _posInVector, Timestep _dt)
             else _p->velocity.y += (this->weatherConditions[4] * _dt);
                 _p->velocity.x = this->random.randomi( 0, 1 ) == 0 ? -1.f : 1.f;
 
-            int _vecForB = (_x - 1) + _width * (_y - 1);
-            _tempB = this->particles[(_x - 1) + _width * (_y - 1)];
+            int _vecForB = (_x - 1) + this->textureWidth * (_y - 1);
+            _tempB = this->particles[(_x - 1) + this->textureWidth * (_y - 1)];
 
             this->writeParticle(_x - 1, _y - 1, _vecForB, _tempA);
             this->writeParticle(_x, _y, _posInVector, _tempB);
-            this->activateNeighbours(_x, _y, _width);
-            
+            this->activateNeighbours(_x, _y);
+
         }
         /// Down-Right
         else if (this->isEmpty(_x + 1, _y - 1) || (_inWater = this->is(_x + 1, _y - 1, ParticleType::WATER))) {
@@ -266,13 +252,13 @@ void Safator::updateSandParticle(int _x, int _y, int _posInVector, Timestep _dt)
             else _p->velocity.y += (this->weatherConditions[4] * _dt);
                 _p->velocity.x = this->random.randomi( 0, 1 ) == 0 ? -1.f : 1.f;
 
-            int _vecForB = (_x + 1) + _width * (_y - 1);
+            int _vecForB = (_x + 1) + this->textureWidth * (_y - 1);
             _tempB = this->particles[_vecForB];
 
             this->writeParticle(_x + 1, _y - 1, _vecForB, _tempA);
             this->writeParticle(_x, _y, _posInVector, _tempB);
-            this->activateNeighbours(_x, _y, _width);
-            
+            this->activateNeighbours(_x, _y);
+
         } else {
             _p->canUpdate = false;
         }
@@ -289,8 +275,6 @@ void Safator::updateWaterParticle(int _x, int _y, int _posInVector, Timestep _dt
     if(!this->isEmpty(_x, _y - 1))
         _p->velocity.y *= 0.5f;
 
-    int _width = Safator::textureWidth;
-
     Particle _tempB;
     if(isEmpty(_vX, _vY)) {
         int _pos = this->calcVecPos(_vX, _vY);
@@ -299,8 +283,8 @@ void Safator::updateWaterParticle(int _x, int _y, int _posInVector, Timestep _dt
         this->writeParticle(_x, _y, _tempB);
 
         this->handleUnfittedDrops(_vX, _vY, _pos, _dt);
-        this->activateNeighbours(_x, _y, _width);
-        
+        this->activateNeighbours(_x, _y);
+
     } else {
 
         int _below = this->calcVecPos(_x, _y - 1);
@@ -318,7 +302,7 @@ void Safator::updateWaterParticle(int _x, int _y, int _posInVector, Timestep _dt
             this->writeParticle(_x, _y, _tempB);
 
             this->handleUnfittedDrops(_x, _y - 1, _below, _dt);
-            this->activateNeighbours(_x, _y, _width);
+            this->activateNeighbours(_x, _y);
         }
 
         /// Down-Right OR Down-Left
@@ -335,7 +319,7 @@ void Safator::updateWaterParticle(int _x, int _y, int _posInVector, Timestep _dt
             this->writeParticle(_x, _y, _tempB);
 
             this->handleUnfittedDrops(_x + (_sign * _neighbour), _y, _firstDownMovement, _dt);
-            this->activateNeighbours(_x, _y, _width);
+            this->activateNeighbours(_x, _y);
         }
 
         /// Down-Right OR Down-Left
@@ -352,7 +336,7 @@ void Safator::updateWaterParticle(int _x, int _y, int _posInVector, Timestep _dt
             this->writeParticle(_x, _y, _tempB);
 
             this->handleUnfittedDrops(_x - (_sign * _neighbour), _y, _secondDownMovement, _dt);
-            this->activateNeighbours(_x, _y, _width);
+            this->activateNeighbours(_x, _y);
         }
 
         /// Left OR Right
@@ -369,7 +353,7 @@ void Safator::updateWaterParticle(int _x, int _y, int _posInVector, Timestep _dt
             this->writeParticle(_x, _y, _tempB);
 
             this->handleUnfittedDrops(_x + (_sign * _neighbour), _y, _firstMovement, _dt);
-            this->activateNeighbours(_x, _y, _width);
+            this->activateNeighbours(_x, _y);
         }
 
         /// Left OR Right
@@ -386,8 +370,8 @@ void Safator::updateWaterParticle(int _x, int _y, int _posInVector, Timestep _dt
             this->writeParticle(_x, _y, _tempB);
 
             this->handleUnfittedDrops(_x - (_sign * _neighbour), _y, _secondMovement, _dt);
-            this->activateNeighbours(_x, _y, _width);
-            
+            this->activateNeighbours(_x, _y);
+
         } else {
             _p->canUpdate = false;
         }
@@ -411,7 +395,7 @@ void Safator::updateAcidParticle(int _x, int _y, int _posInVector, Timestep _dt)
     ReactionInfo _ri;
     bool _reactionReallyExists = false;
 
-    int _width = Safator::textureWidth;
+    int _width = this->textureWidth;
 
     Particle _tempB;
     if(isEmpty(_vX, _vY)) {
@@ -421,7 +405,7 @@ void Safator::updateAcidParticle(int _x, int _y, int _posInVector, Timestep _dt)
         this->writeParticle(_x, _y, _tempB);
 
         this->handleUnfittedDrops(_x, _y, _pos, _dt);
-        this->activateNeighbours(_x, _y, _width);
+        this->activateNeighbours(_x, _y);
     } else {
 
         int _below = this->calcVecPos(_x, _y - 1);
@@ -440,14 +424,14 @@ void Safator::updateAcidParticle(int _x, int _y, int _posInVector, Timestep _dt)
                 this->writeParticle(_x, _y, _tempB);
 
                 this->handleUnfittedDrops(_x, _y - 1, _below, _dt);
-                this->activateNeighbours(_x, _y, _width);
+                this->activateNeighbours(_x, _y);
 
                 return;
             } else {
                 _ri = this->reactions({_x, _y}, {_x, _y - 1}, _tempA, _tempB);
                 _reactionReallyExists |= _ri.reactionExists;
                 if (_ri.prob.happened) {
-                    this->activateNeighbours(_x, _y, _width);
+                    this->activateNeighbours(_x, _y);
                     return;
                 }
             }
@@ -469,14 +453,14 @@ void Safator::updateAcidParticle(int _x, int _y, int _posInVector, Timestep _dt)
                 this->writeParticle(_x, _y, _tempB);
 
                 this->handleUnfittedDrops(_x + (_sign * _neighbour), _y - _neighbour, _firstDownMovement, _dt);
-                this->activateNeighbours(_x, _y, _width);
+                this->activateNeighbours(_x, _y);
 
                 return;
             } else {
                 _ri = this->reactions({_x, _y}, {_x + _sign, _y - 1}, _tempA, _tempB);
                 _reactionReallyExists |= _ri.reactionExists;
                 if(_ri.prob.happened) {
-                    this->activateNeighbours(_x, _y, _width);
+                    this->activateNeighbours(_x, _y);
                     return;
                 }
             }
@@ -499,14 +483,14 @@ void Safator::updateAcidParticle(int _x, int _y, int _posInVector, Timestep _dt)
                 this->writeParticle(_x, _y, _tempB);
 
                 this->handleUnfittedDrops(_x - (_sign * _neighbour), _y - _neighbour, _secondDownMovement, _dt);
-                this->activateNeighbours(_x, _y, _width);
+                this->activateNeighbours(_x, _y);
 
                 return;
             } else {
                 _ri = this->reactions({_x, _y}, {_x - _sign, _y - 1}, _tempA, _tempB);
                 _reactionReallyExists |= _ri.reactionExists;
                 if(_ri.prob.happened) {
-                    this->activateNeighbours(_x, _y, _width);
+                    this->activateNeighbours(_x, _y);
                     return;
                 }
             }
@@ -529,14 +513,14 @@ void Safator::updateAcidParticle(int _x, int _y, int _posInVector, Timestep _dt)
                 this->writeParticle(_x, _y, _tempB);
 
                 this->handleUnfittedDrops(_x + (_sign * _neighbour), _y, _firstMovement, _dt);
-                this->activateNeighbours(_x, _y, _width);
+                this->activateNeighbours(_x, _y);
 
                 return;
             } else {
                 _ri = this->reactions({_x, _y}, {_x + _sign, _y}, _tempA, _tempB);
                 _reactionReallyExists |= _ri.reactionExists;
                 if(_ri.prob.happened) {
-                    this->activateNeighbours(_x, _y, _width);
+                    this->activateNeighbours(_x, _y);
                     return;
                 }
             }
@@ -559,14 +543,14 @@ void Safator::updateAcidParticle(int _x, int _y, int _posInVector, Timestep _dt)
                 this->writeParticle(_x, _y, _tempB);
 
                 this->handleUnfittedDrops(_x - (_sign * _neighbour), _y, _secondMovement, _dt);
-                this->activateNeighbours(_x, _y, _width);
+                this->activateNeighbours(_x, _y);
 
                 return;
             } else {
                 _ri = this->reactions({_x, _y}, {_x - _sign, _y}, _tempA, _tempB);
                 _reactionReallyExists |= _ri.reactionExists;
                 if(_ri.prob.happened) {
-                    this->activateNeighbours(_x, _y, _width);
+                    this->activateNeighbours(_x, _y);
                     return;
                 }
             }
@@ -588,16 +572,15 @@ void Safator::updateDirtParticle(int _x, int _y, int _posInVector, Timestep _dt)
 
     Particle _tempA = *_p;
 
-    int _width = Safator::textureWidth;
     int _sign = this->random.randomi(0, 1) == 0 ? -1 : 1;
 
     Particle _tempB;
     if(isEmpty(_vX, _vY)) {
-        _tempB = this->particles[_vX + _width * _vY];
+        _tempB = this->particles[_vX + this->textureWidth * _vY];
 //        _tempA.velocity.x = 0;
         this->writeParticle(_vX, _vY, _tempA);
         this->writeParticle(_x, _y, _tempB);
-        this->activateNeighbours(_x, _y, _width);
+        this->activateNeighbours(_x, _y);
 
     } else {
 
@@ -608,8 +591,8 @@ void Safator::updateDirtParticle(int _x, int _y, int _posInVector, Timestep _dt)
             if(_inWater) _p->velocity.y *= 0.5f;
             else _p->velocity.y += (this->weatherConditions[4] * _dt);
 
-            int _vecForB = (_x - _sign) + _width * (_y - 1);
-            _tempB = this->particles[(_x - _sign) + _width * (_y - 1)];
+            int _vecForB = (_x - _sign) + this->textureWidth * (_y - 1);
+            _tempB = this->particles[(_x - _sign) + this->textureWidth * (_y - 1)];
 
             int _neighbour = 1;
             int _pos = this->calcVecPos(_x - _sign, _y - 1);
@@ -622,7 +605,7 @@ void Safator::updateDirtParticle(int _x, int _y, int _posInVector, Timestep _dt)
             this->writeParticle(_x - (_sign * _neighbour), _y - 1, *_p);
             this->writeParticle(_x, _y, _tempB);
 
-            this->activateNeighbours(_x, _y, _width);
+            this->activateNeighbours(_x, _y);
 
         }
 
@@ -630,8 +613,8 @@ void Safator::updateDirtParticle(int _x, int _y, int _posInVector, Timestep _dt)
             if(_inWater) _p->velocity.y *= 0.5f;
             else _p->velocity.y += (this->weatherConditions[4] * _dt);
 
-            int _vecForB = (_x + _sign) + _width * (_y - 1);
-            _tempB = this->particles[(_x + _sign) + _width * (_y - 1)];
+            int _vecForB = (_x + _sign) + this->textureWidth * (_y - 1);
+            _tempB = this->particles[(_x + _sign) + this->textureWidth * (_y - 1)];
 
             int _neighbour = 1;
             int _pos = this->calcVecPos(_x + _sign, _y - 1);
@@ -644,7 +627,7 @@ void Safator::updateDirtParticle(int _x, int _y, int _posInVector, Timestep _dt)
             this->writeParticle(_x + (_sign * _neighbour), _y - 1, *_p);
             this->writeParticle(_x, _y, _tempB);
 
-            this->activateNeighbours(_x, _y, _width);
+            this->activateNeighbours(_x, _y);
         }
             /// Down-Right
         else {
@@ -665,7 +648,7 @@ void Safator::handleUnfittedDrops(int _x, int _y, int _vecPos, float _dt) {
         }
 
         if(this->particles[_vecPos].lifeTimer >= this->particles[_vecPos].lifeTime) {
-            this->writeParticle(_x, _y, _vecPos, Safator::noneParticle);
+            this->writeParticle(_x, _y, _vecPos, this->noneParticle);
             this->drawnPixels--;
         }
     } else if (this->whatToDoWithUnfittingDrops == 1){
@@ -673,6 +656,36 @@ void Safator::handleUnfittedDrops(int _x, int _y, int _vecPos, float _dt) {
     }
 }
 
+
+const char* Safator::particleTypeToName(const Safator::ParticleType& _type) {
+    const char* _name;
+    switch(_type) {
+        case NONE_PARTICLE  : _name = "None"; return _name;
+        case SAND           : _name = "Sand"; return _name;
+        case GUNPOWDER      : _name = "Gunpowder"; return _name;
+        case SALT           : _name = "Salt"; return _name;
+        case WATER          : _name = "Water"; return _name;
+        case ACID           : _name = "Acid"; return _name;
+        case LAVA           : _name = "Lava"; return _name;
+        case POISON_L       : _name = "Liquid Poison"; return _name;
+        case STONE          : _name = "Stone"; return _name;
+        case WOOD           : _name = "Wood"; return _name;
+        case ICE            : _name = "Ice"; return _name;
+        case SNOW           : _name = "Snow"; return _name;
+        case STEEL          : _name = "Steel"; return _name;
+        case WAX            : _name = "Wax"; return _name;
+        case DIRT           : _name = "Dirt"; return _name;
+        case STEAM          : _name = "Steam"; return _name;
+        case SMOKE          : _name = "Smoke"; return _name;
+        case GAS            : _name = "Gas"; return _name;
+        case POISON_G       : _name = "Gas Poison"; return _name;
+        case CLOUD          : _name = "Cloud"; return _name;
+        case FIRE           : _name = "Fire"; return _name;
+        case PLANT          : _name = "Plant"; return _name;
+        case FUSE           : _name = "Fuse"; return _name;
+    }
+    return "Not known particle";
+}
 Color Safator::particleTypeToColor(const Safator::ParticleType& _particle) {
     switch (_particle) {
         case SAND           : return this->PARTICLE_COLORS[this->random.randomi(0, 4)];
@@ -689,18 +702,18 @@ Color Safator::particleTypeToColor(const Safator::ParticleType& _particle) {
 }
 void Safator::generateWithBrush(const Vec2f& _mousePos) {
 
-    if(this->brushSize == 1) {
+    if(this->drawInfo.brushSize == 1) {
         this->generateParticles(_mousePos);
     } else {
         if(!this->isSolid(this->selectedParticle)) {
             std::vector<Vec2i> _spawnedPositions;
-            for(int _i = 0; _i < this->brushSize; _i++) {
-                Vec2i _randPos = this->randomPointInsideCircle({(int)_mousePos.x, (int)_mousePos.y}, this->brushCircleWH);
+            for(int _i = 0; _i < this->drawInfo.brushSize; _i++) {
+                Vec2i _randPos = this->randomPointInsideCircle({(int)_mousePos.x, (int)_mousePos.y}, this->drawInfo.brushCircleWH);
 
                 while(std::find(_spawnedPositions.begin(), _spawnedPositions.end(), _randPos) != _spawnedPositions.end() ||
-                      (_randPos.x  + _mousePos.x < 0 || _randPos.x  + _mousePos.x >= (float)this->proceduralTexture->getWidth() - 1) ||
-                      (_randPos.y + _mousePos.y < 0 || _randPos.y + _mousePos.y >= (float)this->proceduralTexture->getHeight() - 1)) {
-                    _randPos = this->randomPointInsideCircle({(int)_mousePos.x, (int)_mousePos.y}, this->brushCircleWH);
+                      (_randPos.x  + _mousePos.x < 0 || _randPos.x  + _mousePos.x >= (float)this->worldTexture->getWidth() - 1) ||
+                      (_randPos.y + _mousePos.y < 0 || _randPos.y + _mousePos.y >= (float)this->worldTexture->getHeight() - 1)) {
+                    _randPos = this->randomPointInsideCircle({(int)_mousePos.x, (int)_mousePos.y}, this->drawInfo.brushCircleWH);
                 }
 
                 _spawnedPositions.emplace_back(_randPos);
@@ -714,7 +727,7 @@ void Safator::generateWithBrush(const Vec2f& _mousePos) {
                         float dy = (float)_y - _mousePos.y;
                         float distanceSquared = dx * dx + dy * dy;
 
-                        if (distanceSquared < (float)(this->brushCircleWH * this->brushCircleWH))
+                        if (distanceSquared < (float)(this->drawInfo.brushCircleWH * this->drawInfo.brushCircleWH))
                             this->generateParticles({(float)_x, (float)_y});
                     }
                 }
@@ -730,7 +743,7 @@ void Safator::removeWithBrush(const Vec2f& _mousePos) {
                 float dy = (float)_y - _mousePos.y;
                 float distanceSquared = dx * dx + dy * dy;
 
-                if (distanceSquared < (float)(this->brushCircleWH * this->brushCircleWH) && this->particles[this->calcVecPos(_x, _y)].type != NONE_PARTICLE)
+                if (distanceSquared < (float)(this->drawInfo.brushCircleWH * this->drawInfo.brushCircleWH) && this->particles[this->calcVecPos(_x, _y)].type != NONE_PARTICLE)
                     this->removeParticles({(float)_x, (float)_y});
             }
         }
@@ -744,26 +757,26 @@ void Safator::zoomParticles(const Vec2f& _pos) {
 
     float _mouseExtra[2] = {0.f, 0.f};
 
-    float region_x = _pos.x - this->zoomImageWidth * 0.5f;
+    float region_x = _pos.x - this->zoomInfo.imageWidth * 0.5f;
     if (region_x < 0.0f) {
         region_x = 0.0f;
-        _mouseExtra[0] = (this->zoomImageWidth * 0.5f - ((_pos.x >= 0.f) ? _pos.x : 0.0f)) * this->zoomLevel;
+        _mouseExtra[0] = (this->zoomInfo.imageWidth * 0.5f - ((_pos.x >= 0.f) ? _pos.x : 0.0f)) * this->zoomInfo.level;
     }
-    else if (region_x > (float)textureWidth - this->zoomImageWidth) {
-        region_x = (float)textureWidth - this->zoomImageWidth;
-        _mouseExtra[0] = -(this->zoomImageWidth * 0.5f - ((_pos.x < (float)textureWidth) ?
-                                                          (float)textureWidth - _pos.x : 1.0f)) * this->zoomLevel;
+    else if (region_x > (float)textureWidth - this->zoomInfo.imageWidth) {
+        region_x = (float)textureWidth - this->zoomInfo.imageWidth;
+        _mouseExtra[0] = -(this->zoomInfo.imageWidth * 0.5f - ((_pos.x < (float)textureWidth) ?
+                                                          (float)textureWidth - _pos.x : 1.0f)) * this->zoomInfo.level;
     }
 
-    float region_y = _pos.y + this->zoomImageHeight * 0.5f;
-    if (region_y < this->zoomImageHeight) {
-        region_y = this->zoomImageHeight;
-        _mouseExtra[1] = (this->zoomImageHeight * 0.5f - ((_pos.y >= 0.f) ? _pos.y : 0.0f)) * this->zoomLevel;
+    float region_y = _pos.y + this->zoomInfo.imageHeight * 0.5f;
+    if (region_y < this->zoomInfo.imageHeight) {
+        region_y = this->zoomInfo.imageHeight;
+        _mouseExtra[1] = (this->zoomInfo.imageHeight * 0.5f - ((_pos.y >= 0.f) ? _pos.y : 0.0f)) * this->zoomInfo.level;
     }
     else if (region_y > (float)textureHeight) {
         region_y = (float) textureHeight;
-        _mouseExtra[1] = -(this->zoomImageHeight * 0.5f - ((_pos.y < (float)textureHeight) ?
-                                                           (float)textureHeight - _pos.y : 1.0f)) * this->zoomLevel;
+        _mouseExtra[1] = -(this->zoomInfo.imageHeight * 0.5f - ((_pos.y < (float)textureHeight) ?
+                                                           (float)textureHeight - _pos.y : 1.0f)) * this->zoomInfo.level;
     }
 
     ImGui::Text("X: %d, Y: %d", (int)_pos.x, (int)_pos.y);
@@ -789,9 +802,9 @@ void Safator::zoomParticles(const Vec2f& _pos) {
     _textHeight += ImGui::GetItemRectSize().y;
 
     ImVec2 uv0 = ImVec2((region_x) / (float)textureWidth, (region_y) / (float)textureHeight);
-    ImVec2 uv1 = ImVec2((region_x + this->zoomImageWidth) / (float)textureWidth, (region_y - this->zoomImageHeight) / (float)textureHeight);
-    ImGui::Image((void*)(intptr_t)this->proceduralTexture->getRendererID(),
-                 ImVec2(this->zoomImageWidth * this->zoomLevel, this->zoomImageHeight * this->zoomLevel), uv0, uv1,
+    ImVec2 uv1 = ImVec2((region_x + this->zoomInfo.imageWidth) / (float)textureWidth, (region_y - this->zoomInfo.imageHeight) / (float)textureHeight);
+    ImGui::Image((void*)(intptr_t)this->worldTexture->getRendererID(),
+                 ImVec2(this->zoomInfo.imageWidth * this->zoomInfo.level, this->zoomInfo.imageHeight * this->zoomInfo.level), uv0, uv1,
                  ImVec4(1.0f, 1.0f, 1.0f, 1.0f),
                  ImVec4(1.0f, 1.0f, 1.0f, 0.5f));
 
@@ -807,43 +820,44 @@ void Safator::zoomParticles(const Vec2f& _pos) {
     ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(x + (_imageWidth / 2.f) - _mouseExtra[0],
                                                      y - _yForDot + (_imageHeight / 2.f) + _mouseExtra[1]),
 
-                                              ImVec2(x + this->zoomLevel + (_imageWidth / 2.f) - _mouseExtra[0],
-                                                     y - this->zoomLevel - _yForDot + (_imageHeight / 2.f) + _mouseExtra[1]),
+                                              ImVec2(x + this->zoomInfo.level + (_imageWidth / 2.f) - _mouseExtra[0],
+                                                     y - this->zoomInfo.level - _yForDot + (_imageHeight / 2.f) + _mouseExtra[1]),
 
-                                              ImColor(ImVec4((float)this->zoomDotColor.r / 255.f, (float)this->zoomDotColor.g / 255.f, (float)this->zoomDotColor.b / 255.f, (float)this->zoomDotColor.a / 255.f)));
+                                              ImColor(ImVec4((float)this->zoomInfo.dotColor.r / 255.f, (float)this->zoomInfo.dotColor.g / 255.f, (float)this->zoomInfo.dotColor.b / 255.f, (float)this->zoomInfo.dotColor.a / 255.f)));
 
     ImGui::EndTooltip();
 }
+
 
 void Safator::generateParticles(const Vec2f& _mousePos) {
     int _posInVector = this->calcVecPos((int)_mousePos.x, (int)_mousePos.y);
     if(this->particles[_posInVector].type == NONE_PARTICLE) {
         switch(this->selectedParticle) {
             case SAND   : {
-                this->particles[_posInVector] = Safator::sandParticle;
+                this->particles[_posInVector] = this->sandParticle;
                 this->particles[_posInVector].color = this->particleTypeToColor(SAND);
                 break;
             }
             case WATER  : {
-                this->particles[_posInVector] = Safator::waterParticle;
+                this->particles[_posInVector] = this->waterParticle;
                 this->particles[_posInVector].color = this->particleTypeToColor(WATER);
                 this->particles[_posInVector].lifeTime = this->random.randomf(MIN_WATER_LIFE, MAX_WATER_LIFE);
                 break;
             }
             case ACID   : {
-                this->particles[_posInVector] = Safator::acidParticle;
+                this->particles[_posInVector] = this->acidParticle;
                 this->particles[_posInVector].color = this->particleTypeToColor(ACID);
                 this->particles[_posInVector].lifeTime = this->random.randomf(MIN_WATER_LIFE, MAX_WATER_LIFE);
                 break;
             }
             case STONE   : {
-                this->particles[_posInVector] = Safator::stoneParticle;
+                this->particles[_posInVector] = this->stoneParticle;
                 this->particles[_posInVector].color = this->particleTypeToColor(STONE);
                 break;
             }
 
             case DIRT   : {
-                this->particles[_posInVector] = Safator::dirtParticle;
+                this->particles[_posInVector] = this->dirtParticle;
                 this->particles[_posInVector].color = this->particleTypeToColor(DIRT);
                 break;
             }
@@ -856,14 +870,15 @@ void Safator::generateParticles(const Vec2f& _mousePos) {
     }
 }
 void Safator::removeParticles(const Vec2f& _mousePos) {
-    this->writeParticle((int)_mousePos.x, (int)_mousePos.y, Safator::noneParticle);
-    this->activateNeighbours((int)_mousePos.x, (int)_mousePos.y, Safator::textureWidth);
+    this->writeParticle((int)_mousePos.x, (int)_mousePos.y, this->noneParticle);
+    this->activateNeighbours((int)_mousePos.x, (int)_mousePos.y);
     this->drawnPixels--;
 }
 
+
 bool Safator::isInBounds(int _x, int _y) {
-    return _x >= 0 && _x <= (int)this->proceduralTexture->getWidth() - 1 &&
-           _y >= 0 && _y <= (int)this->proceduralTexture->getHeight() - 1;
+    return _x >= 0 && _x <= (int)this->worldTexture->getWidth() - 1 &&
+           _y >= 0 && _y <= (int)this->worldTexture->getHeight() - 1;
 }
 bool Safator::isEmpty(int _x, int _y) {
     return this->isInBounds(_x, _y) && this->particles[this->calcVecPos(_x, _y)].type == NONE_PARTICLE;
@@ -877,17 +892,21 @@ bool Safator::isSurrounded(int _x, int _y) {
             this->particles[this->calcVecPos(_x, _y + 1)].type != NONE_PARTICLE &&
             this->particles[this->calcVecPos(_x, _y - 1)].type != NONE_PARTICLE;
 }
+bool Safator::isSolid(const ParticleType &_type) {
+    return _type == STONE;
+}
+
 
 int Safator::calcVecPos(int _x, int _y) {
-    return _x + ((int)this->proceduralTexture->getWidth() * _y);
+    return _x + ((int)this->worldTexture->getWidth() * _y);
 }
 void Safator::writeParticle(int _x, int _y, const Safator::Particle& _particle) {
     this->particles[this->calcVecPos(_x, _y)] = _particle;
-    this->proceduralTexture->setPixel(_x, _y, _particle.color);
+    this->worldTexture->setPixel(_x, _y, _particle.color);
 }
 void Safator::writeParticle(int _x, int _y, int _vecPos, const Safator::Particle& _particle) {
     this->particles[_vecPos] = _particle;
-    this->proceduralTexture->setPixel(_x, _y, _particle.color);
+    this->worldTexture->setPixel(_x, _y, _particle.color);
 }
 
 
@@ -895,7 +914,7 @@ void Safator::imGuiAppWindow(engine::Timestep _dt) {
 //    static bool _opened = true;
 //    ImGui::ShowDemoWindow(&_opened);
 
-    if (this->usingTool == ZOOM) {
+    if (this->tool == ZOOM) {
         this->zoomParticles(Input::getMousePosition());
     }
 
@@ -979,68 +998,68 @@ void Safator::imGuiControllerWindow(engine::Timestep _dt) {
     }
 }
 void Safator::imGuiDrawingWindow(engine::Timestep _dt) {
-    if(this->usingTool == DRAW) {
+    if(this->tool == DRAW) {
         ImGui::PushStyleColor(ImGuiCol_Button, {(float) Color::Green.r, (float) Color::Green.g, (float) Color::Green.b, (float) Color::Green.a});
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, {(float) Color::Green.r, (float) Color::Green.g, (float) Color::Green.b, (float) Color::Green.a});
         if(ImGui::ImageButton((void*)(intptr_t)this->drawTexture->getTexture(), ImVec2((float)this->drawTexture->getWidth(), (float)this->drawTexture->getHeight()))) {
-            this->usingTool = DRAW;
+            this->tool = DRAW;
         }
         ImGui::PopStyleColor(2);
     } else {
         if(ImGui::ImageButton((void*)(intptr_t)this->drawTexture->getTexture(), ImVec2((float)this->drawTexture->getWidth(), (float)this->drawTexture->getHeight()))) {
-        this->usingTool = DRAW;
+        this->tool = DRAW;
     }
     }
     ImGui::SameLine();
 
-    if(this->usingTool == ERASE) {
+    if(this->tool == ERASE) {
         ImGui::PushStyleColor(ImGuiCol_Button, {(float) Color::Green.r, (float) Color::Green.g, (float) Color::Green.b, (float) Color::Green.a});
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, {(float) Color::Green.r, (float) Color::Green.g, (float) Color::Green.b, (float) Color::Green.a});
         if (ImGui::ImageButton((void*) (intptr_t) this->eraseTexture->getTexture(),ImVec2((float) this->eraseTexture->getWidth(),(float) this->eraseTexture->getHeight()))) {
-            this->usingTool = ERASE;
+            this->tool = ERASE;
         }
         ImGui::PopStyleColor(2);
     } else {
         if (ImGui::ImageButton((void*) (intptr_t) this->eraseTexture->getTexture(),ImVec2((float) this->eraseTexture->getWidth(),(float) this->eraseTexture->getHeight()))) {
-        this->usingTool = ERASE;
+        this->tool = ERASE;
     }
     }
     ImGui::SameLine();
 
-    if(this->usingTool == ZOOM) {
+    if(this->tool == ZOOM) {
         ImGui::PushStyleColor(ImGuiCol_Button, {(float) Color::Green.r, (float) Color::Green.g, (float) Color::Green.b, (float) Color::Green.a});
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, {(float) Color::Green.r, (float) Color::Green.g, (float) Color::Green.b, (float) Color::Green.a});
         if (ImGui::ImageButton((void*) (intptr_t) this->zoomTexture->getTexture(),ImVec2((float) this->zoomTexture->getWidth(),(float) this->zoomTexture->getHeight()))) {
-            this->usingTool = ZOOM;
+            this->tool = ZOOM;
         }
         ImGui::PopStyleColor(2);
     } else {
         if (ImGui::ImageButton((void*) (intptr_t) this->zoomTexture->getTexture(),ImVec2((float) this->zoomTexture->getWidth(),(float) this->zoomTexture->getHeight()))) {
-            this->usingTool = ZOOM;
+            this->tool = ZOOM;
         }
     }
     ImGui::Separator();
 
     ImGui::Text("Brush thickness");
     ImGui::PushID(0);
-        ImGui::SliderInt("##slider", &this->brushSize, 1, MAX_BRUSH_THICKNESS);
+        ImGui::SliderInt("##slider", &this->drawInfo.brushSize, 1, MAX_BRUSH_THICKNESS);
     ImGui::PopID();
 
     ImGui::Separator();
 
     ImGui::Text("Zoom level");
     ImGui::PushID(1);
-        ImGui::SliderFloat("##slider", &this->zoomLevel, 1.f, MAX_ZOOM_LEVEL, "%.2f");
+        ImGui::SliderFloat("##slider", &this->zoomInfo.level, 1.f, MAX_ZOOM_LEVEL, "%.2f");
     ImGui::PopID();
 
     ImGui::Text("Zoomed image width");
     ImGui::PushID(2);
-    ImGui::SliderFloat("##slider", &this->zoomImageWidth, 16.f, 256.f, "%.2f");
+    ImGui::SliderFloat("##slider", &this->zoomInfo.imageWidth, 16.f, 256.f, "%.2f");
     ImGui::PopID();
 
     ImGui::Text("Zoomed image height");
     ImGui::PushID(3);
-    ImGui::SliderFloat("##slider", &this->zoomImageHeight, 16.f, 256.f, "%.2f");
+    ImGui::SliderFloat("##slider", &this->zoomInfo.imageHeight, 16.f, 256.f, "%.2f");
     ImGui::PopID();
 
     ImGui::Separator();
@@ -1371,10 +1390,10 @@ void Safator::imGuiSettings(engine::Timestep _dt) {
     static float _zoomDot[4];
     if(ImGui::CollapsingHeader("Zoom Dot Color")) {
         if(ImGui::ColorPicker4("##colorPiecker4", _zoomDot, ImGuiColorEditFlags_DisplayRGB)) {
-            this->zoomDotColor.r = (unsigned char)(255 * _zoomDot[0]);
-            this->zoomDotColor.g = (unsigned char)(255 * _zoomDot[1]);
-            this->zoomDotColor.b = (unsigned char)(255 * _zoomDot[2]);
-            this->zoomDotColor.a = (unsigned char)(255);
+            this->zoomInfo.dotColor.r = (unsigned char)(255 * _zoomDot[0]);
+            this->zoomInfo.dotColor.g = (unsigned char)(255 * _zoomDot[1]);
+            this->zoomInfo.dotColor.b = (unsigned char)(255 * _zoomDot[2]);
+            this->zoomInfo.dotColor.a = (unsigned char)(255);
         }
     }
     ImGui::Separator();
@@ -1387,9 +1406,8 @@ void Safator::imGuiSettings(engine::Timestep _dt) {
 
     ImGui::Separator();
 }
-
 void Safator::imGuiWorldSizePopUp(engine::Timestep _dt) {
-    int _width = Safator::textureWidth, _height = Safator::textureHeight;
+    int _width = this->textureWidth, _height = this->textureHeight;
     auto _mainWindowPos = this->app.getPosition();
 
     static int _futurePopWidth = 0, _futurePopHeight = 0;
@@ -1412,8 +1430,8 @@ void Safator::imGuiWorldSizePopUp(engine::Timestep _dt) {
     }
 }
 
-float Safator::probValues(const Safator::ParticleType& _firstParticle,
-                          const Safator::ParticleType& _secondParticle) {
+
+float Safator::probValues(const Safator::ParticleType& _firstParticle, const Safator::ParticleType& _secondParticle) {
     if(_firstParticle == ACID) {
         if(_secondParticle == STONE)                 /// REMOVES STONE
             return 1.f / 25.f;
@@ -1423,8 +1441,7 @@ float Safator::probValues(const Safator::ParticleType& _firstParticle,
 
     return 0.0f;
 }
-Safator::ReactionInfo Safator::reactions(const Vec2i& _posA, const Vec2i& _posB, Safator::Particle& _particleA,
-                                         const Safator::Particle& _particleB) {
+Safator::ReactionInfo Safator::reactions(const Vec2i& _posA, const Vec2i& _posB, Safator::Particle& _particleA, const Safator::Particle& _particleB) {
 
     ReactionInfo _ri;
 
@@ -1432,10 +1449,10 @@ Safator::ReactionInfo Safator::reactions(const Vec2i& _posA, const Vec2i& _posB,
         if(_particleB.type == STONE) {
             _ri.reactionExists = true;
             if((_ri.prob = this->random.probability(Safator::probValues(_particleA.type, _particleB.type))).happened) {
-                this->writeParticle(_posB.x, _posB.y, Safator::noneParticle);
+                this->writeParticle(_posB.x, _posB.y, this->noneParticle);
                 this->drawnPixels--;
                 if(this->random.randomf(0.0f, 1.0f) >= 0.85f) {
-                    this->writeParticle(_posA.x, _posA.y, Safator::noneParticle);
+                    this->writeParticle(_posA.x, _posA.y, this->noneParticle);
                     this->drawnPixels--;
                 }
             }
@@ -1444,61 +1461,32 @@ Safator::ReactionInfo Safator::reactions(const Vec2i& _posA, const Vec2i& _posB,
 
     return _ri;
 }
-void Safator::activateNeighbours(int _x, int _y, int _width) {
+void Safator::activateNeighbours(int _x, int _y) {
     if(this->isInBounds(_x, _y - 1))
-        this->particles[_x + _width * (_y - 1)].canUpdate = true;
+        this->particles[_x + this->textureWidth * (_y - 1)].canUpdate = true;
 
     if(this->isInBounds(_x, _y + 1))
-        this->particles[_x + _width * (_y + 1)].canUpdate = true;
+        this->particles[_x + this->textureWidth * (_y + 1)].canUpdate = true;
 
     if(this->isInBounds(_x - 1, _y))
-        this->particles[(_x - 1) + _width * _y].canUpdate = true;
+        this->particles[(_x - 1) + this->textureWidth * _y].canUpdate = true;
 
     if(this->isInBounds(_x + 1, _y))
-        this->particles[(_x + 1) + _width * _y].canUpdate = true;
+        this->particles[(_x + 1) + this->textureWidth * _y].canUpdate = true;
 
     if(this->isInBounds(_x - 1, _y + 1))
-        this->particles[(_x - 1) + _width * (_y + 1)].canUpdate = true;
+        this->particles[(_x - 1) + this->textureWidth * (_y + 1)].canUpdate = true;
 
     if(this->isInBounds(_x + 1, _y + 1))
-        this->particles[(_x + 1) + _width * (_y + 1)].canUpdate = true;
+        this->particles[(_x + 1) + this->textureWidth * (_y + 1)].canUpdate = true;
 
     if(this->isInBounds(_x - 1, _y - 1))
-        this->particles[(_x - 1) + _width * (_y - 1)].canUpdate = true;
+        this->particles[(_x - 1) + this->textureWidth * (_y - 1)].canUpdate = true;
 
     if(this->isInBounds(_x + 1, _y - 1))
-        this->particles[(_x + 1) + _width * (_y - 1)].canUpdate = true;
+        this->particles[(_x + 1) + this->textureWidth * (_y - 1)].canUpdate = true;
 }
 
-const char* Safator::particleTypeToName(const Safator::ParticleType& _type) {
-    const char* _name;
-    switch(_type) {
-        case NONE_PARTICLE  : _name = "None"; return _name;
-        case SAND           : _name = "Sand"; return _name;
-        case GUNPOWDER      : _name = "Gunpowder"; return _name;
-        case SALT           : _name = "Salt"; return _name;
-        case WATER          : _name = "Water"; return _name;
-        case ACID           : _name = "Acid"; return _name;
-        case LAVA           : _name = "Lava"; return _name;
-        case POISON_L       : _name = "Liquid Poison"; return _name;
-        case STONE          : _name = "Stone"; return _name;
-        case WOOD           : _name = "Wood"; return _name;
-        case ICE            : _name = "Ice"; return _name;
-        case SNOW           : _name = "Snow"; return _name;
-        case STEEL          : _name = "Steel"; return _name;
-        case WAX            : _name = "Wax"; return _name;
-        case DIRT           : _name = "Dirt"; return _name;
-        case STEAM          : _name = "Steam"; return _name;
-        case SMOKE          : _name = "Smoke"; return _name;
-        case GAS            : _name = "Gas"; return _name;
-        case POISON_G       : _name = "Gas Poison"; return _name;
-        case CLOUD          : _name = "Cloud"; return _name;
-        case FIRE           : _name = "Fire"; return _name;
-        case PLANT          : _name = "Plant"; return _name;
-        case FUSE           : _name = "Fuse"; return _name;
-    }
-    return "Not known particle";
-}
 
 void Safator::wind() {
 
@@ -1507,14 +1495,14 @@ void Safator::rain() {
     if(this->weatherConditions[2] > 0) {
         const int SCREEN_DIVISIONS = 10;
         int _init = 0;
-        int _limit = Safator::textureWidth / SCREEN_DIVISIONS;
+        int _limit = this->textureWidth / SCREEN_DIVISIONS;
         for(int _i = 0; _i < SCREEN_DIVISIONS; _i++) {
             for(int _j = _init; _j < _limit; _j++) {
-                if(this->random.probability(0.00025f * this->weatherConditions[2]).happened && this->isEmpty(_j, Safator::textureHeight - 1)) {
-                    int _posInVector = this->calcVecPos(_j, Safator::textureHeight - 1);
+                if(this->random.probability(0.00025f * this->weatherConditions[2]).happened && this->isEmpty(_j, this->textureHeight - 1)) {
+                    int _posInVector = this->calcVecPos(_j, this->textureHeight - 1);
                     switch(this->rainType) {
                         case WATER : {
-                            this->particles[_posInVector] = Safator::waterParticle;
+                            this->particles[_posInVector] = this->waterParticle;
                             this->particles[_posInVector].color = this->particleTypeToColor(WATER);
                             this->particles[_posInVector].lifeTime = this->random.randomf(MIN_WATER_LIFE, MAX_WATER_LIFE);
                             this->particles[_posInVector].velocity.y = 3.f;
@@ -1522,7 +1510,7 @@ void Safator::rain() {
                         }
 
                         case ACID : {
-                            this->particles[_posInVector] = Safator::acidParticle;
+                            this->particles[_posInVector] = this->acidParticle;
                             this->particles[_posInVector].color = this->particleTypeToColor(ACID);
                             this->particles[_posInVector].lifeTime = this->random.randomf(MIN_WATER_LIFE, MAX_WATER_LIFE);
                             this->particles[_posInVector].velocity.y = 3.f;
@@ -1541,8 +1529,8 @@ void Safator::rain() {
                 }
             }
 
-            _init += Safator::textureWidth / SCREEN_DIVISIONS;
-            _limit += Safator::textureWidth / SCREEN_DIVISIONS;
+            _init += this->textureWidth / SCREEN_DIVISIONS;
+            _limit += this->textureWidth / SCREEN_DIVISIONS;
         }
     }
 }
@@ -1550,16 +1538,13 @@ void Safator::snow() {
 
 }
 
-bool Safator::isSolid(const ParticleType &_type) {
-    return _type == STONE;
-}
 
 void Safator::generateCircleTexture() {
     for(int _i = 0; _i < (int)this->circleTexture->getWidth(); _i++)
         for(int _j = 0; _j < (int)this->circleTexture->getHeight(); _j++)
             this->circleTexture->setPixel(_i, _j, Color::Transparent);
 
-    this->circleMidPoints({(int)(this->circleTexture->getWidth() / 2), (int)(this->circleTexture->getHeight() / 2)}, this->brushCircleWH, Color::White);
+    this->circleMidPoints({(int)(this->circleTexture->getWidth() / 2), (int)(this->circleTexture->getHeight() / 2)}, this->drawInfo.brushCircleWH, Color::White);
     this->circleTexture->updateTexture();
 }
 void Safator::circleMidPoints(const Vec2i& _center, int _radius, const Color& _color) {
