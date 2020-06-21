@@ -577,17 +577,28 @@ void Safator::updateDirtParticle(int _x, int _y, int _posInVector, Timestep _dt)
     Particle _tempB;
     if(isEmpty(_vX, _vY)) {
         _tempB = this->particles[_vX + this->textureWidth * _vY];
-//        _tempA.velocity.x = 0;
         this->writeParticle(_vX, _vY, _tempA);
         this->writeParticle(_x, _y, _tempB);
         this->activateNeighbours(_x, _y);
-
     } else {
 
         /// Down
         bool _inWater = false;
-            /// Down-Left
-        if (this->isEmpty(_x - _sign, _y - 1)) {
+        if(this->isEmpty(_x, _y - 1)) {
+            if(_inWater) _p->velocity.y *= 0.5f;
+            else _p->velocity.y += (this->weatherConditions[4] * _dt);
+
+            int _vecForB = _x + this->textureWidth * (_y - 1);
+            _tempB = this->particles[_vecForB];
+
+            this->writeParticle(_x, _y - 1, _vecForB, _tempA);
+            this->writeParticle(_x, _y, _posInVector, _tempB);
+            this->activateNeighbours(_x, _y);
+
+        }
+
+            /// Down-Left or Down-right
+        else if (this->isEmpty(_x - _sign, _y - 1)) {
             if(_inWater) _p->velocity.y *= 0.5f;
             else _p->velocity.y += (this->weatherConditions[4] * _dt);
 
@@ -608,28 +619,6 @@ void Safator::updateDirtParticle(int _x, int _y, int _posInVector, Timestep _dt)
             this->activateNeighbours(_x, _y);
 
         }
-
-        else if (this->isEmpty(_x + _sign, _y - 1)) {
-            if(_inWater) _p->velocity.y *= 0.5f;
-            else _p->velocity.y += (this->weatherConditions[4] * _dt);
-
-            int _vecForB = (_x + _sign) + this->textureWidth * (_y - 1);
-            _tempB = this->particles[(_x + _sign) + this->textureWidth * (_y - 1)];
-
-            int _neighbour = 1;
-            int _pos = this->calcVecPos(_x + _sign, _y - 1);
-            while(this->isEmpty(_x + (_sign * (_neighbour + 1)), _y - 1) && _neighbour <= 2) {
-                _neighbour++;
-                _pos = this->calcVecPos(_x + (_sign * _neighbour), _y - 1);
-            }
-
-            _tempB = this->particles[_pos];
-            this->writeParticle(_x + (_sign * _neighbour), _y - 1, *_p);
-            this->writeParticle(_x, _y, _tempB);
-
-            this->activateNeighbours(_x, _y);
-        }
-            /// Down-Right
         else {
             _p->canUpdate = false;
         }
