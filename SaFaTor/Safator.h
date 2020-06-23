@@ -94,12 +94,14 @@ class Safator : public engine::Layer {
                                                 waterParticle,
                                                 stoneParticle,
                                                 acidParticle,
-                                                dirtParticle;
+                                                dirtParticle,
+                                                iceParticle,
+                                                saltParticle;
 
         int                                     textureWidth,
                                                 textureHeight;
 
-        Color                                   PARTICLE_COLORS[19] = {
+        Color                                   PARTICLE_COLORS[22] = {
                                                     { 202, 188, 145, 255 }, /// SAND_0
                                                     { 194, 178, 128, 255 }, /// SAND_1
                                                     { 186, 168, 111, 255 }, /// SAND_2
@@ -119,6 +121,9 @@ class Safator : public engine::Layer {
                                                     {  83,  66,  41, 255 }, /// DIRT_0
                                                     {  69,  55,  35, 255 }, /// DIRT_1
                                                     {  55,  44,  28, 255 }, /// DIRT_2
+                                                    { 132, 140, 252, 255 }, /// ICE_0
+                                                    { 238, 243, 229, 255 }, /// SALT_0
+                                                    { 245, 248, 239, 255 }, /// SALT_1
                                                 };
 
         float                                   weatherConditions[5] = {
@@ -148,6 +153,8 @@ class Safator : public engine::Layer {
         void updateStoneParticle(int _x, int _y, int _posInVector, Timestep _dt);
         void updateAcidParticle(int _x, int _y, int _posInVector, Timestep _dt);
         void updateDirtParticle(int _x, int _y, int _posInVector, Timestep _dt);
+        void updateIceParticle(int _x, int _y, int _posInVector, Timestep _dt);
+        void updateSaltParticle(int _x, int _y, int _posInVector, Timestep _dt);
         void handleUnfittedDrops(int _x, int _y, int _vecPos, float _dt);
 
         void wind();
@@ -164,6 +171,7 @@ class Safator : public engine::Layer {
         void generateWithBrush(const Vec2f& _mousePos);
         void removeParticles(const Vec2f& _mousePos);
         void zoomParticles(const Vec2f& _pos);
+        bool isFullBrushDrawingParticle(const ParticleType& _type);
 
         int calcVecPos(int _x, int _y);
         void activateNeighbours(int _x, int _y);
@@ -175,6 +183,7 @@ class Safator : public engine::Layer {
         bool isSolid(const ParticleType& _type);
 
         void generateParticles(const Vec2f& _mousePos);
+        void generateSpecificParticle(const Vec2i& _pos, const ParticleType& _type);
         void writeParticle(int _x, int _y, const Particle& _particle);
         void writeParticle(int _x, int _y,int _vecPos, const Particle& _particle);
 
