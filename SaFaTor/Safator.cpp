@@ -1,7 +1,9 @@
 #include "Safator.h"
 #include <imgui.h>
 
-Safator::Safator() : engine::Layer("Prueba"), cameraController(false), app(Application::get()) {  }
+Safator::Safator() : engine::Layer("Prueba"), cameraController(false), app(Application::get()) {
+    this->app.setAppIcon("assets/textures/safatorIcon.png");
+}
 
 
 void Safator::onInit() {

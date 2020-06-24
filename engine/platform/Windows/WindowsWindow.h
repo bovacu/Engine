@@ -28,31 +28,33 @@ namespace engine {
 
         public:
             explicit WindowsWindow(const WindowProperties& _props);
-            ~WindowsWindow()                                        override;
+            ~WindowsWindow()                                                override;
 
-            void update() override;
+            void update()                                                   override;
 
-            [[nodiscard]] int getWidth() const                      override { return this->data.width; }
-            [[nodiscard]] int getHeight() const                     override { return this->data.height; }
+            [[nodiscard]] int getWidth() const                              override { return this->data.width; }
+            [[nodiscard]] int getHeight() const                             override { return this->data.height; }
 
-            std::string& getTitle()                                 override { return data.title; };
-            void setTitle(const std::string& _title)                override { this->data.title = _title; glfwSetWindowTitle(this->window, _title.c_str()); };
+            std::string& getTitle()                                         override { return data.title; };
+            void setTitle(const std::string& _title)                        override { this->data.title = _title; glfwSetWindowTitle(this->window, _title.c_str()); };
 
-            void setWindowSize(int _width, int _height)             override;
-            [[nodiscard]] Vec2f getWindowSize() const               override { return  Vec2f((float)this->getWidth(), (float)this->getHeight()); }
+            void setWindowSize(int _width, int _height)                     override;
+            [[nodiscard]] Vec2f getWindowSize() const                       override { return  Vec2f((float)this->getWidth(), (float)this->getHeight()); }
 
-            void setFullscreen(bool _fullscreen)                    override;
-            [[nodiscard]] bool isFullscreen() const                 override;
+            void setFullscreen(bool _fullscreen)                            override;
+            [[nodiscard]] bool isFullscreen() const                         override;
 
-            void setEventCallback(const EventCallbackFn& _callback) override { this->data.eventCallback = _callback; }
+            void setEventCallback(const EventCallbackFn& _callback)         override { this->data.eventCallback = _callback; }
 
-            void setVSync(bool enabled)                             override;
-            [[nodiscard]] bool isVSyncActive() const                override;
+            void setVSync(bool enabled)                                     override;
+            [[nodiscard]] bool isVSyncActive() const                        override;
 
-            [[nodiscard]] Vec2i getPosition() const                 override  { return Vec2i(this->data.position.x, this->data.position.y); }
-            void setPosition(const Vec2i& _position)                override  { this->data.position = Vec2i(_position.x, _position.y); }
+            [[nodiscard]] Vec2i getPosition() const                         override  { return Vec2i(this->data.position.x, this->data.position.y); }
+            void setPosition(const Vec2i& _position)                        override  { this->data.position = Vec2i(_position.x, _position.y); }
 
-            [[nodiscard]] void* getNativeWindow() const             override { return this->window; }
+            [[nodiscard]] void* getNativeWindow() const                     override { return this->window; }
+
+            void setIcon(const char* _path)                                 override;
 
         private:
             virtual void init(const WindowProperties& _props);

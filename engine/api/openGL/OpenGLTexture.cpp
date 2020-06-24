@@ -145,8 +145,8 @@ namespace engine {
     //--------------------------------
 
     OpenGLImGuiTexture::OpenGLImGuiTexture(const char* _filePath) {
-        unsigned char* image_data = stbi_load(_filePath, &this->width, &this->height, NULL, 4);
-        if (image_data == NULL)
+        unsigned char* image_data = stbi_load(_filePath, &this->width, &this->height, nullptr, 4);
+        if (image_data == nullptr)
             ENGINE_CORE_ASSERT(false, "Couldn't load ImGui Texture");
 
         // Create a OpenGL texture identifier

@@ -120,6 +120,8 @@ namespace engine {
             void setPosition(const Vec2i& _position)            { this->window->setPosition(_position); }
             Vec2i getPosition() const                           { return this->window->getPosition(); }
 
+            void setAppIcon(const char* _path)                  { this->window->setIcon(_path); }
+
         public:
             void onRun();
             void onEvent(Event& _event);

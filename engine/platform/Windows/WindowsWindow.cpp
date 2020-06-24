@@ -1,13 +1,14 @@
 #include "pch.h"
 #include "WindowsWindow.h"
 
-#include "engine/input/Input.h"
+#include <engine/input/Input.h>
 
-#include "engine/event/WindowEvent.h"
-#include "engine/event/MouseEvent.h"
-#include "engine/event/KeyEvent.h"
+#include <engine/event/WindowEvent.h>
+#include <engine/event/MouseEvent.h>
+#include <engine/event/KeyEvent.h>
 
-#include "engine/render/Renderer.h"
+#include <engine/render/Renderer.h>
+#include <stb_image.h>
 
 namespace engine {
 
@@ -86,8 +87,6 @@ namespace engine {
             WindowData& _data = *(WindowData*)glfwGetWindowUserPointer(_window);
             _data.position.x = _x;
             _data.position.y = _y;
-
-            LOG_INFO_CORE("x: {0}, y: {1}", _x, _y);
 
             WindowMovedEvent _event(_x, _y);
             _data.eventCallback(_event);
@@ -222,6 +221,22 @@ namespace engine {
     bool WindowsWindow::isFullscreen() const {
         LOG_CRITICAL_CORE("isFullscreen from WindowsWindow not implemented yet");
         return false;
+    }
+
+    void WindowsWindow::setIcon(const char* _path) {
+        int _w = 0, _h = 0;
+        unsigned char* _pixels = stbi_load(_path, &_w, &_h, nullptr, 4);
+        if (_pixels == nullptr)
+            ENGINE_CORE_ASSERT(false, "Couldn't load ImGui Texture");
+
+        glfwSetWindowIcon(this->window, 0, nullptr);
+        GLFWimage _image[1];
+        _image[0].width = _w;
+        _image[0].height = _h;
+        _image[0].pixels = _pixels;
+        glfwSetWindowIcon(this->window, 1, _image);
+
+        stbi_image_free(_pixels);
     }
 
 }
