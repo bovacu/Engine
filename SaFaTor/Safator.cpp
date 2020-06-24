@@ -92,7 +92,7 @@ void Safator::onUpdate(engine::Timestep _dt) {
                 for (int _x = (int)this->worldTexture->getWidth() - 1; _x > 0; _x--) {
                     int _pos = _x + _textureWidth * _y;
                     ParticleType _type = this->particles[_pos].type;
-                    if(_type == ParticleType::NONE_PARTICLE || _type == ParticleType::STONE || !this->particles[_pos].canUpdate) continue;
+                    if(_type == ParticleType::NONE_PARTICLE || this->isSolid(_type) || !this->particles[_pos].canUpdate) continue;
                     this->particlesUpdating++;
                     switch (_type) {
                         case SAND       :
@@ -317,10 +317,10 @@ void Safator::updateIceParticle(int _x, int _y, int _posInVector, Timestep _dt) 
 }
 void Safator::updateFrostParticle(int _x, int _y, int _posInVector, Timestep _dt) {
     int _pos = this->calcVecPos(_x, _y);
-    bool _left  = !this->isEmpty(_x - 1, _y) && !this->is(_x - 1, _y, FROST);
-    bool _right = !this->isEmpty(_x + 1, _y) && !this->is(_x - 1, _y, FROST);
-    bool _up    = !this->isEmpty(_x, _y + 1) && !this->is(_x - 1, _y, FROST);
-    bool _down  = !this->isEmpty(_x, _y - 1) && !this->is(_x - 1, _y, FROST);
+    bool _left  = this->isInBounds(_x - 1, _y) && !this->is(_x - 1, _y, FROST) && !this->is(_x - 1, _y, NONE_PARTICLE);
+    bool _right = this->isInBounds(_x + 1, _y) && !this->is(_x + 1, _y, FROST) && !this->is(_x + 1, _y, NONE_PARTICLE);
+    bool _up    = this->isInBounds(_x, _y + 1) && !this->is(_x, _y + 1, FROST) && !this->is(_x, _y + 1, NONE_PARTICLE);
+    bool _down  = this->isInBounds(_x, _y - 1) && !this->is(_x, _y - 1, FROST) && !this->is(_x, _y - 1, NONE_PARTICLE);
     this->particles[_pos].canUpdate = _left || _right || _up || _down;
 
     Particle* _p;
@@ -328,34 +328,32 @@ void Safator::updateFrostParticle(int _x, int _y, int _posInVector, Timestep _dt
         ReactionInfo _ri;
         bool _reactionReallyExists = false;
 
-        int _sign = this->random.randomi(0, 1) == 0 ? -1 : 1;
-        bool _verticalOrHorizontal = this->random.randomi(0, 1) == 0;
+        if(this->isInBounds(_x - 1, _y)) {
+            _ri = this->reactions({_x, _y}, {_x - 1, _y}, *_p, this->particles[this->calcVecPos(_x - 1, _y)]);
+            _reactionReallyExists |= _ri.reactionExists;
+            if (_ri.prob.happened)
+                this->activateNeighbours(_x, _y);
+        }
 
-        if(_verticalOrHorizontal) {
-            _ri = this->reactions({_x, _y}, {_x - _sign, _y}, *_p, this->particles[this->calcVecPos(_x - _sign, _y)]);
+        if(this->isInBounds(_x + 1, _y)) {
+            _ri = this->reactions({_x, _y}, {_x + 1, _y}, *_p, this->particles[this->calcVecPos(_x + 1, _y)]);
             _reactionReallyExists |= _ri.reactionExists;
-            if (_ri.prob.happened) {
+            if (_ri.prob.happened)
                 this->activateNeighbours(_x, _y);
-            } else {
-                _ri = this->reactions({_x, _y}, {_x + _sign, _y}, *_p, this->particles[this->calcVecPos(_x + _sign, _y)]);
-                if (_ri.prob.happened) {
-                    this->activateNeighbours(_x, _y);
-                    return;
-                }
-            }
-        } else {
-            _ri = this->reactions({_x, _y}, {_x, _y - _sign}, *_p, this->particles[this->calcVecPos(_x, _y - _sign)]);
+        }
+
+        if(this->isInBounds(_x, _y + 1)) {
+            _ri = this->reactions({_x, _y}, {_x, _y + 1}, *_p, this->particles[this->calcVecPos(_x, _y + 1)]);
             _reactionReallyExists |= _ri.reactionExists;
-            if (_ri.prob.happened) {
+            if (_ri.prob.happened)
                 this->activateNeighbours(_x, _y);
-                return;
-            } else {
-                _ri = this->reactions({_x, _y}, {_x, _y + _sign}, *_p, this->particles[this->calcVecPos(_x, _y + _sign)]);
-                if (_ri.prob.happened) {
-                    this->activateNeighbours(_x, _y);
-                    return;
-                }
-            }
+        }
+
+        if(this->isInBounds(_x, _y - 1)) {
+            _ri = this->reactions({_x, _y}, {_x, _y - 1}, *_p, this->particles[this->calcVecPos(_x, _y - 1)]);
+            _reactionReallyExists |= _ri.reactionExists;
+            if (_ri.prob.happened)
+                this->activateNeighbours(_x, _y);
         }
     }
 }
@@ -409,6 +407,7 @@ void Safator::updateCommonDusts(int _x, int _y, int _posInVector, Timestep _dt) 
         this->writeParticle(_vX, _vY, _tempA);
         this->writeParticle(_x, _y, _tempB);
         this->activateNeighbours(_x, _y);
+        this->activateNeighbours(_vX, _vY);
 
     } else {
 
@@ -419,10 +418,11 @@ void Safator::updateCommonDusts(int _x, int _y, int _posInVector, Timestep _dt) 
             int _vecForB = _x + this->textureWidth * (_y - 1);
             _tempB = this->particles[_vecForB];
 
-            if((_inWater = this->is(_x, _y - 1, ParticleType::WATER)) || this->is(_x, _y - 1, NONE_PARTICLE)) {
+            if((_inWater = this->is(_x, _y - 1, WATER)) && this->is(_x, _y - 1, CRYOGENER) || this->is(_x, _y - 1, NONE_PARTICLE)) {
                 this->writeParticle(_x, _y - 1, _vecForB, _tempA);
                 this->writeParticle(_x, _y, _posInVector, _tempB);
                 this->activateNeighbours(_x, _y);
+                this->activateNeighbours(_x, _y - 1);
 
                 return;
             } else {
@@ -440,12 +440,13 @@ void Safator::updateCommonDusts(int _x, int _y, int _posInVector, Timestep _dt) 
             int _vecForB = (_x - 1) + this->textureWidth * (_y - 1);
             _tempB = this->particles[_vecForB];
 
-            if((_inWater = this->is(_x - 1, _y - 1, ParticleType::WATER)) || this->is(_x - 1, _y - 1, NONE_PARTICLE)) {
+            if((_inWater = this->is(_x - 1, _y - 1, WATER)) && this->is(_x - 1, _y - 1, CRYOGENER) || this->is(_x - 1, _y - 1, NONE_PARTICLE)) {
                 _p->velocity.x = this->random.randomi( 0, 1 ) == 0 ? -1.f : 1.f;
 
                 this->writeParticle(_x - 1, _y - 1, _vecForB, _tempA);
                 this->writeParticle(_x, _y, _posInVector, _tempB);
                 this->activateNeighbours(_x, _y);
+                this->activateNeighbours(_x - 1, _y - 1);
 
                 return;
             } else {
@@ -464,12 +465,13 @@ void Safator::updateCommonDusts(int _x, int _y, int _posInVector, Timestep _dt) 
             int _vecForB = (_x + 1) + this->textureWidth * (_y - 1);
             _tempB = this->particles[_vecForB];
 
-            if((_inWater = this->is(_x + 1, _y - 1, ParticleType::WATER)) || this->is(_x + 1, _y - 1, NONE_PARTICLE)) {
+            if((_inWater = this->is(_x + 1, _y - 1, WATER)) && this->is(_x + 1, _y - 1, CRYOGENER) || this->is(_x + 1, _y - 1, NONE_PARTICLE)) {
                 _p->velocity.x = this->random.randomi( 0, 1 ) == 0 ? -1.f : 1.f;
 
                 this->writeParticle(_x + 1, _y - 1, _vecForB, _tempA);
                 this->writeParticle(_x, _y, _posInVector, _tempB);
                 this->activateNeighbours(_x, _y);
+                this->activateNeighbours(_x + 1, _y - 1);
 
                 return;
             } else {
@@ -515,6 +517,7 @@ void Safator::updateCommonLiquids(int _x, int _y, int _posInVector, int _spreadR
 
         this->handleUnfittedDrops(_x, _y, _pos, _dt);
         this->activateNeighbours(_x, _y);
+        this->activateNeighbours(_vX, _vY);
     } else {
 
         int _below = this->calcVecPos(_x, _y - 1);
@@ -534,6 +537,7 @@ void Safator::updateCommonLiquids(int _x, int _y, int _posInVector, int _spreadR
 
                 this->handleUnfittedDrops(_x, _y - 1, _below, _dt);
                 this->activateNeighbours(_x, _y);
+                this->activateNeighbours(_x, _y - 1);
 
                 return;
             } else {
@@ -554,6 +558,7 @@ void Safator::updateCommonLiquids(int _x, int _y, int _posInVector, int _spreadR
                 while(this->isEmpty(_x + (_sign * (_neighbour + 1)), _y - (_neighbour + 1)) && _neighbour < _spreadRate) {
                     _neighbour++;
                     _firstDownMovement = this->calcVecPos(_x + (_sign * _neighbour), _y - _neighbour);
+                    this->activateNeighbours(_x + (_sign * _neighbour), _y - _neighbour);
                 }
 
                 _tempB = this->particles[_firstDownMovement];
@@ -584,6 +589,7 @@ void Safator::updateCommonLiquids(int _x, int _y, int _posInVector, int _spreadR
                 while(this->isEmpty(_x - (_sign * (_neighbour + 1)), _y - (_neighbour + 1)) && _neighbour < _spreadRate) {
                     _neighbour++;
                     _secondDownMovement = this->calcVecPos(_x - (_sign * _neighbour), _y - _neighbour);
+                    this->activateNeighbours(_x - (_sign * _neighbour), _y - _neighbour);
                 }
 
                 _tempB = this->particles[_secondDownMovement];
@@ -614,6 +620,7 @@ void Safator::updateCommonLiquids(int _x, int _y, int _posInVector, int _spreadR
                 while(this->isEmpty(_x + (_sign * (_neighbour + 1)), _y) && _neighbour < _spreadRate) {
                     _neighbour++;
                     _firstMovement = this->calcVecPos(_x + (_sign * _neighbour), _y);
+                    this->activateNeighbours(_x + (_sign * _neighbour), _y);
                 }
 
                 _tempB = this->particles[_firstMovement];
@@ -644,6 +651,7 @@ void Safator::updateCommonLiquids(int _x, int _y, int _posInVector, int _spreadR
                 while(this->isEmpty(_x - (_sign * (_neighbour + 1)), _y) && _neighbour < _spreadRate) {
                     _neighbour++;
                     _secondMovement = this->calcVecPos(_x - (_sign * _neighbour), _y);
+                    this->activateNeighbours(_x - (_sign * _neighbour), _y);
                 }
 
                 _tempB = this->particles[_secondMovement];
@@ -679,29 +687,31 @@ void Safator::updateCommonGases(int _x, int _y, int _posInVector, Timestep _dt) 
 const char* Safator::particleTypeToName(const Safator::ParticleType& _type) {
     const char* _name;
     switch(_type) {
-        case NONE_PARTICLE  : _name = "None"; return _name;
-        case SAND           : _name = "Sand"; return _name;
-        case GUNPOWDER      : _name = "Gunpowder"; return _name;
-        case SALT           : _name = "Salt"; return _name;
-        case WATER          : _name = "Water"; return _name;
-        case ACID           : _name = "Acid"; return _name;
-        case LAVA           : _name = "Lava"; return _name;
-        case POISON_L       : _name = "Liquid Poison"; return _name;
-        case STONE          : _name = "Stone"; return _name;
-        case WOOD           : _name = "Wood"; return _name;
-        case ICE            : _name = "Ice"; return _name;
-        case SNOW           : _name = "Snow"; return _name;
-        case STEEL          : _name = "Steel"; return _name;
-        case WAX            : _name = "Wax"; return _name;
-        case DIRT           : _name = "Dirt"; return _name;
-        case STEAM          : _name = "Steam"; return _name;
-        case SMOKE          : _name = "Smoke"; return _name;
-        case GAS            : _name = "Gas"; return _name;
-        case POISON_G       : _name = "Gas Poison"; return _name;
-        case CLOUD          : _name = "Cloud"; return _name;
-        case FIRE           : _name = "Fire"; return _name;
-        case PLANT          : _name = "Plant"; return _name;
-        case FUSE           : _name = "Fuse"; return _name;
+        case NONE_PARTICLE  : _name = "None";           return _name;
+        case SAND           : _name = "Sand";           return _name;
+        case GUNPOWDER      : _name = "Gunpowder";      return _name;
+        case SALT           : _name = "Salt";           return _name;
+        case WATER          : _name = "Water";          return _name;
+        case ACID           : _name = "Acid";           return _name;
+        case LAVA           : _name = "Lava";           return _name;
+        case POISON_L       : _name = "Liquid Poison";  return _name;
+        case STONE          : _name = "Stone";          return _name;
+        case WOOD           : _name = "Wood";           return _name;
+        case ICE            : _name = "Ice";            return _name;
+        case SNOW           : _name = "Snow";           return _name;
+        case STEEL          : _name = "Steel";          return _name;
+        case WAX            : _name = "Wax";            return _name;
+        case DIRT           : _name = "Dirt";           return _name;
+        case STEAM          : _name = "Steam";          return _name;
+        case SMOKE          : _name = "Smoke";          return _name;
+        case GAS            : _name = "Gas";            return _name;
+        case POISON_G       : _name = "Gas Poison";     return _name;
+        case CLOUD          : _name = "Cloud";          return _name;
+        case FIRE           : _name = "Fire";           return _name;
+        case PLANT          : _name = "Plant";          return _name;
+        case FUSE           : _name = "Fuse";           return _name;
+        case CRYOGENER      : _name = "Cryogener";      return _name;
+        case FROST          : _name = "Frost";          return _name;
     }
     return "Not known particle";
 }
@@ -1631,7 +1641,7 @@ Safator::ReactionInfo Safator::reactions(const Vec2i& _posA, const Vec2i& _posB,
             }
         }
     } else if(_particleA.type == CRYOGENER) {
-        if(_particleB.type != NONE_PARTICLE) {
+        if(_particleB.type != NONE_PARTICLE && _particleB.type != CRYOGENER) {
             _ri.reactionExists = true;
             if ((_ri.prob = this->random.probability(Safator::probValues(_particleA.type, _particleB.type))).happened) {
                 this->writeParticle(_posA.x, _posA.y, this->noneParticle);
@@ -1641,7 +1651,7 @@ Safator::ReactionInfo Safator::reactions(const Vec2i& _posA, const Vec2i& _posB,
             }
         }
     } else if(_particleA.type == FROST) {
-        if(_particleB.type != NONE_PARTICLE) {
+        if(_particleB.type != NONE_PARTICLE && _particleB.type != CRYOGENER) {
             _ri.reactionExists = true;
             if ((_ri.prob = this->random.probability(Safator::probValues(_particleA.type, _particleB.type))).happened) {
                 this->writeParticle(_posB.x, _posB.y, this->noneParticle);
