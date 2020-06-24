@@ -3,12 +3,16 @@
 #ifndef TEST_GAME_H
 #define TEST_GAME_H
 
-#define MAX_BRUSH_THICKNESS 20
+#define MAX_BRUSH_THICKNESS 60
 #define MAX_ZOOM_LEVEL      15.f
 
 #define INFINITE_LIFE_TIME -1.f
 #define MAX_WATER_LIFE      8.f
 #define MIN_WATER_LIFE      4.f
+
+#define WATER_SPREAD_RATE   3
+#define ACID_SPREAD_RATE    3
+#define LAVA_SPREAD_RATE    1
 
 #include <engine/main/Engine.h>
 
@@ -17,13 +21,13 @@ using namespace engine;
 class Safator : public engine::Layer {
 
     public:
-        enum ParticleType { NONE_PARTICLE,                                                                              /// NOTHING
-                            SAND    , GUNPOWDER , SALT  ,                                                               /// DUSTS
-                            WATER   , ACID      , LAVA  , POISON_L  ,                                                   /// LIQUIDS
-                            STONE   , WOOD      , ICE   , SNOW      ,   STEEL   ,   WAX , DIRT  ,                       /// SOLIDS
-                            STEAM   , SMOKE     , GAS   , POISON_G  ,                                                   /// GASES
-                            CLOUD   , FIRE      , PLANT ,                                                               /// VARIOUS
-                            FUSE                                                                                        /// UTILS
+        enum ParticleType { NONE_PARTICLE,                                                                                  /// NOTHING
+                            SAND    , GUNPOWDER , SALT  ,                                                                   /// DUSTS
+                            WATER   , ACID      , LAVA  , POISON_L  ,   CRYOGENER,                                          /// LIQUIDS
+                            STONE   , WOOD      , ICE   , FROST     , SNOW       ,   STEEL   ,   WAX , DIRT  , OBSIDIAN ,   /// SOLIDS
+                            STEAM   , SMOKE     , GAS   , POISON_G  ,                                                       /// GASES
+                            CLOUD   , FIRE      , PLANT ,                                                                   /// VARIOUS
+                            FUSE                                                                                            /// UTILS
         };
         enum Tool { DRAW, ERASE, ZOOM };
 
@@ -96,12 +100,17 @@ class Safator : public engine::Layer {
                                                 acidParticle,
                                                 dirtParticle,
                                                 iceParticle,
-                                                saltParticle;
+                                                saltParticle,
+                                                gunpowderParticle,
+                                                lavaParticle,
+                                                obsidianParticle,
+                                                cryoParticle,
+                                                frostParticle;
 
         int                                     textureWidth,
                                                 textureHeight;
 
-        Color                                   PARTICLE_COLORS[23] = {
+        Color                                   PARTICLE_COLORS[35] = {
                                                     { 202, 188, 145, 255 }, /// SAND_0
                                                     { 194, 178, 128, 255 }, /// SAND_1
                                                     { 186, 168, 111, 255 }, /// SAND_2
@@ -125,6 +134,18 @@ class Safator : public engine::Layer {
                                                     { 190, 238, 249, 255 }, /// ICE_1
                                                     { 238, 243, 229, 255 }, /// SALT_0
                                                     { 245, 248, 239, 255 }, /// SALT_1
+                                                    {  70,  70,  80, 255 }, /// GUNPOWDER_1
+                                                    {  56,  56,  64, 255 }, /// GUNPOWDER_2
+                                                    {  45,  45,  51, 255 }, /// GUNPOWDER_3
+                                                    { 248,  58,  12, 255 }, /// LAVA_0
+                                                    { 220,  58,  12, 255 }, /// LAVA_0
+                                                    {  59,  30,  58, 255 }, /// OBSIDIAN_0
+                                                    {  59,  26,  58, 255 }, /// OBSIDIAN_1
+                                                    {  59,  19,  58, 255 }, /// OBSIDIAN_2
+                                                    {  63, 208, 212, 255 }, /// CRYOGENER_0
+                                                    {  63, 191, 212, 255 }, /// CRYOGENER_0
+                                                    {  84, 142, 249, 255 }, /// FROST_0
+                                                    {  73, 134, 212, 255 }, /// FROST_1
                                                 };
 
         float                                   weatherConditions[5] = {
@@ -149,14 +170,14 @@ class Safator : public engine::Layer {
 
     private:
         void initSimulationWorld();
-        void updateSandParticle(int _x, int _y, int _posInVector, Timestep _dt);
-        void updateWaterParticle(int _x, int _y, int _posInVector, Timestep _dt);
-        void updateStoneParticle(int _x, int _y, int _posInVector, Timestep _dt);
-        void updateAcidParticle(int _x, int _y, int _posInVector, Timestep _dt);
         void updateDirtParticle(int _x, int _y, int _posInVector, Timestep _dt);
         void updateIceParticle(int _x, int _y, int _posInVector, Timestep _dt);
-        void updateSaltParticle(int _x, int _y, int _posInVector, Timestep _dt);
+        void updateFrostParticle(int _x, int _y, int _posInVector, Timestep _dt);
         void handleUnfittedDrops(int _x, int _y, int _vecPos, float _dt);
+
+        void updateCommonDusts(int _x, int _y, int _posInVector, Timestep _dt);
+        void updateCommonLiquids(int _x, int _y, int _posInVector, int _spreadRate, Timestep _dt);
+        void updateCommonGases(int _x, int _y, int _posInVector, Timestep _dt);
 
         void wind();
         void rain();
