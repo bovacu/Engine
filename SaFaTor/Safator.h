@@ -101,7 +101,7 @@ class Safator : public engine::Layer {
         int                                     textureWidth,
                                                 textureHeight;
 
-        Color                                   PARTICLE_COLORS[22] = {
+        Color                                   PARTICLE_COLORS[23] = {
                                                     { 202, 188, 145, 255 }, /// SAND_0
                                                     { 194, 178, 128, 255 }, /// SAND_1
                                                     { 186, 168, 111, 255 }, /// SAND_2
@@ -121,7 +121,8 @@ class Safator : public engine::Layer {
                                                     {  83,  66,  41, 255 }, /// DIRT_0
                                                     {  69,  55,  35, 255 }, /// DIRT_1
                                                     {  55,  44,  28, 255 }, /// DIRT_2
-                                                    { 132, 140, 252, 255 }, /// ICE_0
+                                                    { 205, 241, 249, 255 }, /// ICE_0
+                                                    { 190, 238, 249, 255 }, /// ICE_1
                                                     { 238, 243, 229, 255 }, /// SALT_0
                                                     { 245, 248, 239, 255 }, /// SALT_1
                                                 };

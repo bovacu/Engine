@@ -717,7 +717,23 @@ void Safator::updateIceParticle(int _x, int _y, int _posInVector, Timestep _dt) 
 //    bool _up = this->isInBounds(_x, _y + 1) && !this->is(_x, _y + 1, ICE);
 //    bool _down = this->isInBounds(_x, _y - 1) && !this->is(_x, _y - 1, ICE);
 //    this->particles[this->calcVecPos(_x, _y)].canUpdate = _left || _right || _up || _down;
-    this->particles[this->calcVecPos(_x, _y)].canUpdate = this->isEmpty(_x, _y + 1);
+
+    Particle* _p = &this->particles[this->calcVecPos(_x, _y)];
+    bool _down = this->isInBounds(_x, _y - 1) && this->is(_x, _y - 1, WATER);
+
+    _p->canUpdate = this->isEmpty(_x, _y + 1) || _down;
+
+    if(_p->canUpdate && _down) {
+        ReactionInfo _ri;
+        bool _reactionReallyExists = false;
+        _ri = this->reactions({_x, _y}, {_x, _y - 1}, *_p, this->particles[this->calcVecPos(_x, _y - 1)]);
+        _reactionReallyExists |= _ri.reactionExists;
+        if (_ri.prob.happened) {
+            this->activateNeighbours(_x, _y);
+            _p->canUpdate = false;
+            return;
+        }
+    }
 
 }
 void Safator::updateSaltParticle(int _x, int _y, int _posInVector, Timestep _dt) {
@@ -887,8 +903,8 @@ Color Safator::particleTypeToColor(const Safator::ParticleType& _particle) {
         case SMOKE          : return this->PARTICLE_COLORS[this->random.randomi(12, 14)];
         case NONE_PARTICLE  : return this->PARTICLE_COLORS[15];
         case DIRT           : return this->PARTICLE_COLORS[this->random.randomi(16, 18)];
-        case ICE            : return this->PARTICLE_COLORS[19];
-        case SALT           : return this->PARTICLE_COLORS[this->random.randomi(20, 21)];
+        case ICE            : return this->PARTICLE_COLORS[this->random.randomi(19, 20)];
+        case SALT           : return this->PARTICLE_COLORS[this->random.randomi(21, 22)];
     }
 
     return this->PARTICLE_COLORS[15];
@@ -1077,6 +1093,12 @@ void Safator::generateParticles(const Vec2f& _mousePos) {
         this->writeParticle((int)_mousePos.x, (int)_mousePos.y, this->particles[_posInVector]);
         this->drawnPixels++;
     }
+}
+void Safator::generateSpecificParticle(const Vec2i& _pos, const Safator::ParticleType& _type) {
+    auto _saveType = this->selectedParticle;
+    this->selectedParticle = _type;
+    this->generateParticles({(float)_pos.x, (float)_pos.y});
+    this->selectedParticle = _saveType;
 }
 void Safator::removeParticles(const Vec2f& _mousePos) {
     this->writeParticle((int)_mousePos.x, (int)_mousePos.y, this->noneParticle);
@@ -1654,6 +1676,9 @@ float Safator::probValues(const Safator::ParticleType& _firstParticle, const Saf
     } else if (_firstParticle == SALT) {
         if(_secondParticle == ICE)
             return 1.f / 100.f;
+    } else if(_firstParticle == ICE) {
+        if(_secondParticle == WATER)
+        return 1.f / 200.f;
     }
 
     return 0.0f;
@@ -1692,6 +1717,13 @@ Safator::ReactionInfo Safator::reactions(const Vec2i& _posA, const Vec2i& _posB,
             if((_ri.prob = this->random.probability(Safator::probValues(_particleA.type, _particleB.type))).happened) {
                 this->writeParticle(_posB.x, _posB.y, this->noneParticle);
                 this->generateSpecificParticle({_posB.x, _posB.y}, WATER);
+            }
+        }
+    } else if(_particleA.type == ICE) {
+        if(_particleB.type == WATER) {
+            _ri.reactionExists = true;
+            if((_ri.prob = this->random.probability(Safator::probValues(_particleA.type, _particleB.type))).happened) {
+                this->writeParticle(_posB.x, _posB.y, this->iceParticle);
             }
         }
     }
@@ -1826,11 +1858,4 @@ Vec2i Safator::randomPointInsideCircle(const Vec2i& _mousePos, int _radius) {
     float _a = this->random.randomf(0, 1);
     float _b = this->random.randomf(0, 1);
     return {(int)(_b * (float)_radius * cos( 2 * PI * _a / _b)), (int)(_b * (float)_radius * sin(2 * PI * _a / _b))};
-}
-
-void Safator::generateSpecificParticle(const Vec2i& _pos, const Safator::ParticleType& _type) {
-    auto _saveType = this->selectedParticle;
-    this->selectedParticle = _type;
-    this->generateParticles({(float)_pos.x, (float)_pos.y});
-    this->selectedParticle = _saveType;
 }
