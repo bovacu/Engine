@@ -24,12 +24,12 @@ class Safator : public engine::Layer {
 
     public:
         enum ParticleType { NONE_PARTICLE,                                                                                  /// NOTHING
-                            SAND    , GUNPOWDER , SALT  ,                                                                   /// DUSTS
-                            WATER   , ACID      , LAVA  , POISON_L  ,   CRYOGENER,                                          /// LIQUIDS
-                            STONE   , WOOD      , ICE   , FROST     , SNOW       ,   STEEL   ,   WAX , DIRT  , OBSIDIAN ,   /// SOLIDS
+                            SAND    , GUNPOWDER , SALT  , ASH       ,                                                       /// DUSTS
+                            WATER   , ACID      , LAVA  , POISON_L  ,                                                       /// LIQUIDS
+                            STONE   , WOOD      , ICE   , FROST     ,   SNOW     ,   STEEL   ,   WAX , DIRT  , OBSIDIAN ,   /// SOLIDS
                             STEAM   , SMOKE     , GAS   , POISON_G  ,                                                       /// GASES
                             CLOUD   , FIRE      , PLANT ,                                                                   /// VARIOUS
-                            FUSE                                                                                            /// UTILS
+                            FUSE    , CRYOGENER ,                                                                           /// UTILS
         };
         enum Tool { DRAW, ERASE, ZOOM };
 
@@ -111,12 +111,16 @@ class Safator : public engine::Layer {
                                                 obsidianParticle,
                                                 cryoParticle,
                                                 frostParticle,
-                                                steamParticle;
+                                                steamParticle,
+                                                smokeParticle,
+                                                poisonGParticle,
+                                                ashParticle,
+                                                gasParticle;
 
         int                                     textureWidth,
                                                 textureHeight;
 
-        Color                                   PARTICLE_COLORS[35] = {
+        Color                                   PARTICLE_COLORS[39] = {
                                                     { 202, 188, 145, 255 }, /// SAND_0
                                                     { 194, 178, 128, 255 }, /// SAND_1
                                                     { 186, 168, 111, 255 }, /// SAND_2
@@ -152,6 +156,10 @@ class Safator : public engine::Layer {
                                                     {  63, 191, 212, 255 }, /// CRYOGENER_0
                                                     {  84, 142, 249, 255 }, /// FROST_0
                                                     {  73, 134, 212, 255 }, /// FROST_1
+                                                    { 127,   1, 254, 122 }, /// POISON_G_0
+                                                    { 111, 118, 120, 255 }, /// ASH_0
+                                                    { 111, 108, 120, 255 }, /// ASH_1
+                                                    { 108, 199, 108, 255 }, /// GAS_0
                                                 };
 
         float                                   weatherConditions[5] = {
@@ -176,6 +184,7 @@ class Safator : public engine::Layer {
 
     private:
         void initSimulationWorld();
+        void updateAllParticles(int _x, int _y, int _posInVector, const ParticleType& _type, Timestep _dt);
         void updateDirtParticle(int _x, int _y, int _posInVector, Timestep _dt);
         void updateIceParticle(int _x, int _y, int _posInVector, Timestep _dt);
         void updateFrostParticle(int _x, int _y, int _posInVector, Timestep _dt);
@@ -196,10 +205,10 @@ class Safator : public engine::Layer {
         bool onMouseScrolled(MouseScrolledEvent& _e);
         void checkForShortcuts();
 
-        void removeWithBrush(const Vec2f& _mousePos);
-        void generateWithBrush(const Vec2f& _mousePos);
-        void removeParticles(const Vec2f& _mousePos);
-        void zoomParticles(const Vec2f& _pos);
+        void removeWithBrush(const Vec2i& _mousePos);
+        void generateWithBrush(const Vec2i& _mousePos);
+        void removeParticles(const Vec2i& _mousePos);
+        void zoomParticles(const Vec2i& _pos);
         bool isFullBrushDrawingParticle(const ParticleType& _type);
 
         int calcVecPos(int _x, int _y);
@@ -211,7 +220,7 @@ class Safator : public engine::Layer {
         bool is(int _x, int _y, const ParticleType& _particle);
         bool isSolid(const ParticleType& _type);
 
-        void generateParticles(const Vec2f& _mousePos);
+        void generateParticles(const Vec2i& _mousePos);
         void generateSpecificParticle(const Vec2i& _pos, const ParticleType& _type);
         void writeParticle(int _x, int _y, const Particle& _particle);
         void writeParticle(int _x, int _y,int _vecPos, const Particle& _particle);

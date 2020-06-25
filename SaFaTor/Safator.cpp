@@ -57,9 +57,9 @@ void Safator::onUpdate(engine::Timestep _dt) {
             if(_mousePos >= 0 && _mousePos.x < this->worldTexture->getWidth() && _mousePos.y < this->worldTexture->getHeight()) {
                 if (Input::isMousePressed(MouseCode::Button0)) {
                     if(this->tool == DRAW)
-                        this->generateWithBrush(_mousePos);
+                        this->generateWithBrush({(int)_mousePos.x, (int)_mousePos.y});
                     else if (this->tool == ERASE)
-                        this->removeWithBrush(_mousePos);
+                        this->removeWithBrush({(int)_mousePos.x, (int)_mousePos.y});
                 }
             }
         }
@@ -73,48 +73,14 @@ void Safator::onUpdate(engine::Timestep _dt) {
                     int _pos = _x + _textureWidth * _y;
                     ParticleType _type = this->particles[_pos].type;
                     if(_type == ParticleType::NONE_PARTICLE || this->isSolid(_type) || !this->particles[_pos].canUpdate) continue;
-                    this->particlesUpdating++;
-                    switch (_type) {
-                        case SAND       :
-                        case GUNPOWDER  :
-                        case CRYOGENER  :
-                        case SALT       : this->updateCommonDusts(_x, _y, _pos, _dt);                       break;
-                        case DIRT       : this->updateDirtParticle(_x, _y, _pos, _dt);                      break;
-
-                        case WATER      :
-                        case ACID       : this->updateCommonLiquids(_x, _y, _pos, WATER_SPREAD_RATE, _dt);  break;
-                        case LAVA       : this->updateCommonLiquids(_x, _y, _pos, LAVA_SPREAD_RATE, _dt);   break;
-
-                        case ICE        : this->updateIceParticle(_x, _y, _pos, _dt);                       break;
-                        case FROST      : this->updateFrostParticle(_x, _y, _pos, _dt);                     break;
-
-                        case STEAM      : this->updateCommonGases(_x, _y, _pos, _dt);                       break;
-                        default         :                                                                   break;
-                    }
+                    this->updateAllParticles(_x, _y, _pos, _type, _dt);
                 }
             } else {
                 for (int _x = (int)this->worldTexture->getWidth() - 1; _x > 0; _x--) {
                     int _pos = _x + _textureWidth * _y;
                     ParticleType _type = this->particles[_pos].type;
                     if(_type == ParticleType::NONE_PARTICLE || this->isSolid(_type) || !this->particles[_pos].canUpdate) continue;
-                    this->particlesUpdating++;
-                    switch (_type) {
-                        case SAND       :
-                        case GUNPOWDER  :
-                        case CRYOGENER  :
-                        case SALT       : this->updateCommonDusts(_x, _y, _pos, _dt);                       break;
-                        case DIRT       : this->updateDirtParticle(_x, _y, _pos, _dt);                      break;
-
-                        case WATER      :
-                        case ACID       : this->updateCommonLiquids(_x, _y, _pos, WATER_SPREAD_RATE, _dt);  break;
-                        case LAVA       : this->updateCommonLiquids(_x, _y, _pos, LAVA_SPREAD_RATE, _dt);   break;
-
-                        case ICE        : this->updateIceParticle(_x, _y, _pos, _dt);                       break;
-                        case FROST      : this->updateFrostParticle(_x, _y, _pos, _dt);                     break;
-
-                        case STEAM      : this->updateCommonGases(_x, _y, _pos, _dt);                       break;
-                        default         :                                                                   break;
-                    }
+                    this->updateAllParticles(_x, _y, _pos, _type, _dt);
                 }
             }
         }
@@ -202,6 +168,15 @@ void Safator::initSimulationWorld() {
     this->steamParticle.type        = STEAM;
     this->steamParticle.color       = this->particleTypeToColor(STEAM);
 
+    this->smokeParticle.type        = SMOKE;
+    this->smokeParticle.color       = this->particleTypeToColor(SMOKE);
+
+    this->poisonGParticle.type      = POISON_G;
+    this->poisonGParticle.color     = this->particleTypeToColor(POISON_G);
+
+    this->ashParticle.type          = ASH;
+    this->ashParticle.color         = this->particleTypeToColor(ASH);
+
     this->worldTexture->updateTexture();
 
 }
@@ -233,7 +208,30 @@ bool Safator::onMouseScrolled(MouseScrolledEvent& _e) {
     return true;
 }
 
+void Safator::updateAllParticles(int _x, int _y, int _posInVector, const ParticleType& _type, Timestep _dt) {
 
+    this->particlesUpdating++;
+    switch (_type) {
+        case SAND       :
+        case GUNPOWDER  :
+        case CRYOGENER  :
+        case ASH        :
+        case SALT       : this->updateCommonDusts(_x, _y, _posInVector, _dt);                       break;
+        case DIRT       : this->updateDirtParticle(_x, _y, _posInVector, _dt);                      break;
+
+        case WATER      :
+        case ACID       : this->updateCommonLiquids(_x, _y, _posInVector, WATER_SPREAD_RATE, _dt);  break;
+        case LAVA       : this->updateCommonLiquids(_x, _y, _posInVector, LAVA_SPREAD_RATE, _dt);   break;
+
+        case ICE        : this->updateIceParticle(_x, _y, _posInVector, _dt);                       break;
+        case FROST      : this->updateFrostParticle(_x, _y, _posInVector, _dt);                     break;
+
+        case SMOKE      :
+        case POISON_G   :
+        case STEAM      : this->updateCommonGases(_x, _y, _posInVector, _dt);                       break;
+        default         :                                                                           break;
+    }
+}
 void Safator::updateDirtParticle(int _x, int _y, int _posInVector, Timestep _dt) {
     Particle* _p = &this->particles[_posInVector];
     _p->velocity.y = functions::clamp(_p->velocity.y + (this->weatherConditions[4] * _dt), -this->weatherConditions[4], this->weatherConditions[4] );
@@ -387,9 +385,19 @@ void Safator::handleUnfittedDrops(int _x, int _y, int _vecPos, float _dt) {
         }
 
         if(this->particles[_vecPos].lifeTimer >= this->particles[_vecPos].lifeTime) {
-            this->writeParticle(_x, _y, _vecPos, this->noneParticle);
-            this->drawnPixels--;
-            this->generateSpecificParticle({_x, _y}, STEAM);
+            if(this->particles[_vecPos].type == WATER) {
+                this->writeParticle(_x, _y, _vecPos, this->noneParticle);
+                this->drawnPixels--;
+                this->generateSpecificParticle({_x, _y}, STEAM);
+            } else if(this->particles[_vecPos].type == ACID) {
+                this->writeParticle(_x, _y, _vecPos, this->noneParticle);
+                this->drawnPixels--;
+                this->generateSpecificParticle({_x, _y}, POISON_G);
+            } else if(this->particles[_vecPos].type == LAVA) {
+                this->writeParticle(_x, _y, _vecPos, this->noneParticle);
+                this->drawnPixels--;
+                this->generateSpecificParticle({_x, _y}, SMOKE);
+            }
         }
     }
 }
@@ -425,9 +433,14 @@ void Safator::handleUnfittedGases(int _x, int _y, int _vecPos, float _dt) {
 
         if(this->particles[_vecPos].lifeTimer >= this->particles[_vecPos].lifeTime) {
             if(this->particles[_vecPos].type == STEAM) {
-                this->writeParticle(_x, _y, _vecPos, this->noneParticle);
-                this->drawnPixels--;
+                this->removeParticles({_x, _y});
                 this->generateSpecificParticle({_x, _y}, WATER);
+            } else if(this->particles[_vecPos].type == POISON_G) {
+                this->removeParticles({_x, _y});
+                this->generateSpecificParticle({_x, _y}, ACID);
+            } else if(this->particles[_vecPos].type == SMOKE) {
+                this->removeParticles({_x, _y});
+                this->generateSpecificParticle({_x, _y}, ASH);
             }
         }
     }
@@ -442,9 +455,10 @@ void Safator::updateCommonDusts(int _x, int _y, int _posInVector, Timestep _dt) 
     int _vY = _y - (int)_p->velocity.y;
 
     if(!this->isEmpty(_x, _y - 1)) {
-        if(this->is(_x, _y - 1, WATER))
+        if(this->is(_x, _y - 1, WATER)) {
             _p->velocity.y *= (this->weatherConditions[4]) * 0.05f;
-        else
+            _p->velocity.x = this->random.randomf( -2, 2 );
+        } else
             _p->velocity.y *= 0.5f;
     }
 
@@ -456,7 +470,6 @@ void Safator::updateCommonDusts(int _x, int _y, int _posInVector, Timestep _dt) 
 
     if(isEmpty(_vX, _vY)) {
         _tempB = this->particles[_vX + this->textureWidth * _vY];
-        _tempA.velocity.x = 0;
         this->writeParticle(_vX, _vY, _tempA);
         this->writeParticle(_x, _y, _tempB);
         this->activateNeighbours(_x, _y);
@@ -471,7 +484,8 @@ void Safator::updateCommonDusts(int _x, int _y, int _posInVector, Timestep _dt) 
             int _vecForB = _x + this->textureWidth * (_y - 1);
             _tempB = this->particles[_vecForB];
 
-            if((_inWater = this->is(_x, _y - 1, WATER)) && this->is(_x, _y - 1, CRYOGENER) || this->is(_x, _y - 1, NONE_PARTICLE)) {
+            if((_inWater = this->is(_x, _y - 1, WATER)) || this->is(_x, _y - 1, NONE_PARTICLE)) {
+
                 this->writeParticle(_x, _y - 1, _vecForB, _tempA);
                 this->writeParticle(_x, _y, _posInVector, _tempB);
                 this->activateNeighbours(_x, _y);
@@ -493,8 +507,8 @@ void Safator::updateCommonDusts(int _x, int _y, int _posInVector, Timestep _dt) 
             int _vecForB = (_x - 1) + this->textureWidth * (_y - 1);
             _tempB = this->particles[_vecForB];
 
-            if((_inWater = this->is(_x - 1, _y - 1, WATER)) && this->is(_x - 1, _y - 1, CRYOGENER) || this->is(_x - 1, _y - 1, NONE_PARTICLE)) {
-                _p->velocity.x = this->random.randomi( 0, 1 ) == 0 ? -1.f : 1.f;
+            if((_inWater = this->is(_x - 1, _y - 1, WATER)) || this->is(_x - 1, _y - 1, NONE_PARTICLE)) {
+//                _p->velocity.x = this->random.randomi( 0, 1 ) == 0 ? -1.f : 1.f;
 
                 this->writeParticle(_x - 1, _y - 1, _vecForB, _tempA);
                 this->writeParticle(_x, _y, _posInVector, _tempB);
@@ -518,8 +532,8 @@ void Safator::updateCommonDusts(int _x, int _y, int _posInVector, Timestep _dt) 
             int _vecForB = (_x + 1) + this->textureWidth * (_y - 1);
             _tempB = this->particles[_vecForB];
 
-            if((_inWater = this->is(_x + 1, _y - 1, WATER)) && this->is(_x + 1, _y - 1, CRYOGENER) || this->is(_x + 1, _y - 1, NONE_PARTICLE)) {
-                _p->velocity.x = this->random.randomi( 0, 1 ) == 0 ? -1.f : 1.f;
+            if((_inWater = this->is(_x + 1, _y - 1, WATER)) || this->is(_x + 1, _y - 1, NONE_PARTICLE)) {
+//                _p->velocity.x = this->random.randomi( 0, 1 ) == 0 ? -1.f : 1.f;
 
                 this->writeParticle(_x + 1, _y - 1, _vecForB, _tempA);
                 this->writeParticle(_x, _y, _posInVector, _tempB);
@@ -958,11 +972,13 @@ Color Safator::particleTypeToColor(const Safator::ParticleType& _particle) {
         case OBSIDIAN       : return this->PARTICLE_COLORS[this->random.randomi(28, 30)];
         case CRYOGENER      : return this->PARTICLE_COLORS[this->random.randomi(31, 32)];
         case FROST          : return this->PARTICLE_COLORS[this->random.randomi(33, 34)];
+        case POISON_G       : return this->PARTICLE_COLORS[35];
+        case ASH            : return this->PARTICLE_COLORS[this->random.randomi(36, 37)];
     }
 
     return this->PARTICLE_COLORS[15];
 }
-void Safator::generateWithBrush(const Vec2f& _mousePos) {
+void Safator::generateWithBrush(const Vec2i& _mousePos) {
 
     if(this->drawInfo.brushSize == 1) {
         this->generateParticles(_mousePos);
@@ -990,14 +1006,14 @@ void Safator::generateWithBrush(const Vec2f& _mousePos) {
                         float distanceSquared = dx * dx + dy * dy;
 
                         if (distanceSquared < (float)(this->drawInfo.brushCircleWH * this->drawInfo.brushCircleWH))
-                            this->generateParticles({(float)_x, (float)_y});
+                            this->generateParticles({_x, _y});
                     }
                 }
             }
         }
     }
 }
-void Safator::removeWithBrush(const Vec2f& _mousePos) {
+void Safator::removeWithBrush(const Vec2i& _mousePos) {
     for(int _y = (int)_mousePos.y - (int)(this->circleTexture->getHeight() / 2); _y < (int)_mousePos.y + (int)(this->circleTexture->getHeight() / 2); _y++) {
         for(int _x = (int)_mousePos.x - (int)(this->circleTexture->getWidth() / 2); _x < (int)_mousePos.x + (int)(this->circleTexture->getWidth() / 2); _x++) {
             if(this->isInBounds(_x, _y)) {
@@ -1006,12 +1022,12 @@ void Safator::removeWithBrush(const Vec2f& _mousePos) {
                 float distanceSquared = dx * dx + dy * dy;
 
                 if (distanceSquared < (float)(this->drawInfo.brushCircleWH * this->drawInfo.brushCircleWH) && this->particles[this->calcVecPos(_x, _y)].type != NONE_PARTICLE)
-                    this->removeParticles({(float)_x, (float)_y});
+                    this->removeParticles({_x, _y});
             }
         }
     }
 }
-void Safator::zoomParticles(const Vec2f& _pos) {
+void Safator::zoomParticles(const Vec2i& _pos) {
     auto _io = ImGui::GetIO();
     float _spacing = 8.f;
     ImGui::BeginTooltip();
@@ -1105,7 +1121,7 @@ bool Safator::isFullBrushDrawingParticle(const Safator::ParticleType& _type) {
 }
 
 
-void Safator::generateParticles(const Vec2f& _mousePos) {
+void Safator::generateParticles(const Vec2i& _mousePos) {
     int _posInVector = this->calcVecPos((int)_mousePos.x, (int)_mousePos.y);
     if(this->particles[_posInVector].type == NONE_PARTICLE) {
         switch(this->selectedParticle) {
@@ -1193,22 +1209,42 @@ void Safator::generateParticles(const Vec2f& _mousePos) {
                 break;
             }
 
+            case SMOKE      : {
+                this->particles[_posInVector] = this->smokeParticle;
+                this->particles[_posInVector].color = this->particleTypeToColor(SMOKE);
+                this->particles[_posInVector].lifeTime = this->random.randomf(MIN_STEAM_LIFE, MAX_STEAM_LIFE);
+                break;
+            }
+
+            case POISON_G   : {
+                this->particles[_posInVector] = this->poisonGParticle;
+                this->particles[_posInVector].color = this->particleTypeToColor(POISON_G);
+                this->particles[_posInVector].lifeTime = this->random.randomf(MIN_STEAM_LIFE, MAX_STEAM_LIFE);
+                break;
+            }
+
+            case ASH  : {
+                this->particles[_posInVector] = this->ashParticle;
+                this->particles[_posInVector].color = this->particleTypeToColor(ASH);
+                break;
+            }
+
             default     : { LOG_ERROR("MATERIAL NOT IMPLEMENTED IN GENERATE_PARTICLES"); }
         }
 
-        this->writeParticle((int)_mousePos.x, (int)_mousePos.y, this->particles[_posInVector]);
+        this->writeParticle(_mousePos.x, _mousePos.y, this->particles[_posInVector]);
         this->drawnPixels++;
     }
 }
 void Safator::generateSpecificParticle(const Vec2i& _pos, const Safator::ParticleType& _type) {
     auto _saveType = this->selectedParticle;
     this->selectedParticle = _type;
-    this->generateParticles({(float)_pos.x, (float)_pos.y});
+    this->generateParticles(_pos);
     this->selectedParticle = _saveType;
 }
-void Safator::removeParticles(const Vec2f& _mousePos) {
-    this->writeParticle((int)_mousePos.x, (int)_mousePos.y, this->noneParticle);
-    this->activateNeighbours((int)_mousePos.x, (int)_mousePos.y);
+void Safator::removeParticles(const Vec2i& _mousePos) {
+    this->writeParticle(_mousePos.x, _mousePos.y, this->noneParticle);
+    this->activateNeighbours(_mousePos.x, _mousePos.y);
     this->drawnPixels--;
 }
 
@@ -1252,7 +1288,8 @@ void Safator::imGuiAppWindow(engine::Timestep _dt) {
 //    ImGui::ShowDemoWindow(&_opened);
 
     if (this->tool == ZOOM) {
-        this->zoomParticles(Input::getMousePosition());
+        auto _pos = Input::getMousePosition();
+        this->zoomParticles({(int)_pos.x, (int)_pos.y});
     }
 
     ImGui::Begin("Simulator", nullptr);
@@ -1501,8 +1538,8 @@ void Safator::imGuiMaterials(engine::Timestep _dt) {
 
     /// -------------------------------------- DUSTS
 
-    const char* _dusts[] = {"Dirt", "Gunpowder", "Salt", "Sand"};
-    static const char* _dustSelected = _dusts[3];
+    const char* _dusts[] = {"Ash", "Dirt", "Gunpowder", "Salt", "Sand"};
+    static const char* _dustSelected = _dusts[4];
 
     ImGui::Text("Dusts");
     ImGui::PushID(1);
@@ -1511,7 +1548,9 @@ void Safator::imGuiMaterials(engine::Timestep _dt) {
                 bool is_selected = (_dustSelected == _dust); // You can store your selection however you want, outside or inside your objects
                 if (ImGui::Selectable(_dust, is_selected)) {
                     _dustSelected = _dust;
-                    if(strcmp(_dustSelected, "Dirt") == 0)
+                    if(strcmp(_dustSelected, "Ash") == 0)
+                        this->selectedParticle = ASH;
+                    else if(strcmp(_dustSelected, "Dirt") == 0)
                         this->selectedParticle = DIRT;
                     else if(strcmp(_dustSelected, "Gunpowder") == 0)
                         this->selectedParticle = GUNPOWDER;
@@ -1531,7 +1570,9 @@ void Safator::imGuiMaterials(engine::Timestep _dt) {
         ImGui::SameLine();
 
         if(ImGui::Button("Select")) {
-            if(strcmp(_dustSelected, "Dirt") == 0)
+            if(strcmp(_dustSelected, "Ash") == 0)
+                this->selectedParticle = ASH;
+            else if(strcmp(_dustSelected, "Dirt") == 0)
                 this->selectedParticle = DIRT;
             else if(strcmp(_dustSelected, "Gunpowder") == 0)
                 this->selectedParticle = GUNPOWDER;
@@ -1609,7 +1650,7 @@ void Safator::imGuiMaterials(engine::Timestep _dt) {
 
     /// -------------------------------------- GASES
 
-    const char* _gases[] = {"Gas", "Smoke", "Steam"};
+    const char* _gases[] = {"Gas", "Poison Gas","Smoke", "Steam"};
     static const char* _gasSelected = _gases[0];
 
     ImGui::Text("Gases");
@@ -1621,6 +1662,8 @@ void Safator::imGuiMaterials(engine::Timestep _dt) {
                     _gasSelected = _gas;
                     if(strcmp(_gasSelected, "Gas") == 0)
                         this->selectedParticle = GAS;
+                    else if(strcmp(_gasSelected, "Poison Gas") == 0)
+                        this->selectedParticle = POISON_G;
                     else if(strcmp(_gasSelected, "Smoke") == 0)
                         this->selectedParticle = SMOKE;
                     else if(strcmp(_gasSelected, "Steam") == 0)
@@ -1639,6 +1682,8 @@ void Safator::imGuiMaterials(engine::Timestep _dt) {
         if(ImGui::Button("Select")) {
             if(strcmp(_gasSelected, "Gas") == 0)
                 this->selectedParticle = GAS;
+            else if(strcmp(_gasSelected, "Poison Gas") == 0)
+                this->selectedParticle = POISON_G;
             else if(strcmp(_gasSelected, "Smoke") == 0)
                 this->selectedParticle = SMOKE;
             else if(strcmp(_gasSelected, "Steam") == 0)
@@ -1800,22 +1845,26 @@ float Safator::probValues(const Safator::ParticleType& _firstParticle, const Saf
             return 1.f / 25.f;
         else if(_secondParticle == WATER)           /// IF PROB, STEAM, ELSE HOT CONTAMINATED WATER
             return 1.f / 20.f;
+        else if(_secondParticle == LAVA)
+            return 1.f / 10.f;
     } else if(_firstParticle == WATER) {
         if(_secondParticle == ICE || _secondParticle == SALT)
             return 1.f / 200.f;
-        else if(_secondParticle == SALT)
-            return 1.f / 500.f;
+        else if(_secondParticle == ACID)
+            return probValues(_secondParticle, _firstParticle);
     } else if (_firstParticle == SALT) {
         if(_secondParticle == ICE)
             return 1.f / 100.f;
     } else if(_firstParticle == ICE) {
         if(_secondParticle == WATER)
-        return 1.f / 200.f;
+            return probValues(_secondParticle, _firstParticle);
     } else if(_firstParticle == LAVA) {
         if(_secondParticle == WATER)
             return 1.f / 5.f;
         else if(_secondParticle == ICE)
             return 1.f / 15.f;
+        else if(_secondParticle == ACID)
+            return probValues(_secondParticle, _firstParticle);
     } else if(_firstParticle == CRYOGENER) {
         if(_secondParticle != NONE_PARTICLE)
             return 1.f / 5.f;
@@ -1829,6 +1878,9 @@ float Safator::probValues(const Safator::ParticleType& _firstParticle, const Saf
 Safator::ReactionInfo Safator::reactions(const Vec2i& _posA, const Vec2i& _posB, Safator::Particle& _particleA, Safator::Particle& _particleB) {
 
     ReactionInfo _ri;
+
+    if(_particleB.type == CRYOGENER && _particleA.type != _particleB.type)
+        return this->reactions(_posB, _posA, _particleB, _particleA);
 
     if(_particleA.type == ACID) {
         if(_particleB.type == STONE) {
@@ -1851,6 +1903,12 @@ Safator::ReactionInfo Safator::reactions(const Vec2i& _posA, const Vec2i& _posB,
                     this->writeParticle(_posA.x, _posA.y, this->noneParticle);
                     this->drawnPixels--;
                 }
+            }
+        } else if(_particleB.type == LAVA) {
+            _ri.reactionExists = true;
+            if((_ri.prob = this->random.probability(Safator::probValues(_particleA.type, _particleB.type))).happened) {
+                this->removeParticles({_posA.x, _posA.y});
+                this->generateSpecificParticle({_posA.x, _posA.y}, POISON_G);
             }
         }
     } else if(_particleA.type == WATER) {
@@ -1886,16 +1944,14 @@ Safator::ReactionInfo Safator::reactions(const Vec2i& _posA, const Vec2i& _posB,
         if(_particleB.type == WATER) {
             _ri.reactionExists = true;
             if((_ri.prob = this->random.probability(Safator::probValues(_particleA.type, _particleB.type))).happened) {
-                if(this->random.probability(0.5f).happened) {
-                    this->writeParticle(_posA.x, _posA.y, this->noneParticle);
-                    this->writeParticle(_posB.x, _posB.y, this->noneParticle);
-                    this->drawnPixels -= 2;
+                if(this->random.probability(0.85f).happened) {
+                    this->removeParticles({_posB.x, _posB.y});
                     this->generateSpecificParticle({_posB.x, _posB.y}, STEAM);
                 } else {
-                    this->writeParticle(_posA.x, _posA.y, this->noneParticle);
-                    this->writeParticle(_posB.x, _posB.y, this->noneParticle);
-                    this->drawnPixels -= 2;
-                    this->generateSpecificParticle({_posB.x, _posB.y}, OBSIDIAN);
+                    this->removeParticles({_posB.x, _posB.y});
+                    this->removeParticles({_posA.x, _posA.y});
+                    this->generateSpecificParticle({_posA.x, _posA.y}, OBSIDIAN);
+                    this->generateSpecificParticle({_posB.x, _posB.y}, STEAM);
                 }
             }
         } else if(_particleB.type == ICE) {

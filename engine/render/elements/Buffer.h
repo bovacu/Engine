@@ -70,7 +70,7 @@ namespace engine {
             uint32_t stride = 0;
 
         public:
-            BufferLayout() {}
+            BufferLayout() = default;
 
             BufferLayout(const std::initializer_list<BufferElement>& _elements)
                     : elements(_elements) { this->calculateOffsetsAndStride(); }

@@ -36,7 +36,7 @@ namespace engine {
 
             // Primitives
             static void drawRect(const Vec2f& _position, const Size& _size, const Color& _color);
-            static void drawTextureRect(const Vec2f& _position, const Size& _size, const std::shared_ptr<Texture2D>& _texture, float _tilingFactor = 1.0f, const glm::vec4& _tintColor = glm::vec4(1.0f));
+            static void drawTextureRect(const Vec2f& _position, const Size& _size, const Texture2DPtr& _texture, float _tilingFactor = 1.0f, const glm::vec4& _tintColor = glm::vec4(1.0f));
             static void drawRotatedRect(const Vec2f& _position, const Size& _size, float rotation, const Color& _color);
             static void drawRotatedTextureRect(const Vec2f& _position, const Size& _size, float rotation, const Texture2DPtr& _texture, float _tilingFactor = 1.0f, const glm::vec4& _tintColor = glm::vec4(1.0f));
             static void draw(const GameObjectPtr& _gameObject, float _tilingFactor = 1.0f, const glm::vec4& _tintColor = glm::vec4(1.0f));

@@ -6,7 +6,6 @@
 #include <engine/render/RenderCommand.h>
 
 #include <glm/gtc/matrix_transform.hpp>
-#include <engine/main/Application.h>
 
 namespace engine {
 
