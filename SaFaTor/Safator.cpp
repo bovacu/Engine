@@ -87,6 +87,8 @@ void Safator::onUpdate(engine::Timestep _dt) {
 
                         case ICE        : this->updateIceParticle(_x, _y, _pos, _dt);                       break;
                         case FROST      : this->updateFrostParticle(_x, _y, _pos, _dt);                     break;
+
+                        case STEAM      : this->updateCommonGases(_x, _y, _pos, _dt);                       break;
                         default         :                                                                   break;
                     }
                 }
@@ -109,6 +111,8 @@ void Safator::onUpdate(engine::Timestep _dt) {
 
                         case ICE        : this->updateIceParticle(_x, _y, _pos, _dt);                       break;
                         case FROST      : this->updateFrostParticle(_x, _y, _pos, _dt);                     break;
+
+                        case STEAM      : this->updateCommonGases(_x, _y, _pos, _dt);                       break;
                         default         :                                                                   break;
                     }
                 }
@@ -194,6 +198,9 @@ void Safator::initSimulationWorld() {
 
     this->frostParticle.type        = FROST;
     this->frostParticle.color       = this->particleTypeToColor(FROST);
+
+    this->steamParticle.type        = STEAM;
+    this->steamParticle.color       = this->particleTypeToColor(STEAM);
 
     this->worldTexture->updateTexture();
 
@@ -293,12 +300,6 @@ void Safator::updateDirtParticle(int _x, int _y, int _posInVector, Timestep _dt)
     }
 }
 void Safator::updateIceParticle(int _x, int _y, int _posInVector, Timestep _dt) {
-//    bool _left = this->isInBounds(_x - 1, _y) && !this->is(_x - 1, _y, ICE);
-//    bool _right = this->isInBounds(_x + 1, _y) && !this->is(_x + 1, _y, ICE);
-//    bool _up = this->isInBounds(_x, _y + 1) && !this->is(_x, _y + 1, ICE);
-//    bool _down = this->isInBounds(_x, _y - 1) && !this->is(_x, _y - 1, ICE);
-//    this->particles[this->calcVecPos(_x, _y)].canUpdate = _left || _right || _up || _down;
-
     Particle* _p = &this->particles[this->calcVecPos(_x, _y)];
     bool _down = this->isInBounds(_x, _y - 1) && this->is(_x, _y - 1, WATER);
 
@@ -378,7 +379,57 @@ void Safator::handleUnfittedDrops(int _x, int _y, int _vecPos, float _dt) {
             this->drawnPixels--;
         }
     } else if (this->whatToDoWithUnfittingDrops == 1){
-        LOG_INFO("EVAPORATING NOT IMPLEMENTED YET");
+        if(this->particles[_vecPos].lastHeight == _y)
+            this->particles[_vecPos].lifeTimer += _dt;
+        else {
+            this->particles[_vecPos].lastHeight = _y;
+            this->particles[_vecPos].lifeTimer = 0.0f;
+        }
+
+        if(this->particles[_vecPos].lifeTimer >= this->particles[_vecPos].lifeTime) {
+            this->writeParticle(_x, _y, _vecPos, this->noneParticle);
+            this->drawnPixels--;
+            this->generateSpecificParticle({_x, _y}, STEAM);
+        }
+    }
+}
+void Safator::handleUnfittedGases(int _x, int _y, int _vecPos, float _dt) {
+
+    if(_y >= this->textureHeight - 1) {
+        this->writeParticle(_x, _y, _vecPos, this->noneParticle);
+        this->drawnPixels--;
+    }
+
+    if(this->whatToDoWithUnfittingGas == 2)
+        return;
+
+    if (this->whatToDoWithUnfittingGas == 0) {
+        if(this->particles[_vecPos].lastHeight == _y)
+            this->particles[_vecPos].lifeTimer += _dt;
+        else {
+            this->particles[_vecPos].lastHeight = _y;
+            this->particles[_vecPos].lifeTimer = 0.0f;
+        }
+
+        if(this->particles[_vecPos].lifeTimer >= this->particles[_vecPos].lifeTime) {
+            this->writeParticle(_x, _y, _vecPos, this->noneParticle);
+            this->drawnPixels--;
+        }
+    } else if (this->whatToDoWithUnfittingGas == 1){
+        if(this->particles[_vecPos].lastHeight == _y) {
+            this->particles[_vecPos].lifeTimer += _dt;
+        } else {
+            this->particles[_vecPos].lastHeight = _y;
+            this->particles[_vecPos].lifeTimer = 0.0f;
+        }
+
+        if(this->particles[_vecPos].lifeTimer >= this->particles[_vecPos].lifeTime) {
+            if(this->particles[_vecPos].type == STEAM) {
+                this->writeParticle(_x, _y, _vecPos, this->noneParticle);
+                this->drawnPixels--;
+                this->generateSpecificParticle({_x, _y}, WATER);
+            }
+        }
     }
 }
 
@@ -682,7 +733,180 @@ void Safator::updateCommonLiquids(int _x, int _y, int _posInVector, int _spreadR
     }
 }
 void Safator::updateCommonGases(int _x, int _y, int _posInVector, Timestep _dt) {
+    Particle* _p = &this->particles[_posInVector];
+    if(!_p->updatedThisFrame) {
+        _p->updatedThisFrame = true;
+        int _spreadRate = 3;
+        int _sign = this->random.randomi(0, 1) == 0 ? -1 : 1;
+        _p->velocity.x = this->random.randomf(-5, 5);
+        _p->velocity.y = functions::clamp(_p->velocity.y + (this->weatherConditions[4] * _dt), -this->weatherConditions[4], this->weatherConditions[4] );
 
+        int _vX = _x + (int)_p->velocity.x;
+        int _vY = _y + (int)_p->velocity.y;
+
+        if(!this->isEmpty(_x, _y + 1))
+            _p->velocity.y *= 0.5f;
+
+        Particle _tempA = *_p;
+        ReactionInfo _ri;
+        bool _reactionReallyExists = false;
+
+        Particle _tempB;
+        if(isEmpty(_vX, _vY)) {
+            int _pos = this->calcVecPos(_vX, _vY);
+            _tempB = this->particles[_pos];
+            this->writeParticle(_vX, _vY, _tempA);
+            this->writeParticle(_x, _y, _tempB);
+
+            this->handleUnfittedGases(_vX, _vY, _pos, _dt);
+            this->activateNeighbours(_x, _y);
+            this->activateNeighbours(_vX, _vY);
+        } else {
+
+            int _up = this->calcVecPos(_x, _y + 1);
+
+            int _firstMovement  = this->calcVecPos(_x + _sign, _y);
+            int _secondMovement = this->calcVecPos(_x - _sign, _y);
+
+            int _firstDownMovement  = this->calcVecPos(_x + _sign, _y + 1);
+            int _secondDownMovement = this->calcVecPos(_x - _sign, _y + 1);
+
+            /// Up
+            if(this->isInBounds(_x, _y + 1)) {
+                _tempB = this->particles[_up];
+                if((this->particles[_up].type == NONE_PARTICLE || !this->isFullBrushDrawingParticle(this->particles[_up].type))
+                && !this->is(_x, _y + 1, this->particles[_posInVector].type)) {
+                    this->writeParticle(_x, _y + 1, _tempA);
+                    this->writeParticle(_x, _y, _tempB);
+
+                    this->handleUnfittedGases(_x, _y + 1, _up, _dt);
+                    this->activateNeighbours(_x, _y);
+                    this->activateNeighbours(_x, _y + 1);
+
+                    return;
+                } else {
+                    _ri = this->reactions({_x, _y}, {_x, _y + 1}, _tempA, _tempB);
+                    _reactionReallyExists |= _ri.reactionExists;
+                    if (_ri.prob.happened) {
+                        this->activateNeighbours(_x, _y);
+                        return;
+                    }
+                }
+            }
+
+            /// Up-Right OR Up-Left
+            if (this->isInBounds(_x + _sign, _y + 1)) {
+            _tempB = this->particles[_firstDownMovement];
+
+            if((_tempB.type == NONE_PARTICLE  || !this->isFullBrushDrawingParticle(this->particles[_firstDownMovement].type))
+                && !this->is(_x + _sign, _y + 1, this->particles[_posInVector].type)) {
+                _tempB = this->particles[_firstDownMovement];
+
+                this->writeParticle(_x + _sign, _y + 1, _tempA);
+                this->writeParticle(_x, _y, _tempB);
+
+                this->handleUnfittedGases(_x + _sign, _y + 1, _firstDownMovement, _dt);
+                this->activateNeighbours(_x, _y);
+
+                return;
+            } else {
+                _ri = this->reactions({_x, _y}, {_x + _sign, _y + 1}, _tempA, _tempB);
+                _reactionReallyExists |= _ri.reactionExists;
+                if(_ri.prob.happened) {
+                    this->activateNeighbours(_x, _y);
+                    return;
+                }
+            }
+        }
+
+            /// Up-Right OR Up-Left
+            if (this->isInBounds(_x - _sign, _y + 1)) {
+                _tempB = this->particles[_secondDownMovement];
+
+                if((_tempB.type == NONE_PARTICLE || !this->isFullBrushDrawingParticle(this->particles[_secondDownMovement].type))
+                && !this->is(_x - _sign, _y + 1, this->particles[_posInVector].type)) {
+
+                    _tempB = this->particles[_secondDownMovement];
+
+                    this->writeParticle(_x - _sign, _y + 1, _tempA);
+                    this->writeParticle(_x, _y, _tempB);
+
+                    this->handleUnfittedGases(_x - _sign, _y + 1, _secondDownMovement, _dt);
+                    this->activateNeighbours(_x, _y);
+
+                    return;
+                } else {
+                    _ri = this->reactions({_x, _y}, {_x - _sign, _y + 1}, _tempA, _tempB);
+                    _reactionReallyExists |= _ri.reactionExists;
+                    if(_ri.prob.happened) {
+                        this->activateNeighbours(_x, _y);
+                        return;
+                    }
+                }
+            }
+
+            /// Left OR Right
+            if (this->isInBounds(_x + _sign, _y)) {
+                _tempB = this->particles[_firstMovement];
+
+                if((this->particles[_firstMovement].type == NONE_PARTICLE || !this->isFullBrushDrawingParticle(this->particles[_firstMovement].type))
+                && !this->is(_x + _sign, _y, this->particles[_posInVector].type)) {
+
+                    _tempB = this->particles[_firstMovement];
+
+                    this->writeParticle(_x + _sign, _y, _tempA);
+                    this->writeParticle(_x, _y, _tempB);
+
+                    this->handleUnfittedGases(_x + _sign, _y, _firstMovement, _dt);
+                    this->activateNeighbours(_x, _y);
+
+                    return;
+                } else {
+                    _ri = this->reactions({_x, _y}, {_x + _sign, _y}, _tempA, _tempB);
+                    _reactionReallyExists |= _ri.reactionExists;
+                    if(_ri.prob.happened) {
+                        this->activateNeighbours(_x, _y);
+                        return;
+                    }
+                }
+            }
+
+            /// Left OR Right
+            if (this->isInBounds(_x - _sign, _y)) {
+                _tempB = this->particles[_secondMovement];
+
+                if((this->particles[_secondMovement].type == NONE_PARTICLE || !this->isFullBrushDrawingParticle(this->particles[_secondMovement].type))
+                && !this->is(_x - _sign, _y, this->particles[_posInVector].type)) {
+                    _tempB = this->particles[_secondMovement];
+
+                    this->writeParticle(_x - _sign, _y, _tempA);
+                    this->writeParticle(_x, _y, _tempB);
+
+                    this->handleUnfittedGases(_x - _sign, _y, _secondMovement, _dt);
+                    this->activateNeighbours(_x, _y);
+
+                    return;
+                } else {
+                    _ri = this->reactions({_x, _y}, {_x - _sign, _y}, _tempA, _tempB);
+                    _reactionReallyExists |= _ri.reactionExists;
+                    if(_ri.prob.happened) {
+                        this->activateNeighbours(_x, _y);
+                        return;
+                    }
+                }
+            }
+
+            this->handleUnfittedGases(_x, _y, _posInVector, _dt);
+
+            if(!_reactionReallyExists) {
+                if(this->whatToDoWithUnfittingGas != 1)
+                    _p->canUpdate = false;
+                _p->velocity = {0.0f, 0.0f};
+            }
+        }
+    } else {
+        _p->updatedThisFrame = false;
+    }
 }
 
 
@@ -885,6 +1109,11 @@ void Safator::generateParticles(const Vec2f& _mousePos) {
     int _posInVector = this->calcVecPos((int)_mousePos.x, (int)_mousePos.y);
     if(this->particles[_posInVector].type == NONE_PARTICLE) {
         switch(this->selectedParticle) {
+            case NONE_PARTICLE : {
+                this->particles[_posInVector] = this->noneParticle;
+                this->particles[_posInVector].color = this->particleTypeToColor(NONE_PARTICLE);
+                break;
+            }
             case SAND       : {
                 this->particles[_posInVector] = this->sandParticle;
                 this->particles[_posInVector].color = this->particleTypeToColor(SAND);
@@ -954,6 +1183,13 @@ void Safator::generateParticles(const Vec2f& _mousePos) {
             case FROST      : {
                 this->particles[_posInVector] = this->frostParticle;
                 this->particles[_posInVector].color = this->particleTypeToColor(FROST);
+                break;
+            }
+
+            case STEAM      : {
+                this->particles[_posInVector] = this->steamParticle;
+                this->particles[_posInVector].color = this->particleTypeToColor(STEAM);
+                this->particles[_posInVector].lifeTime = this->random.randomf(MIN_STEAM_LIFE, MAX_STEAM_LIFE);
                 break;
             }
 
@@ -1171,6 +1407,15 @@ void Safator::imGuiConditions(engine::Timestep _dt) {
     ImGui::RadioButton("Remove", &this->whatToDoWithUnfittingDrops, 0);
     ImGui::RadioButton("Evaporate", &this->whatToDoWithUnfittingDrops, 1);
     ImGui::RadioButton("Live", &this->whatToDoWithUnfittingDrops, 2);
+    ImGui::Unindent(30.f);
+
+    ImGui::Separator();
+
+    ImGui::Text("Unfitted Gases");
+    ImGui::Indent(30.f);
+    ImGui::RadioButton("Remove", &this->whatToDoWithUnfittingGas, 0);
+    ImGui::RadioButton("Condensate", &this->whatToDoWithUnfittingGas, 1);
+    ImGui::RadioButton("Live", &this->whatToDoWithUnfittingGas, 2);
     ImGui::Unindent(30.f);
 }
 void Safator::imGuiWeather(engine::Timestep _dt) {
@@ -1568,7 +1813,7 @@ float Safator::probValues(const Safator::ParticleType& _firstParticle, const Saf
         return 1.f / 200.f;
     } else if(_firstParticle == LAVA) {
         if(_secondParticle == WATER)
-            return 1.f;
+            return 1.f / 5.f;
         else if(_secondParticle == ICE)
             return 1.f / 15.f;
     } else if(_firstParticle == CRYOGENER) {
@@ -1581,7 +1826,7 @@ float Safator::probValues(const Safator::ParticleType& _firstParticle, const Saf
 
     return 0.0f;
 }
-Safator::ReactionInfo Safator::reactions(const Vec2i& _posA, const Vec2i& _posB, Safator::Particle& _particleA, const Safator::Particle& _particleB) {
+Safator::ReactionInfo Safator::reactions(const Vec2i& _posA, const Vec2i& _posB, Safator::Particle& _particleA, Safator::Particle& _particleB) {
 
     ReactionInfo _ri;
 
@@ -1591,7 +1836,18 @@ Safator::ReactionInfo Safator::reactions(const Vec2i& _posA, const Vec2i& _posB,
             if((_ri.prob = this->random.probability(Safator::probValues(_particleA.type, _particleB.type))).happened) {
                 this->writeParticle(_posB.x, _posB.y, this->noneParticle);
                 this->drawnPixels--;
-                if(this->random.randomf(0.0f, 1.0f) >= 0.85f) {
+                if(this->random.probability(0.15f).happened) {
+                    this->writeParticle(_posA.x, _posA.y, this->noneParticle);
+                    this->drawnPixels--;
+                }
+            }
+        } else if(_particleB.type == WATER) {
+            _ri.reactionExists = true;
+            if((_ri.prob = this->random.probability(Safator::probValues(_particleA.type, _particleB.type))).happened) {
+                this->writeParticle(_posB.x, _posB.y, this->noneParticle);
+                this->generateSpecificParticle({_posB.x, _posB.y}, STEAM);
+                this->drawnPixels--;
+                if(this->random.probability(0.35f).happened) {
                     this->writeParticle(_posA.x, _posA.y, this->noneParticle);
                     this->drawnPixels--;
                 }
@@ -1608,6 +1864,8 @@ Safator::ReactionInfo Safator::reactions(const Vec2i& _posA, const Vec2i& _posB,
             if((_ri.prob = this->random.probability(Safator::probValues(_particleA.type, _particleB.type))).happened) {
                 this->writeParticle(_posB.x, _posB.y, this->waterParticle);
             }
+        } else if(_particleB.type == LAVA || _particleB.type == ACID) {
+            return this->reactions(_posB, _posA, _particleB, _particleA);
         }
     } else if(_particleA.type == SALT) {
         if(_particleB.type == ICE) {
@@ -1628,10 +1886,17 @@ Safator::ReactionInfo Safator::reactions(const Vec2i& _posA, const Vec2i& _posB,
         if(_particleB.type == WATER) {
             _ri.reactionExists = true;
             if((_ri.prob = this->random.probability(Safator::probValues(_particleA.type, _particleB.type))).happened) {
-                this->writeParticle(_posA.x, _posA.y, this->noneParticle);
-                this->writeParticle(_posB.x, _posB.y, this->noneParticle);
-                this->drawnPixels -= 2;
-                this->generateSpecificParticle({_posB.x, _posB.y}, OBSIDIAN);
+                if(this->random.probability(0.5f).happened) {
+                    this->writeParticle(_posA.x, _posA.y, this->noneParticle);
+                    this->writeParticle(_posB.x, _posB.y, this->noneParticle);
+                    this->drawnPixels -= 2;
+                    this->generateSpecificParticle({_posB.x, _posB.y}, STEAM);
+                } else {
+                    this->writeParticle(_posA.x, _posA.y, this->noneParticle);
+                    this->writeParticle(_posB.x, _posB.y, this->noneParticle);
+                    this->drawnPixels -= 2;
+                    this->generateSpecificParticle({_posB.x, _posB.y}, OBSIDIAN);
+                }
             }
         } else if(_particleB.type == ICE) {
             _ri.reactionExists = true;

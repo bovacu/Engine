@@ -9,6 +9,8 @@
 #define INFINITE_LIFE_TIME -1.f
 #define MAX_WATER_LIFE      8.f
 #define MIN_WATER_LIFE      4.f
+#define MAX_STEAM_LIFE      6.f
+#define MIN_STEAM_LIFE      4.f
 
 #define WATER_SPREAD_RATE   3
 #define ACID_SPREAD_RATE    3
@@ -36,6 +38,7 @@ class Safator : public engine::Layer {
             Color color = {   0,   0,   0,   0 };
             ParticleType type = NONE_PARTICLE;
             bool canUpdate = true;
+            bool updatedThisFrame = false;
             float lifeTimer = 0.0f;
             float lifeTime = INFINITE_LIFE_TIME;
             int lastHeight = 0;
@@ -88,7 +91,9 @@ class Safator : public engine::Layer {
 
         engine::Random                          random;
 
-        int                                     whatToDoWithUnfittingDrops = 0; /// 0 = leave them alone, 1 = remove them, 2 = evaporate them
+        int                                     whatToDoWithUnfittingDrops = 0; /// 0 = remove them, 1 = evaporate them, 2 = leave them alone
+        int                                     whatToDoWithUnfittingGas = 1;   /// 0 = remove them, 1 = condensate them, 2 = leave them alone
+
         int                                     particlesUpdating = 0;
         int                                     particlesInSecond = 0;
         float                                   particlesUpdateTimer = 0.0f;
@@ -105,7 +110,8 @@ class Safator : public engine::Layer {
                                                 lavaParticle,
                                                 obsidianParticle,
                                                 cryoParticle,
-                                                frostParticle;
+                                                frostParticle,
+                                                steamParticle;
 
         int                                     textureWidth,
                                                 textureHeight;
@@ -174,6 +180,7 @@ class Safator : public engine::Layer {
         void updateIceParticle(int _x, int _y, int _posInVector, Timestep _dt);
         void updateFrostParticle(int _x, int _y, int _posInVector, Timestep _dt);
         void handleUnfittedDrops(int _x, int _y, int _vecPos, float _dt);
+        void handleUnfittedGases(int _x, int _y, int _vecPos, float _dt);
 
         void updateCommonDusts(int _x, int _y, int _posInVector, Timestep _dt);
         void updateCommonLiquids(int _x, int _y, int _posInVector, int _spreadRate, Timestep _dt);
@@ -220,7 +227,7 @@ class Safator : public engine::Layer {
         void imGuiWorldSizePopUp(engine::Timestep _dt);
 
         static float probValues(const ParticleType& _firstParticle, const ParticleType& _secondParticle);
-        ReactionInfo reactions(const Vec2i& _posA, const Vec2i& _posB, Particle& _particleA, const Particle& _particleB);
+        ReactionInfo reactions(const Vec2i& _posA, const Vec2i& _posB, Particle& _particleA, Particle& _particleB);
 
         void generateCircleTexture();
         void circleMidPoints(const Vec2i& _center, int _radius, const Color& _color);
