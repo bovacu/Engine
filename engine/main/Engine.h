@@ -26,6 +26,7 @@
 #include <engine/event/MouseEvent.h>
 
 #include <engine/render/elements/VertexArray.h>
+#include <engine/render/elements/FrameBuffer.h>
 #include <engine/render/elements/Shader.h>
 #include <engine/render/elements/Texture.h>
 

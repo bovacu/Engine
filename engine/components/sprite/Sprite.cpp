@@ -15,7 +15,7 @@ namespace engine {
     , texture(_texture) {
         this->position = _gameObject->transform.position;
         this->rotation = _gameObject->transform.rotation;
-        this->size = Size(_texture->getSize().width, _texture->getSize().height);
+        this->size = { _texture->getSize().width, _texture->getSize().height };
     }
 
     void Sprite::update(float _dt) {

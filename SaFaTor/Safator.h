@@ -33,6 +33,12 @@ class Safator : public engine::Layer {
         };
         enum Tool { DRAW, ERASE, ZOOM };
 
+        struct mapInfo {
+            uint32_t width, height;
+            uint32_t numberOfComponents;
+            void* pixels;
+        };
+
         struct Particle {
             Vec2f velocity  {0.0f, 0.0f};
             Color color = {   0,   0,   0,   0 };
@@ -64,6 +70,7 @@ class Safator : public engine::Layer {
     private:
         engine::OrthographicCameraController    cameraController;
         Color                                   backgroundColor = Color::Black;
+        engine::FrameBufferPtr                  frameBuffer;
 
         Texture2DPtr                            worldTexture,
                                                 circleTexture;
@@ -115,7 +122,8 @@ class Safator : public engine::Layer {
                                                 smokeParticle,
                                                 poisonGParticle,
                                                 ashParticle,
-                                                gasParticle;
+                                                gasParticle,
+                                                fireParticle;
 
         int                                     textureWidth,
                                                 textureHeight;
@@ -172,7 +180,7 @@ class Safator : public engine::Layer {
 
     public:
         Safator();
-        ~Safator() override = default;
+        ~Safator()                                  override = default;
 
         void onInit()                               override;
         void onEvent(engine::Event& _e)             override;
@@ -234,6 +242,8 @@ class Safator : public engine::Layer {
         void imGuiMaterials(engine::Timestep _dt);
         void imGuiSettings(engine::Timestep _dt);
         void imGuiWorldSizePopUp(engine::Timestep _dt);
+        void imGuiSaveWorld(engine::Timestep _dt);
+        void imGuiLoadWorld(engine::Timestep _dt);
 
         static float probValues(const ParticleType& _firstParticle, const ParticleType& _secondParticle);
         ReactionInfo reactions(const Vec2i& _posA, const Vec2i& _posB, Particle& _particleA, Particle& _particleB);
@@ -242,6 +252,9 @@ class Safator : public engine::Layer {
         void circleMidPoints(const Vec2i& _center, int _radius, const Color& _color);
         void circlePoints(const Vec2i& _center, const Vec2i& _pos, const Color& _color);
         Vec2i randomPointInsideCircle(const Vec2i& _mousePos, int _radius);
+
+        void saveWorld(const std::string& _worldName);
+        void loadWorld(const std::string& _worldName);
 };
 
 #endif //TEST_GAME_H

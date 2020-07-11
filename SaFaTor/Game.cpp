@@ -1,15 +1,15 @@
-#include "engine/main/Engine.h"
-#include "engine/main/EngineExecuter.h"
-
-#include "Safator.h"
-
-class Test : public engine::Application {
-    public:
-        Test() { engine::Application::pushLayer(new Safator()); }
-        ~Test() {  }
-};
-
-engine::Application* engine::createApplication() {
-    return new Test();
-}
+//#include "engine/main/Engine.h"
+//#include "engine/main/EngineExecuter.h"
+//
+//#include "Safator.h"
+//
+//class Game : public engine::Application {
+//    public:
+//        Game() { engine::Application::pushLayer(new Safator()); }
+//        ~Game() {  }
+//};
+//
+//engine::Application* engine::createApplication() {
+//    return new Game();
+//}
 

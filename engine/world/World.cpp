@@ -113,7 +113,7 @@ namespace engine {
         if(this->debuggingFunction != nullptr) {
 //            this->debuggingFunction(_batch);
         } else {
-            Render2D::beginRender(_camera);
+            Render2D::beginDraw(_camera);
                 for(auto& _object : this->objects) {
                     auto _colliders = _object->getComponentsOfType<Collider>();
                     for(auto& _collider : _colliders) {
@@ -124,7 +124,7 @@ namespace engine {
                             Render2D::drawRect(_collider->gameObject->transform.position, _collider->size, {0, 255, 0, 75});
                     }
                 }
-            Render2D::endRender();
+            Render2D::endDraw();
         }
     }
 

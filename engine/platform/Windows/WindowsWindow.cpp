@@ -160,6 +160,13 @@ namespace engine {
             MouseMovedEvent _event((float)_xPos, (float)_yPos);
             _data.eventCallback(_event);
         });
+
+        glfwSetWindowIconifyCallback(this->window, [](GLFWwindow* _window, int _iconified) {
+            WindowData& _data = *(WindowData*)glfwGetWindowUserPointer(_window);
+
+            WindowMinimizedEvent _event(_iconified);
+            _data.eventCallback(_event);
+        });
     }
 
     void WindowsWindow::setWindowSize(int _width, int _height) {

@@ -1,8 +1,6 @@
 #include "pch.h"
 #include "TextureRegion.h"
 
-#include <utility>
-
 namespace engine {
 
     TextureRegion::TextureRegion(const Texture2DPtr& _texture, const Vec2f &_bottomLeft, const Vec2f &_topRight, const Size& _size)

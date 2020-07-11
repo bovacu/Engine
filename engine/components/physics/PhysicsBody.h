@@ -104,7 +104,7 @@ namespace engine {
         public:
             Vec2f position;
 
-            Vec2f velocity, gaolVelocity;
+            Vec2f velocity, goalVelocity;
             Vec2f acceleration;
             float angularSpeed;
             float mass;

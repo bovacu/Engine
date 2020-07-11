@@ -27,6 +27,8 @@ void Safator::onInit() {
     this->zoomTexture       = engine::ImGuiTexture2D::create("assets/textures/buscar.png");
 
     this->generateCircleTexture();
+
+    this->frameBuffer = engine::FrameBuffer::create({(uint32_t)this->app.getWindowSize().x, (uint32_t)this->app.getWindowSize().y});
 }
 void Safator::onEvent(engine::Event& _e) {
     this->cameraController.onEvent(_e);
@@ -91,20 +93,27 @@ void Safator::onUpdate(engine::Timestep _dt) {
 void Safator::onFixedUpdate(engine::Timestep _dt) {
 }
 void Safator::onRender(engine::Timestep _dt) {
+//    this->frameBuffer->bind();
+
     engine::Render2D::resetStats();
     engine::RenderCommand::setClearColor(this->backgroundColor);
     engine::RenderCommand::clear();
 
-    engine::Render2D::beginRender(this->cameraController.getCamera());
+    engine::Render2D::beginDraw(this->cameraController.getCamera());
 
-        engine::Render2D::drawTextureRect({0.0f, 0.0f},
-                                          {(float)this->worldTexture->getWidth(), (float)this->worldTexture->getHeight()}, this->worldTexture);
+    engine::Render2D::drawTexture({0.0f, 0.0f},
+                                  {(float) this->worldTexture->getWidth(), (float) this->worldTexture->getHeight()},
+                                  this->worldTexture);
 
 
-        engine::Render2D::drawTextureRect({Input::getMouseX() - this->app.getWindowSize().x / 2, Input::getMouseY() - this->app.getWindowSize().y / 2},
-                {(float)this->circleTexture->getWidth(), (float)this->circleTexture->getHeight()}, this->circleTexture);
+    engine::Render2D::drawTexture({Input::getMouseX() - this->app.getWindowSize().x / 2,
+                                   Input::getMouseY() - this->app.getWindowSize().y / 2},
+                                  {(float) this->circleTexture->getWidth(), (float) this->circleTexture->getHeight()},
+                                  this->circleTexture);
 
-    engine::Render2D::endRender();
+    engine::Render2D::endDraw();
+
+//    this->frameBuffer->unbind();
 }
 void Safator::onImGuiRender(engine::Timestep _dt) {
     this->imGuiAppWindow(_dt);
@@ -476,7 +485,6 @@ void Safator::updateCommonDusts(int _x, int _y, int _posInVector, Timestep _dt) 
         this->activateNeighbours(_vX, _vY);
 
     } else {
-
         /// Down
         bool _inWater = false;
         if(this->isInBounds(_x, _y - 1)) {
@@ -1837,6 +1845,12 @@ void Safator::imGuiWorldSizePopUp(engine::Timestep _dt) {
         ImGui::EndPopup();
     }
 }
+void Safator::imGuiSaveWorld(engine::Timestep _dt) {
+
+}
+void Safator::imGuiLoadWorld(engine::Timestep _dt) {
+
+}
 
 
 float Safator::probValues(const Safator::ParticleType& _firstParticle, const Safator::ParticleType& _secondParticle) {
@@ -1957,10 +1971,8 @@ Safator::ReactionInfo Safator::reactions(const Vec2i& _posA, const Vec2i& _posB,
         } else if(_particleB.type == ICE) {
             _ri.reactionExists = true;
             if((_ri.prob = this->random.probability(Safator::probValues(_particleA.type, _particleB.type))).happened) {
-                this->writeParticle(_posA.x, _posA.y, this->noneParticle);
-                this->writeParticle(_posB.x, _posB.y, this->noneParticle);
-                this->drawnPixels -= 2;
-                this->generateSpecificParticle({_posB.x, _posB.y}, OBSIDIAN);
+                this->removeParticles({_posB.x, _posB.y});
+                this->generateSpecificParticle({_posB.x, _posB.y}, WATER);
             }
         }
     } else if(_particleA.type == CRYOGENER) {
@@ -2114,4 +2126,11 @@ Vec2i Safator::randomPointInsideCircle(const Vec2i& _mousePos, int _radius) {
     float _a = this->random.randomf(0, 1);
     float _b = this->random.randomf(0, 1);
     return {(int)(_b * (float)_radius * cos( 2 * PI * _a / _b)), (int)(_b * (float)_radius * sin(2 * PI * _a / _b))};
+}
+
+void Safator::saveWorld(const std::string& _worldName) {
+
+}
+void Safator::loadWorld(const std::string& _worldName) {
+
 }

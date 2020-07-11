@@ -10,7 +10,7 @@ namespace engine {
     enum class EventType {
         None, WindowClosed, WindowResized, WindowMoved, WindowFocused, WindowLostFocus, GameFrame, GameUpdate,
         GameRender, KeyPressed, KeyDown, KeyReleased, KeyTyped, MouseButtonPressed, MouseButtonDown, MouseButtonReleased,
-        MouseScrolled, MouseMoved
+        MouseScrolled, MouseMoved, WindowMinimized
     };
 
     enum EventCategory {

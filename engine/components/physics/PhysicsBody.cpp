@@ -11,6 +11,8 @@ namespace engine {
 
     PhysicsBody::PhysicsBody(GameObject* _gameObject, const Vec2f& _position, const BodyType& _bodyType, const Vec2f& _gravity, const MovementType& _movementType) :
     Component(_gameObject, ComponentType::PHYSICS_BODY), position(_position), gravity(_gravity), bodyType(_bodyType), movementType(_movementType) {
+        this->goalVelocity = {0, 0};
+        this->velocity = {0, 0};
         this->angularSpeed = 50;
         this->gravity = {0, -5};
     }
@@ -20,8 +22,8 @@ namespace engine {
             this->position.x += this->velocity.x * _dt;
             this->position.y += this->velocity.y * _dt;
         } else if(this->movementType == MovementType::APPROACH) {
-            this->velocity.x = this->approach(this->gaolVelocity.x, this->velocity.x, _dt);
-            this->velocity.y = this->approach(this->gaolVelocity.y, this->velocity.y, _dt);
+            this->velocity.x = this->approach(this->goalVelocity.x, this->velocity.x, _dt);
+            this->velocity.y = this->approach(this->goalVelocity.y, this->velocity.y, _dt);
 
             this->position += this->velocity * _dt;
         } else {

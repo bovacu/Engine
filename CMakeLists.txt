@@ -64,7 +64,7 @@ add_executable( Engine engine/main/Application.cpp engine/util/EngineUtil.cpp
 
                 lib/imgui-docking/imgui.cpp lib/imgui-docking/imgui_draw.cpp lib/imgui-docking/imgui_widgets.cpp  lib/imgui-docking/imgui_demo.cpp
                 lib/imgui-docking/examples/imgui_impl_glfw.cpp lib/imgui-docking/examples/imgui_impl_opengl3.cpp engine/scene/SceneManager.cpp
-                engine/scene/SceneManager.h engine/scene/Scene.cpp engine/scene/Scene.h)
+                engine/scene/SceneManager.h engine/scene/Scene.cpp engine/scene/Scene.h engine/api/openGL/OpenGLFrameBuffer.cpp engine/api/openGL/OpenGLFrameBuffer.h engine/render/elements/FrameBuffer.cpp engine/render/elements/FrameBuffer.h tests/stress/Stress.cpp tests/stress/StressTest.cpp tests/stress/StressTest.h)
 
 target_link_libraries ( Engine spdlog)
 target_link_libraries ( ${PROJECT_NAME} "glfw" "${GLFW_LIBRARIES}")

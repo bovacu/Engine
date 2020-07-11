@@ -45,6 +45,24 @@ namespace engine {
             EVENT_CLASS_CATEGORY(EventCategoryGame);
     };
 
+    class WindowMinimizedEvent  : public Event {
+        private:
+            int minimized;
+
+        public:
+            WindowMinimizedEvent(int _minimized) : minimized(_minimized) {  }
+            int getMinimized() { return this->minimized; }
+
+            std::string toString() const override {
+                std::stringstream _sst;
+                _sst << "WindowMinimizedEvent -> (minimized = " << this->minimized;
+                return _sst.str();
+            }
+
+            EVENT_CLASS_TYPE(WindowMinimized);
+            EVENT_CLASS_CATEGORY(EventCategoryGame);
+    };
+
     class WindowClosedEvent     : public Event {
         public:
             EVENT_CLASS_TYPE(WindowClosed);
