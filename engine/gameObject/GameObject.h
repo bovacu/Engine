@@ -33,7 +33,13 @@ namespace engine {
             explicit GameObject(const Vec2f& _position, float _rotation = 0, const Vec2f& _scale = {1, 1});
 
             char* getTag() { return this->tag; }
-            void setTag(char* _tag) { strcpy_s(this->tag, _tag); }
+            void setTag(char* _tag) {
+                #if defined(ENGINE_PLATFORM_WINDOWS)
+                    strcpy_s(this->tag, _tag);
+                #elif defined (ENGINE_PLATFORM_LINUX)
+                    strcpy(this->tag, _tag);
+                #endif
+            }
 
             ComponentPtr            addComponent(const ComponentPtr& _component);
             ComponentPtr            removeComponent(const ComponentPtr& _component);

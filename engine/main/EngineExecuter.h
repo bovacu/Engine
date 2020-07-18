@@ -1,6 +1,6 @@
 #pragma once
 
-#ifdef ENGINE_PLATFORM_WINDOWS
+#if defined(ENGINE_PLATFORM_WINDOWS) || defined(ENGINE_PLATFORM_LINUX)
 
     int main(int argc, char** argv) {
         engine::Logger::init();
@@ -8,4 +8,5 @@
         _game->onRun();
         delete _game;
     }
+
 #endif

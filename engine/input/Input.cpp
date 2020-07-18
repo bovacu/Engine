@@ -5,6 +5,10 @@
     #include <engine/platform/Windows/WindowsInput.h>
 #endif
 
+#ifdef ENGINE_PLATFORM_LINUX
+    #include <engine/platform/Linux/LinuxInput.h>
+#endif
+
 namespace engine {
 
     InputPtr Input::inputInstance = Input::create();
@@ -99,8 +103,10 @@ namespace engine {
 
     InputPtr Input::create() {
 
-        #ifdef ENGINE_PLATFORM_WINDOWS
+        #if defined(ENGINE_PLATFORM_WINDOWS)
                 return std::make_unique<WindowsInput>();
+        #elif defined(ENGINE_PLATFORM_LINUX)
+                return std::make_unique<LinuxInput>();
         #else
                 ENGINE_CORE_ASSERT(false, "Unknown platform!");
                 return nullptr;
