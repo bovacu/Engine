@@ -146,9 +146,9 @@ namespace engine {
         data.textureSlotIndex = 1;
     }
 
-    void Render2D::drawRect(const Vec2f& _position, const Size& _size, const Color& _color) {
+    void Render2D::drawRect(const Vec2f& _position, const Vec2f& _size, const Color& _color) {
         float _adapter = OrthographicCamera::usingAspectRatio ? ASPECT_RATIO_PIXEL : 1;
-        drawRect({_position.x * _adapter, _position.y * _adapter, 0.0f}, {_size.width * _adapter, _size.height * _adapter}, {_color.r, _color.g, _color.b, _color.a});
+        drawRect({_position.x * _adapter, _position.y * _adapter, 0.0f}, {_size.x * _adapter, _size.y * _adapter}, {_color.r, _color.g, _color.b, _color.a});
     }
     void Render2D::drawRect(const glm::vec3& _position, const glm::vec2& _size, const glm::vec4& _color) {
         constexpr size_t    _quadVertexCount = 4;
@@ -177,13 +177,13 @@ namespace engine {
         data.stats.quadCount++;
     }
 
-    void Render2D::drawTexture(const Vec2f& _position, const Size& _size, const Texture2DPtr& _texture, float _tilingFactor, const glm::vec4& _tintColor) {
+    void Render2D::drawTexture(const Vec2f& _position, const Vec2f& _size, const Texture2DPtr& _texture, float _rotation, const Color& _tintColor) {
         float _adapter = OrthographicCamera::usingAspectRatio ? ASPECT_RATIO_PIXEL : 1;
         Render2D::drawTexture({_position.x * _adapter, _position.y * _adapter, 0.0f},
-                              {_size.width * _adapter, _size.height * _adapter}, _texture,
-                              _tilingFactor, _tintColor);
+                              {_size.x * _adapter, _size.y * _adapter}, _texture,
+                              _rotation, {_tintColor.r, _tintColor.g, _tintColor.b, _tintColor.a});
     }
-    void Render2D::drawTexture(const glm::vec3& _position, const glm::vec2& _size, const Texture2DPtr& _texture, float _tilingFactor, const glm::vec4& _tintColor) {
+    void Render2D::drawTexture(const glm::vec3& _position, const glm::vec2& _size, const Texture2DPtr& _texture, float _rotation, const glm::vec4& _tintColor) {
         constexpr size_t _quadVertexCount = 4;
         constexpr glm::vec4 _color = { 1.0f, 1.0f, 1.0f, 1.0f };
         constexpr glm::vec2 _textureCoords[] = { { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f } };
@@ -208,15 +208,17 @@ namespace engine {
             data.textureSlotIndex++;
         }
 
-        glm::mat4 _transform = glm::translate(glm::mat4(1.0f), _position)
-                              * glm::scale(glm::mat4(1.0f), { _size.x, _size.y, 1.0f });
+        glm::mat4 _transform = glm::translate(glm::mat4(1.0f), _position);
+        if(_rotation > 0.0f)
+            _transform *= glm::rotate(glm::mat4(1.0f), glm::radians(_rotation), {0.0f, 0.0f, 1.0f });
+        _transform *= glm::scale(glm::mat4(1.0f), { _size.x, _size.y, 1.0f });
 
         for (size_t _i = 0; _i < _quadVertexCount; _i++) {
             data.quadVertexBufferPtr->position = _transform * data.quadVertexPositions[_i];
             data.quadVertexBufferPtr->color = _color;
             data.quadVertexBufferPtr->texCoord = _textureCoords[_i];
             data.quadVertexBufferPtr->texIndex = _textureIndex;
-            data.quadVertexBufferPtr->tilingFactor = _tilingFactor;
+            data.quadVertexBufferPtr->tilingFactor = 1.0f;
             data.quadVertexBufferPtr++;
         }
 
@@ -224,10 +226,10 @@ namespace engine {
         data.stats.quadCount++;
     }
 
-    void Render2D::drawRotatedRect(const Vec2f& _position, const Size& _size, float _rotation, const Color& _color) {
+    void Render2D::drawRotatedRect(const Vec2f& _position, const Vec2f& _size, float _rotation, const Color& _color) {
         float _adapter = OrthographicCamera::usingAspectRatio ? ASPECT_RATIO_PIXEL : 1;
         Render2D::drawRotatedRect({_position.x * _adapter, _position.y * _adapter, 0.0f},
-                {_size.width * _adapter, _size.height * _adapter}, _rotation, {_color.r, _color.g, _color.b, _color.a});
+                {_size.x * _adapter, _size.y * _adapter}, _rotation, {_color.r, _color.g, _color.b, _color.a});
     }
     void Render2D::drawRotatedRect(const glm::vec3& _position, const glm::vec2& _size, float _rotation, const glm::vec4& _color) {
         constexpr size_t        _quadVertexCount = 4;
@@ -256,10 +258,10 @@ namespace engine {
         data.stats.quadCount++;
     }
 
-    void Render2D::drawRotatedTexture(const Vec2f& _position, const Size& _size, float rotation, const Texture2DPtr& _texture, float _tilingFactor, const glm::vec4& _tintColor) {
+    void Render2D::drawRotatedTexture(const Vec2f& _position, const Vec2f& _size, float rotation, const Texture2DPtr& _texture, float _tilingFactor, const glm::vec4& _tintColor) {
         float _adapter = OrthographicCamera::usingAspectRatio ? ASPECT_RATIO_PIXEL : 1;
         Render2D::drawRotatedTexture({_position.x * _adapter, _position.y * _adapter, 0.0f},
-                                     {_size.width * _adapter, _size.height * _adapter}, rotation, _texture,
+                                     {_size.x * _adapter, _size.y * _adapter}, rotation, _texture,
                                      _tilingFactor, _tintColor);
     }
     void Render2D::drawRotatedTexture(const glm::vec3& _position, const glm::vec2& _size, float rotation, const Texture2DPtr& _texture, float _tilingFactor, const glm::vec4& _tintColor) {
@@ -403,8 +405,8 @@ namespace engine {
         data.stats.quadCount++;
     }
 
-    void Render2D::drawTexture(const Vec2f& _position, const Size& _size, const TextureRegionPtr& _textureRegion, float _rotation,const Color& _tintColor) {
-        drawTexture(glm::vec3{_position.x, _position.y, 1.0f}, glm::vec2{_size.width, _size.height}, _textureRegion, _rotation, glm::vec4{_tintColor.r, _tintColor.g, _tintColor.b, _tintColor.a});
+    void Render2D::drawTexture(const Vec2f& _position, const Vec2f& _size, const TextureRegionPtr& _textureRegion, float _rotation,const Color& _tintColor) {
+        drawTexture(glm::vec3{_position.x, _position.y, 1.0f}, glm::vec2{_size.x, _size.y}, _textureRegion, _rotation, glm::vec4{_tintColor.r, _tintColor.g, _tintColor.b, _tintColor.a});
     }
     void Render2D::drawTexture(const glm::vec3& _position, const glm::vec2& _size, const TextureRegionPtr& _textureRegion, float _rotation, const glm::vec4& _tintColor) {
         constexpr size_t _quadVertexCount = 4;

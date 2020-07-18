@@ -1,5 +1,6 @@
 #include "Safator.h"
 #include <imgui.h>
+#include <fstream>
 
 Safator::Safator() : engine::Layer("Prueba"), cameraController(false), app(Application::get()) {
     this->app.setAppIcon("assets/textures/safatorIcon.png");
@@ -95,23 +96,23 @@ void Safator::onFixedUpdate(engine::Timestep _dt) {
 void Safator::onRender(engine::Timestep _dt) {
 //    this->frameBuffer->bind();
 
-    engine::Render2D::resetStats();
-    engine::RenderCommand::setClearColor(this->backgroundColor);
-    engine::RenderCommand::clear();
+//    engine::Render2D::resetStats();
+    engine::Renderer::setClearColor(this->backgroundColor);
+    engine::Renderer::clear();
 
-    engine::Render2D::beginDraw(this->cameraController.getCamera());
+    engine::Renderer::beginDrawCall(this->cameraController.getCamera());
 
-    engine::Render2D::drawTexture({0.0f, 0.0f},
+    engine::Renderer::drawTexture({0.0f, 0.0f},
                                   {(float) this->worldTexture->getWidth(), (float) this->worldTexture->getHeight()},
                                   this->worldTexture);
 
 
-    engine::Render2D::drawTexture({Input::getMouseX() - this->app.getWindowSize().x / 2,
+    engine::Renderer::drawTexture({Input::getMouseX() - this->app.getWindowSize().x / 2,
                                    Input::getMouseY() - this->app.getWindowSize().y / 2},
                                   {(float) this->circleTexture->getWidth(), (float) this->circleTexture->getHeight()},
                                   this->circleTexture);
 
-    engine::Render2D::endDraw();
+    engine::Renderer::endDrawCall();
 
 //    this->frameBuffer->unbind();
 }
@@ -1785,9 +1786,13 @@ void Safator::imGuiMaterials(engine::Timestep _dt) {
 
 }
 void Safator::imGuiSettings(engine::Timestep _dt) {
-    ImGui::Button("Save Simulation");
+    if(ImGui::Button("Save Simulation")) {
+        this->saveWorld("test.safa");
+    }
     ImGui::SameLine();
-    ImGui::Button("Load Simulation");
+    if(ImGui::Button("Load Simulation")) {
+        this->loadWorld("test.safa");
+    }
 
     ImGui::Separator();
 
@@ -2129,8 +2134,47 @@ Vec2i Safator::randomPointInsideCircle(const Vec2i& _mousePos, int _radius) {
 }
 
 void Safator::saveWorld(const std::string& _worldName) {
+    std::ofstream _outputFile("maps/test.safa", std::ios::out);
+    if(!_outputFile)
+        LOG_ERROR("Couldn't save file");
+    else {
+        MapInfo _mapInfo{};
+        _mapInfo.width = (uint32_t)this->app.getWindowSize().x;
+        _mapInfo.height = (uint32_t)this->app.getWindowSize().y;
+        _mapInfo.numberOfComponents = (uint32_t)4;
+        _mapInfo.pixels = this->worldTexture->getBuffer();
 
+        _outputFile.write((char*) &_mapInfo.width, sizeof(uint32_t));
+        _outputFile.write((char*) &_mapInfo.height, sizeof(uint32_t));
+        _outputFile.write((char*) &_mapInfo.numberOfComponents, sizeof(uint32_t));
+        for(int _i = 0; _i < this->app.getWindowSize().x * this->app.getWindowSize().y; _i++)
+            _outputFile.write((char*) &this->particles[_i], sizeof(Particle));
+        _outputFile.close();
+    }
 }
 void Safator::loadWorld(const std::string& _worldName) {
+    std::ifstream _inputFile("maps/test.safa", std::ios::out | std::ios::binary);
+    if(!_inputFile)
+        LOG_ERROR("Couldn't load file");
 
+    MapInfo _mapInfo{};
+
+
+    _inputFile.read((char*) &_mapInfo.width, sizeof(uint32_t));
+    _inputFile.read((char*) &_mapInfo.height, sizeof(uint32_t));
+    _inputFile.read((char*) &_mapInfo.numberOfComponents, sizeof(uint32_t));
+
+    _inputFile.read((char*)_mapInfo.pixels, _mapInfo.width * _mapInfo.height * _mapInfo.numberOfComponents);
+    _inputFile.close();
+
+    this->worldTexture->setBuffer(_mapInfo.pixels);
+
+//    delete [] _buffer;
+//    const int _size = (int)_width * (int)_height * 4;
+//    unsigned char _data[1024];
+//
+//    _inputFile.read((char*) &_data, _width * _height * 4);
+//    this->worldTexture->setData(_data, sizeof(unsigned char));
+
+    LOG_INFO("Loaded, width: {0}, height: {1}", _mapInfo.width, _mapInfo.height);
 }

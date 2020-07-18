@@ -33,10 +33,10 @@ class Safator : public engine::Layer {
         };
         enum Tool { DRAW, ERASE, ZOOM };
 
-        struct mapInfo {
+        struct MapInfo {
             uint32_t width, height;
             uint32_t numberOfComponents;
-            void* pixels;
+            unsigned char* pixels;
         };
 
         struct Particle {

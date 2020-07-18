@@ -60,12 +60,14 @@ class StressTest : public Layer {
                                                 false,          // Frame Independence
                                                 false,          // Collisions
                                             };
-        Texture2DPtr                        stressSpriteSheet, independentSpriteSheet;
+        Texture2DPtr                        stressSpriteSheet, independentSpriteSheet, physicsSpriteSheet;
         TextureRegionPtr                    stressSubTextures[12];
         TextureRegionPtr                    independentTextures[4];
+        TextureRegionPtr                    physicsTextures[4];
 
         GameObjectPtr                       cars[4];
-        World                               world;
+        GameObjectPtr                       physics[5];
+        World                               worldCars, worldPhysics;
 
         Random                              rand;
         bool                                vSync = false;
@@ -89,6 +91,9 @@ class StressTest : public Layer {
         bool windowResizedEvent(WindowResizedEvent& _e);
         bool windowMovedEvent(WindowMovedEvent& _e);
         bool windowMinimizedEvent(WindowMinimizedEvent _e);
+
+        void initCars();
+        void initPhysics();
 };
 
 #endif //ENGINE_STRESSTEST_H

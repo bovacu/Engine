@@ -120,8 +120,10 @@ namespace engine {
                         if(_collider->componentType == ComponentType::CIRCLE_COLLIDER) {
     //                        float _radius = _collider->size.width;
     //                        _batch.drawCircle(_collider->center - _radius, _radius);
-                        } else
-                            Render2D::drawRect(_collider->gameObject->transform.position, _collider->size, {0, 255, 0, 75});
+                        } else {
+                            Color _color{0, 255, 0, 75};
+                            Render2D::drawRect(_collider->gameObject->transform.position, {_collider->size.width, _collider->size.height}, _color);
+                        }
                     }
                 }
             Render2D::endDraw();

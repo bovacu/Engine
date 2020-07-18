@@ -9,6 +9,7 @@ StressTest::StressTest() : engine::Layer("Stress"), cameraController(false), app
 void StressTest::onInit() {
     this->stressSpriteSheet = Texture2D::create("assets/tests/textures.png");
     this->independentSpriteSheet = Texture2D::create("assets/tests/indepTextures.png");
+    this->physicsSpriteSheet = Texture2D::create("assets/tests/physics.png");
 
     for(int _y = 0; _y < 3; _y++) {
         for(int _x = 0; _x < 4; _x++) {
@@ -22,42 +23,14 @@ void StressTest::onInit() {
         }
     }
 
-    this->cars[0] = GameObject::create(Transform2D({-this->app.getWindowSize().x / 2.f + 81 / 2.f, -162}));
-    this->cars[0]->addSprite(this->independentTextures[0]);
-    auto _p0 = this->cars[0]->addPhysicsBody();
-    _p0->bodyType = BodyType::DYNAMIC;
-    _p0->movementType = MovementType::LINEAR;
-    _p0->velocity.x = (float)this->independenceInfo.carSpeed0;
-    _p0->gravity = {0, 0};
+    for(int _y = 0; _y < 2; _y++) {
+        for(int _x = 0; _x < 2; _x++) {
+            this->physicsTextures[_x + 2 * _y] = TextureRegion::create(this->physicsSpriteSheet, {(float)_x, (float)_y}, {32, 32});
+        }
+    }
 
-    this->cars[1] = GameObject::create(Transform2D({-this->app.getWindowSize().x / 2.f + 81 / 2.f, -81}));
-    this->cars[1]->addSprite(this->independentTextures[1]);
-    auto _p1 = this->cars[1]->addPhysicsBody();
-    _p1->bodyType = BodyType::DYNAMIC;
-    _p1->movementType = MovementType::LINEAR;
-    _p1->velocity.x = (float)this->independenceInfo.carSpeed1;
-    _p1->gravity = {0, 0};
-
-    this->cars[2] = GameObject::create(Transform2D({-this->app.getWindowSize().x / 2.f + 81 / 2.f, 0}));
-    this->cars[2]->addSprite(this->independentTextures[2]);
-    auto _p2 = this->cars[2]->addPhysicsBody();
-    _p2->bodyType = BodyType::DYNAMIC;
-    _p2->movementType = MovementType::LINEAR;
-    _p2->velocity.x = (float)this->independenceInfo.carSpeed2;
-    _p2->gravity = {0, 0};
-
-    this->cars[3] = GameObject::create(Transform2D({-this->app.getWindowSize().x / 2.f + 81 / 2.f, 81}));
-    this->cars[3]->addSprite(this->independentTextures[3]);
-    auto _p3 = this->cars[3]->addPhysicsBody();
-    _p3->bodyType = BodyType::DYNAMIC;
-    _p3->movementType = MovementType::LINEAR;
-    _p3->velocity.x = (float)this->independenceInfo.carSpeed3;
-    _p3->gravity = {0, 0};
-
-    this->world.addGameObject(this->cars[0], false);
-    this->world.addGameObject(this->cars[1], false);
-    this->world.addGameObject(this->cars[2], false);
-    this->world.addGameObject(this->cars[3], false);
+    this->initCars();
+    this->initPhysics();
 
     this->frameBufferPtr = FrameBuffer::create({(uint32_t)this->app.getWindowSize().x, (uint32_t)this->app.getWindowSize().y});
 }
@@ -85,31 +58,61 @@ void StressTest::onUpdate(engine::Timestep _dt) {
     if(this->tests[2]) {
         for(int _i = 0; _i < 4; _i++)
             this->cars[_i]->getComponentOfType<Sprite>()->update(_dt);
+
+        this->worldCars.update(_dt);
+
+        for(int _i = 0; _i < 4; _i++) {
+            auto _pos = this->cars[_i]->getComponentOfType<PhysicsBody>();
+            if(_pos->position.x > this->app.getWindowSize().x / 2.f + 81.f / 2.f)
+                _pos->position = Vec2f(-this->app.getWindowSize().x / 2.f + 81.f / 2.f, _pos->position.y);
+        }
     }
 
-    if(this->tests[2] || this->tests[3]) {
-        this->world.update(_dt);
+
+    if(this->tests[3]) {
+        if(Input::isKeyPressed(KeyCode::A))
+            this->physics[4]->getComponentOfType<PhysicsBody>()->velocity.x = -40;
+        else if(Input::isKeyPressed(KeyCode::D))
+            this->physics[4]->getComponentOfType<PhysicsBody>()->velocity.x = 40;
+        else
+            this->physics[4]->getComponentOfType<PhysicsBody>()->velocity.x = 0;
+
+        if(Input::isKeyPressed(KeyCode::W))
+            this->physics[4]->getComponentOfType<PhysicsBody>()->velocity.y = 40;
+        else if(Input::isKeyPressed(KeyCode::S))
+            this->physics[4]->getComponentOfType<PhysicsBody>()->velocity.y = -40;
+        else
+            this->physics[4]->getComponentOfType<PhysicsBody>()->velocity.y = 0;
+
+        for(int _i = 0; _i < 5; _i++)
+            this->physics[_i]->getComponentOfType<Sprite>()->update(_dt);
+
+        this->worldPhysics.update(_dt);
     }
 
 }
 
 void StressTest::onFixedUpdate(engine::Timestep _dt) {
-    if(this->tests[2] || this->tests[3]) {
-        this->world.fixedUpdate(_dt);
+    if(this->tests[2]) {
+        this->worldCars.fixedUpdate(_dt);
+    }
+
+    if(this->tests[3]) {
+        this->worldPhysics.fixedUpdate(_dt);
     }
 }
 
 void StressTest::onRender(engine::Timestep _dt) {
 
-    Render2D::resetStats();
-    RenderCommand::setClearColor(Color::Black);
-    RenderCommand::clear();
+//    Render2D::resetStats();
+    Renderer::setClearColor(Color::Black);
+    Renderer::clear();
 
     if(this->tests[2]) {
-        Render2D::beginDraw(this->cameraController.getCamera());
+        Renderer::beginDrawCall(this->cameraController.getCamera());
             for(int _i = 0; _i < 4; _i++)
                 Render2D::draw(this->cars[_i]);
-        Render2D::endDraw();
+        Renderer::endDrawCall();
     }
 
     if(this->tests[0]) {
@@ -118,28 +121,20 @@ void StressTest::onRender(engine::Timestep _dt) {
             if(this->stressTestInfo.rotation > 360)
                 this->stressTestInfo.rotation = 0.0f;
         }
-        Render2D::beginDraw(this->cameraController.getCamera());
+        Renderer::beginDrawCall(this->cameraController.getCamera());
             for(int _i = 0; _i < this->stressTestInfo.numberOfSprites; _i++) {
                 Render2D::drawTexture(this->stressTestInfo.positionsAndTexture[_i].position, {16, 16}, this->stressSubTextures[this->stressTestInfo.positionsAndTexture[_i].textureIndex],
                         this->stressTestInfo.rotation);
             }
-        Render2D::endDraw();
-    }
-
-    if(this->tests[1]) {
-
-    }
-
-    if(this->tests[2]) {
-        for(int _i = 0; _i < 4; _i++) {
-            auto _pos = this->cars[_i]->getComponentOfType<PhysicsBody>();
-            if(_pos->position.x > this->app.getWindowSize().x / 2.f + 81.f / 2.f)
-                _pos->position = Vec2f(-this->app.getWindowSize().x / 2.f + 81.f / 2.f, _pos->position.y);
-        }
+        Renderer::endDrawCall();
     }
 
     if(this->tests[3]) {
-
+        Renderer::beginDrawCall(this->cameraController.getCamera());
+        for(int _i = 0; _i < 5; _i++)
+            Render2D::draw(this->physics[_i]);
+        Renderer::drawRectangle(this->physics[4]->getComponentOfType<Collider>()->center, {32, 32}, {0, 255, 0, 125}, this->physics[4]->transform.rotation);
+        Renderer::endDrawCall();
     }
 }
 
@@ -149,7 +144,7 @@ void StressTest::onImGuiRender(engine::Timestep _dt) {
 
     //    ImGui::Text("FPS(% .1f FPS)", ImGui::GetIO().Framerate);
     //   ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDecoration
-    ImGui::Begin("Tests Settings", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDecoration);
+    ImGui::Begin("Tests Settings", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDecoration);
     ImGui::Text("FPS %d", this->app.getFps());
     ImGui::SameLine();
     if(ImGui::Checkbox("Vsync", &this->vSync))
@@ -261,7 +256,7 @@ void StressTest::recalculateStressTest() {
 }
 
 bool StressTest::mouseScrollEvent(MouseScrolledEvent& _e) {
-    this->eventInfo.scroll = _e.getScrollY();
+    this->eventInfo.scroll = (int)_e.getScrollY();
     return true;
 }
 
@@ -278,4 +273,85 @@ bool StressTest::windowMovedEvent(WindowMovedEvent& _e) {
 bool StressTest::windowMinimizedEvent(WindowMinimizedEvent _e) {
     this->eventInfo.minimizing = true;
     return true;
+}
+
+void StressTest::initCars() {
+    this->cars[0] = GameObject::create(Transform2D({-this->app.getWindowSize().x / 2.f + 81 / 2.f, -162}));
+    this->cars[0]->addSprite(this->independentTextures[0]);
+    auto _p0 = this->cars[0]->addPhysicsBody();
+    _p0->bodyType = BodyType::DYNAMIC;
+    _p0->movementType = MovementType::LINEAR;
+    _p0->velocity.x = (float)this->independenceInfo.carSpeed0;
+    _p0->gravity = {0, 0};
+
+    this->cars[1] = GameObject::create(Transform2D({-this->app.getWindowSize().x / 2.f + 81 / 2.f, -81}));
+    this->cars[1]->addSprite(this->independentTextures[1]);
+    auto _p1 = this->cars[1]->addPhysicsBody();
+    _p1->bodyType = BodyType::DYNAMIC;
+    _p1->movementType = MovementType::LINEAR;
+    _p1->velocity.x = (float)this->independenceInfo.carSpeed1;
+    _p1->gravity = {0, 0};
+
+    this->cars[2] = GameObject::create(Transform2D({-this->app.getWindowSize().x / 2.f + 81 / 2.f, 0}));
+    this->cars[2]->addSprite(this->independentTextures[2]);
+    auto _p2 = this->cars[2]->addPhysicsBody();
+    _p2->bodyType = BodyType::DYNAMIC;
+    _p2->movementType = MovementType::LINEAR;
+    _p2->velocity.x = (float)this->independenceInfo.carSpeed2;
+    _p2->gravity = {0, 0};
+
+    this->cars[3] = GameObject::create(Transform2D({-this->app.getWindowSize().x / 2.f + 81 / 2.f, 81}));
+    this->cars[3]->addSprite(this->independentTextures[3]);
+    auto _p3 = this->cars[3]->addPhysicsBody();
+    _p3->bodyType = BodyType::DYNAMIC;
+    _p3->movementType = MovementType::LINEAR;
+    _p3->velocity.x = (float)this->independenceInfo.carSpeed3;
+    _p3->gravity = {0, 0};
+
+    this->worldCars.addGameObject(this->cars[0], false);
+    this->worldCars.addGameObject(this->cars[1], false);
+    this->worldCars.addGameObject(this->cars[2], false);
+    this->worldCars.addGameObject(this->cars[3], false);
+}
+
+void StressTest::initPhysics() {
+    this->physics[0] = GameObject::create(Transform2D({-128, -128}));
+    this->physics[0]->addSprite(this->physicsTextures[0]);
+    this->physics[0]->addPhysicsBody();
+    this->physics[0]->addPolygonCollider({{-16, -16}, {16, -16}, {0, 16}}, false);
+
+    this->physics[1] = GameObject::create(Transform2D({-128, 128}));
+    this->physics[1]->addSprite(this->physicsTextures[1]);
+    this->physics[1]->addPhysicsBody();
+    this->physics[1]->addCircleCollider(16, false);
+
+    this->physics[2] = GameObject::create(Transform2D({128, 128}));
+    this->physics[2]->addSprite(this->physicsTextures[2]);
+    this->physics[2]->addPhysicsBody();
+    this->physics[2]->addBoxCollider({32, 32}, false);
+
+    this->physics[3] = GameObject::create(Transform2D({128, -128}));
+    this->physics[3]->addSprite(this->physicsTextures[3]);
+    this->physics[3]->addPhysicsBody();
+    this->physics[3]->addPolygonCollider({{-5, -16}, {5, -16}, {16, -5},
+                                          {16, 5}, {5, 16}, {-5, 16}, {-16, 5}, {-16, -5}}, false);
+
+    /// ------------------------------------------------------------------------------------------
+
+    this->physics[4] = GameObject::create(Transform2D({-48, 128}));
+    this->physics[4]->addSprite(this->physicsTextures[2]);
+    auto _p0 = this->physics[4]->addPhysicsBody();
+    _p0->bodyType = BodyType::DYNAMIC;
+    _p0->gravity = {0, 0};
+    _p0->movementType = MovementType::LINEAR;
+    this->physics[4]->addPolygonCollider({{-16, 16}, {-16, -16}, {16, -16}, {16, 16}}, false);
+
+
+    // -----------------------------------------------------------------------------------------
+
+    this->worldPhysics.addGameObject(this->physics[4], false);
+    this->worldPhysics.addGameObject(this->physics[0]);
+    this->worldPhysics.addGameObject(this->physics[1]);
+    this->worldPhysics.addGameObject(this->physics[2]);
+    this->worldPhysics.addGameObject(this->physics[3]);
 }

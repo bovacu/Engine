@@ -35,8 +35,6 @@ namespace engine {
     void PhysicsBody::applyGravity(float _dt) {
         this->position += this->velocity * _dt;
         if(this->velocity.y > MAX_VELOCITY_Y) this->velocity += (this->gravity * this->gravity / 2.f) * -1 * _dt;
-
-//        LOG_INFO_CORE("Velocity[y]: {0}", this->velocity.y);
     }
 
     void PhysicsBody::update(float _dt) {
