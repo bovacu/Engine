@@ -94,9 +94,6 @@ void Safator::onUpdate(engine::Timestep _dt) {
 void Safator::onFixedUpdate(engine::Timestep _dt) {
 }
 void Safator::onRender(engine::Timestep _dt) {
-//    this->frameBuffer->bind();
-
-//    engine::Render2D::resetStats();
     engine::Renderer::setClearColor(this->backgroundColor);
     engine::Renderer::clear();
 
@@ -106,15 +103,12 @@ void Safator::onRender(engine::Timestep _dt) {
                                   {(float) this->worldTexture->getWidth(), (float) this->worldTexture->getHeight()},
                                   this->worldTexture);
 
-
     engine::Renderer::drawTexture({Input::getMouseX() - this->app.getWindowSize().x / 2,
                                    Input::getMouseY() - this->app.getWindowSize().y / 2},
                                   {(float) this->circleTexture->getWidth(), (float) this->circleTexture->getHeight()},
                                   this->circleTexture);
 
     engine::Renderer::endDrawCall();
-
-//    this->frameBuffer->unbind();
 }
 void Safator::onImGuiRender(engine::Timestep _dt) {
     this->imGuiAppWindow(_dt);

@@ -31,7 +31,6 @@
 #include <engine/render/elements/Texture.h>
 
 #include <engine/render/Renderer.h>
-#include <engine/render/Render2D.h>
 #include <engine/render/shapes/Shape.h>
 #include <engine/render/shapes/PolygonShape.h>
 

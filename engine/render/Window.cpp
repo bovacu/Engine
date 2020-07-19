@@ -12,7 +12,7 @@
 namespace engine {
 
     std::unique_ptr<Window> Window::createWindow(const WindowProperties& _props) {
-        #if defined(ENGINE_PLATFORM_WINDOW)
+        #if defined(ENGINE_PLATFORM_WINDOWS)
                 return std::make_unique<WindowsWindow>(_props);
         #elif defined(ENGINE_PLATFORM_LINUX)
             return std::make_unique<LinuxWindow>(_props);
