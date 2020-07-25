@@ -1,7 +1,6 @@
 #include "pch.h"
 
 #include "OpenGLShader.h"
-#include "engine/main/Core.h"
 #include <fstream>
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
@@ -54,11 +53,11 @@ namespace engine {
                 _in.close();
             }
             else {
-                std::cerr << "Could not read from file " << _filepath << std::endl;
+                LOG_CRITICAL_CORE("Could not read from file to read the shader");
             }
         }
         else {
-            std::cerr << "Could not open file " << _filepath << std::endl;
+            LOG_CRITICAL_CORE("Could not open file of the shader");
         }
 
         return _result;

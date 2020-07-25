@@ -1,6 +1,6 @@
-[22:43:07] [warning] Engine: Running in debug mode
-[22:43:07] [info] Engine: Creating window Engine:  (800, 480)
-[22:43:08] [info] Engine: OpenGL Info:
-[22:43:08] [info] Engine:   Vendor: NVIDIA Corporation
-[22:43:08] [info] Engine:   Renderer: GeForce GTX 1060 6GB/PCIe/SSE2
-[22:43:08] [info] Engine:   Version: 4.6.0 NVIDIA 445.87
+[17:17:44] [warning] Engine: Running in debug mode
+[17:17:44] [info] Engine: Creating window Engine:  (800, 480)
+[17:17:44] [info] Engine: OpenGL Info:
+[17:17:44] [info] Engine:   Vendor: NVIDIA Corporation
+[17:17:44] [info] Engine:   Renderer: GeForce GTX 1060 6GB/PCIe/SSE2
+[17:17:44] [info] Engine:   Version: 4.6.0 NVIDIA 451.67

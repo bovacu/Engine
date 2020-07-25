@@ -1,5 +1,5 @@
 #include "Safator.h"
-#include <imgui.h>
+
 #include <fstream>
 
 Safator::Safator() : engine::Layer("Prueba"), cameraController(false), app(Application::get()) {
@@ -95,7 +95,15 @@ void Safator::onRender(engine::Timestep _dt) {
     engine::Renderer::setClearColor(this->backgroundColor);
     engine::Renderer::clear();
 
+    static float _rotation = 0;
+    _rotation += _dt;
     engine::Renderer::beginDrawCall(this->cameraController.getCamera());
+//        engine::Renderer::drawLine({-this->app.getWindowSize().x / 2.f, 0}, {this->app.getWindowSize().x / 2.f, 0}, Color::Green, 1.f);
+//        engine::Renderer::drawLine({0, this->app.getWindowSize().x / 2.f}, {0, -this->app.getWindowSize().x / 2.f}, Color::Green, 1.f);
+//        engine::Renderer::drawLine({0, 100}, {0, -100}, Color::Green, 1.f);
+
+//        engine::Renderer::drawLine({0, 0}, {100, 0}, Color::Green, 1.f);
+//        engine::Renderer::drawRectangle({0,0}, {1,1}, Color::Red);
         engine::Renderer::drawTexture({0.0f, 0.0f},
                                       {(float) this->worldTexture->getWidth(), (float) this->worldTexture->getHeight()},
                                       this->worldTexture);
@@ -208,6 +216,7 @@ bool Safator::onMouseScrolled(MouseScrolledEvent& _e) {
     return true;
 }
 
+
 void Safator::updateAllParticles(int _x, int _y, int _posInVector, const ParticleType& _type, Timestep _dt) {
 
     this->particlesUpdating++;
@@ -234,67 +243,51 @@ void Safator::updateAllParticles(int _x, int _y, int _posInVector, const Particl
 }
 void Safator::updateDirtParticle(int _x, int _y, int _posInVector, Timestep _dt) {
     Particle* _p = &this->particles[_posInVector];
-    _p->velocity.y = functions::clamp(_p->velocity.y + (this->weatherConditions[4] * _dt), -this->weatherConditions[4], this->weatherConditions[4] );
 
-    int _vX = _x + (int)_p->velocity.x;
-    int _vY = _y - (int)_p->velocity.y;
+    if(_p->velocity.y < this->weatherConditions[4] * 2)
+        _p->velocity.y += this->weatherConditions[4] * 2 * _dt;
 
-    if(!this->isEmpty(_x, _y - 1))
-        _p->velocity.y *= (this->weatherConditions[4]) * 0.5f;
+    float _vX = (float)_x + _p->velocity.x;
+    float _vY = (float)_y - _p->velocity.y;
+
+    if(this->is(_x, _y - 1, WATER)) {
+        _p->velocity.y *= (this->weatherConditions[4]) * 0.05f;
+        _p->velocity.x = this->random.randomf( -2, 2 );
+        _vX = (float)_x + _p->velocity.x;
+    }
 
     Particle _tempA = *_p;
-
-    int _sign = this->random.randomi(0, 1) == 0 ? -1 : 1;
-
     Particle _tempB;
-    if(isEmpty(_vX, _vY)) {
-        _tempB = this->particles[_vX + this->textureWidth * _vY];
-        this->writeParticle(_vX, _vY, _tempA);
+
+    ReactionInfo _ri;
+    bool _reactionReallyExists = false;
+
+    if(isEmpty((int)_vX, (int)_vY) || this->is((int)_vX, (int)_vY, WATER)) {
+        _tempB = this->particles[(int) _vX + this->textureWidth * (int) _vY];
+        this->writeParticle((int) _vX, (int) _vY, _tempA);
         this->writeParticle(_x, _y, _tempB);
         this->activateNeighbours(_x, _y);
-    } else {
+        this->activateNeighbours((int) _vX, (int) _vY);
+    }
+    else {
+        /// Para el agua _p->velocity.x = (this->random.randomi(0, 1) == 0 ? this->weatherConditions[4] / _vY : -(this->weatherConditions[4] / _vY));
+        _p->velocity.x = (this->random.randomi(0, 1) == 0 ? 1.f : -1.f);
+        _vX = ((float)_x + _p->velocity.x);
 
-        /// Down
-        bool _inWater = false;
-        if(this->isEmpty(_x, _y - 1)) {
-            if(_inWater) _p->velocity.y *= 0.5f;
-            else _p->velocity.y += (this->weatherConditions[4] * _dt);
-
-            int _vecForB = _x + this->textureWidth * (_y - 1);
-            _tempB = this->particles[_vecForB];
-
-            this->writeParticle(_x, _y - 1, _vecForB, _tempA);
-            this->writeParticle(_x, _y, _posInVector, _tempB);
-            this->activateNeighbours(_x, _y);
-
-        }
-
-            /// Down-Left or Down-right
-        else if (this->isEmpty(_x - _sign, _y - 1)) {
-            if(_inWater) _p->velocity.y *= 0.5f;
-            else _p->velocity.y += (this->weatherConditions[4] * _dt);
-
-            int _vecForB = (_x - _sign) + this->textureWidth * (_y - 1);
-            _tempB = this->particles[(_x - _sign) + this->textureWidth * (_y - 1)];
-
-            int _neighbour = 1;
-            int _pos = this->calcVecPos(_x - _sign, _y - 1);
-            while(this->isEmpty(_x - (_sign * (_neighbour + 1)), _y - 1) && _neighbour <= 2) {
-                _neighbour++;
-                _pos = this->calcVecPos(_x - (_sign * _neighbour), _y - 1);
+        while(_vY < (float)_y && _y > 0) {
+            _vY += this->weatherConditions[4] * _dt;
+            if(isEmpty((int)_vX, (int)_vY) || this->is((int)_vX, (int)_vY, WATER)) {
+                _tempB = this->particles[(int)_vX + this->textureWidth * (int)_vY];
+                this->writeParticle((int)_vX, (int)_vY, _tempA);
+                this->writeParticle(_x, _y, _tempB);
+                this->activateNeighbours(_x, _y);
+                this->activateNeighbours((int)_vX, (int)_vY);
+                return;
             }
-
-            _tempB = this->particles[_pos];
-            this->writeParticle(_x - (_sign * _neighbour), _y - 1, *_p);
-            this->writeParticle(_x, _y, _tempB);
-
-            this->activateNeighbours(_x, _y);
-
         }
-        else {
-            _p->canUpdate = false;
-            _p->velocity = {0.0f, 0.0f};
-        }
+
+        _p->canUpdate = false;
+        _p->velocity = {0.0f, 0.0f};
     }
 }
 void Safator::updateIceParticle(int _x, int _y, int _posInVector, Timestep _dt) {
@@ -449,20 +442,18 @@ void Safator::handleUnfittedGases(int _x, int _y, int _vecPos, float _dt) {
 
 void Safator::updateCommonDusts(int _x, int _y, int _posInVector, Timestep _dt) {
     Particle* _p = &this->particles[_posInVector];
-//    _p->velocity.y = functions::clamp(_p->velocity.y + (this->weatherConditions[4] * _dt), -this->weatherConditions[4], this->weatherConditions[4] );
-    _p->velocity.y += this->weatherConditions[4] * 2;
 
-    _p->velocity.x = 0;
-    float _vX = (float)_x + _p->velocity.x;
-    float _vY = (float)_y - _p->velocity.y * _dt;
+    if(_p->velocity.y < this->weatherConditions[4] * 2)
+        _p->velocity.y += this->weatherConditions[4] * 2 * _dt;
 
-//    if(!this->isEmpty(_vX, _vY)) {
-//        if(this->is(_x, _y - 1, WATER)) {
-//            _p->velocity.y *= (this->weatherConditions[4]) * 0.05f;
-//            _p->velocity.x = this->random.randomf( -2, 2 );
-//        } else
-//            _p->velocity.y *= 0.5f;
-//    }
+    float _vX = (float)_x + _p->velocity.x + this->weatherConditions[0];
+    float _vY = (float)_y - _p->velocity.y;
+
+    if(this->is((int)_vX, (int)_vY - 1, WATER)) {
+        _p->velocity.y *= (this->weatherConditions[4]) * 0.05f;
+        _p->velocity.x = this->random.randomf( -2, 2 );
+        _vX = (float)_x + _p->velocity.x;
+    }
 
     Particle _tempA = *_p;
     Particle _tempB;
@@ -470,7 +461,7 @@ void Safator::updateCommonDusts(int _x, int _y, int _posInVector, Timestep _dt) 
     ReactionInfo _ri;
     bool _reactionReallyExists = false;
 
-    if(isEmpty((int)_vX, (int)_vY)) {
+    if(isEmpty((int)_vX, (int)_vY) || this->is((int)_vX, (int)_vY, WATER)) {
         _tempB = this->particles[(int) _vX + this->textureWidth * (int) _vY];
         this->writeParticle((int) _vX, (int) _vY, _tempA);
         this->writeParticle(_x, _y, _tempB);
@@ -479,107 +470,108 @@ void Safator::updateCommonDusts(int _x, int _y, int _posInVector, Timestep _dt) 
     }
     else {
         /// Para el agua _p->velocity.x = (this->random.randomi(0, 1) == 0 ? this->weatherConditions[4] / _vY : -(this->weatherConditions[4] / _vY));
-        _p->velocity.x = (this->random.randomi(0, 1) == 0 ? 1 : -1);
+        _p->velocity.x = (this->random.randomi(0, 1) == 0 ? 1.f : -1.f);
         _vX = ((float)_x + _p->velocity.x);
 
-        while(_vY < (float)_y && _y > 0) {
-            _vY += this->weatherConditions[4] * _dt;
-            if(isEmpty((int)_vX, (int)_vY)) {
-                _tempB = this->particles[(int)_vX + this->textureWidth * (int)_vY];
-                this->writeParticle((int)_vX, (int)_vY, _tempA);
-                this->writeParticle(_x, _y, _tempB);
-                this->activateNeighbours(_x, _y);
-                this->activateNeighbours((int)_vX, (int)_vY);
-                return;
+        while(_vY <= (float)_y && _y > 0) {
+            for(int _i = 0; _i < 2; _i++) {
+                if(isEmpty((int)_vX, (int)_vY) || this->is((int)_vX, (int)_vY, WATER)) {
+                    _tempB = this->particles[(int)_vX + this->textureWidth * (int)_vY];
+                    this->writeParticle((int)_vX, (int)_vY, _tempA);
+                    this->writeParticle(_x, _y, _tempB);
+                    this->activateNeighbours(_x, _y);
+                    this->activateNeighbours((int)_vX, (int)_vY);
+                    return;
+                }
+                _vX = ((float)_x + _p->velocity.x * -1.f);
             }
+
+            _vY += this->weatherConditions[4] * _dt;
         }
 
         _p->canUpdate = false;
-        _p->velocity = {0.0f, 0.0f};
+        _p->velocity = {0.f, 0.f};
     }
-//    else {
-//        /// Down
-//        bool _inWater = false;
-//        if(this->isInBounds(_x, _y - 1)) {
-//
-//            int _vecForB = _x + this->textureWidth * (_y - 1);
-//            _tempB = this->particles[_vecForB];
-//
-//            if((_inWater = this->is(_x, _y - 1, WATER)) || this->is(_x, _y - 1, NONE_PARTICLE)) {
-//
-//                this->writeParticle(_x, _y - 1, _vecForB, _tempA);
-//                this->writeParticle(_x, _y, _posInVector, _tempB);
-//                this->activateNeighbours(_x, _y);
-//                this->activateNeighbours(_x, _y - 1);
-//
-//                return;
-//            } else {
-//                _ri = this->reactions({_x, _y}, {_x, _y - 1}, _tempA, _tempB);
-//                _reactionReallyExists |= _ri.reactionExists;
-//                if (_ri.prob.happened) {
-//                    this->activateNeighbours(_x, _y);
-//                    return;
-//                }
-//            }
-//
-//        }
-//        /// Down-Left
-//        if (this->isInBounds(_x - 1, _y - 1)) {
-//            int _vecForB = (_x - 1) + this->textureWidth * (_y - 1);
-//            _tempB = this->particles[_vecForB];
-//
-//            if((_inWater = this->is(_x - 1, _y - 1, WATER)) || this->is(_x - 1, _y - 1, NONE_PARTICLE)) {
-////                _p->velocity.x = this->random.randomi( 0, 1 ) == 0 ? -1.f : 1.f;
-//
-//                this->writeParticle(_x - 1, _y - 1, _vecForB, _tempA);
-//                this->writeParticle(_x, _y, _posInVector, _tempB);
-//                this->activateNeighbours(_x, _y);
-//                this->activateNeighbours(_x - 1, _y - 1);
-//
-//                return;
-//            } else {
-//                _ri = this->reactions({_x, _y}, {_x - 1, _y - 1}, _tempA, _tempB);
-//                _reactionReallyExists |= _ri.reactionExists;
-//                if (_ri.prob.happened) {
-//                    this->activateNeighbours(_x, _y);
-//                    return;
-//                }
-//            }
-//
-//        }
-//        /// Down-Right
-//        if (this->isInBounds(_x + 1, _y - 1)) {
-//
-//            int _vecForB = (_x + 1) + this->textureWidth * (_y - 1);
-//            _tempB = this->particles[_vecForB];
-//
-//            if((_inWater = this->is(_x + 1, _y - 1, WATER)) || this->is(_x + 1, _y - 1, NONE_PARTICLE)) {
-////                _p->velocity.x = this->random.randomi( 0, 1 ) == 0 ? -1.f : 1.f;
-//
-//                this->writeParticle(_x + 1, _y - 1, _vecForB, _tempA);
-//                this->writeParticle(_x, _y, _posInVector, _tempB);
-//                this->activateNeighbours(_x, _y);
-//                this->activateNeighbours(_x + 1, _y - 1);
-//
-//                return;
-//            } else {
-//                _ri = this->reactions({_x, _y}, {_x + 1, _y - 1}, _tempA, _tempB);
-//                _reactionReallyExists |= _ri.reactionExists;
-//                if (_ri.prob.happened) {
-//                    this->activateNeighbours(_x, _y);
-//                    return;
-//                }
-//            }
-//
-//        }
-//
-//        if(!_reactionReallyExists) {
-//            _p->canUpdate = false;
-//            _p->velocity = {0.0f, 0.0f};
-//        }
-//    }
 }
 void Safator::updateCommonLiquids(int _x, int _y, int _posInVector, int _spreadRate, Timestep _dt) {
+//    Particle* _p = &this->particles[_posInVector];
+//
+//    if(_p->velocity.y < this->weatherConditions[4] * 2)
+//        _p->velocity.y += this->weatherConditions[4] * 2 * _dt;
+//
+//    float _vX = (float)_x + _p->velocity.x;
+//    float _vY = (float)_y - _p->velocity.y;
+//
+//    Particle _tempA = *_p;
+//    Particle _tempB;
+//
+//    ReactionInfo _ri;
+//    bool _reactionReallyExists = false;
+//
+//    if(isEmpty((int)_vX, (int)_vY)) {
+//        _tempB = this->particles[(int) _vX + this->textureWidth * (int) _vY];
+//        this->writeParticle((int) _vX, (int) _vY, _tempA);
+//        this->writeParticle(_x, _y, _tempB);
+//        this->activateNeighbours(_x, _y);
+//        this->activateNeighbours((int) _vX, (int) _vY);
+//    }
+//    else {
+//        /// Para el agua _p->velocity.x = (this->random.randomi(0, 1) == 0 ? this->weatherConditions[4] / _vY : -(this->weatherConditions[4] / _vY));
+//
+//        float _side = this->random.randomi(0, 1) == 0 ? 1.f : -1.f;
+//        if(_p->velocity.x == 0)
+//            _p->velocity.x = (this->random.randomi(0, 1) == 0 ? 1.f : -10.f);
+//        _vX += _p->velocity.x;
+//
+//        while(_vY < (float)_y && _y > 0) {
+//            if(isEmpty((int)_vX, (int)_vY)) {
+//                _tempB = this->particles[(int)_vX + this->textureWidth * (int)_vY];
+//                this->writeParticle((int)_vX, (int)_vY, _tempA);
+//                this->writeParticle(_x, _y, _tempB);
+//                this->activateNeighbours(_x, _y);
+//                this->activateNeighbours((int)_vX, (int)_vY);
+//                return;
+//            }
+//
+//            float _initialVx = _vX;
+//
+//            if(_side > 0) {
+//                _vX -= this->weatherConditions[4] * _dt;
+//                while(_vX > (float)_x) {
+//                    if(isEmpty((int)_vX, (int)_vY)) {
+//                        _tempB = this->particles[(int)_vX + this->textureWidth * (int)_vY];
+//                        this->writeParticle((int)_vX, (int)_vY, _tempA);
+//                        this->writeParticle(_x, _y, _tempB);
+//                        this->activateNeighbours(_x, _y);
+//                        this->activateNeighbours((int)_vX, (int)_vY);
+//                        return;
+//                    }
+//                    _vX -= this->weatherConditions[4] * _dt;
+//                }
+//            }
+//            else {
+//                _vX = _initialVx;
+//                _vX += this->weatherConditions[4] * _dt;
+//                while(_vX < (float)_x) {
+//                    if(isEmpty((int)_vX, (int)_vY)) {
+//                        _tempB = this->particles[(int)_vX + this->textureWidth * (int)_vY];
+//                        this->writeParticle((int)_vX, (int)_vY, _tempA);
+//                        this->writeParticle(_x, _y, _tempB);
+//                        this->activateNeighbours(_x, _y);
+//                        this->activateNeighbours((int)_vX, (int)_vY);
+//                        return;
+//                    }
+//                    _vX += this->weatherConditions[4] * _dt;
+//                }
+//            }
+//
+//            _vY += this->weatherConditions[4] * _dt;
+//        }
+//
+//        _p->canUpdate = false;
+//        _p->velocity = {0.0f, 0.0f};
+//    }
+
     Particle* _p = &this->particles[_posInVector];
     int _sign = this->random.randomi(0, 1) == 0 ? -1 : 1;
     _p->velocity.y = functions::clamp(_p->velocity.y + (this->weatherConditions[4] * _dt), -this->weatherConditions[4], this->weatherConditions[4] );

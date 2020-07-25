@@ -42,6 +42,10 @@ namespace engine {
                 return this->x * _p.x + this->y * _p.y;
             }
 
+            [[nodiscard]] float distance(const Vec2<T>& _p) const {
+                return std::sqrt((_p.x - this->x) * (_p.x - this->x) + (_p.y - this->y) * (_p.y - this->y));
+            }
+
             [[nodiscard]] float magnitude() const {
                 return std::sqrt(this->x * this->x + this->y * this->y);
             }
