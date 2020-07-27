@@ -134,7 +134,7 @@ class Safator : public engine::Layer {
                                                     { 186, 168, 111, 255 }, /// SAND_2
                                                     { 177, 157,  94, 255 }, /// SAND_3
                                                     { 166, 145,  80, 255 }, /// SAND_4
-                                                    {  90, 188, 216, 255 }, /// WATER_0
+                                                    {  72,  86, 238, 255 }, /// WATER_0
                                                     { 170, 164, 157, 255 }, /// ROCK_0
                                                     { 149, 141, 133, 255 }, /// ROCK_1
                                                     { 123, 113, 103, 255 }, /// ROCK_2
@@ -202,6 +202,8 @@ class Safator : public engine::Layer {
         void updateCommonDusts(int _x, int _y, int _posInVector, Timestep _dt);
         void updateCommonLiquids(int _x, int _y, int _posInVector, int _spreadRate, Timestep _dt);
         void updateCommonGases(int _x, int _y, int _posInVector, Timestep _dt);
+
+        bool react(const Vec2i& _posA, const Vec2i& _posB, Particle& _tempA, Particle& _tempB, ReactionInfo& _ri);
 
         void wind();
         void rain();
