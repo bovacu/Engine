@@ -530,6 +530,8 @@ void Safator::updateCommonDusts(int _x, int _y, int _posInVector, Timestep _dt) 
     }
 }
 void Safator::updateCommonLiquids(int _x, int _y, int _posInVector, int _spreadRate, Timestep _dt) {
+    this->handleUnfittedDrops(_x, _y, _posInVector, _dt);
+
     Particle* _p = &this->particles[_posInVector];
 
     if(_p->velocity.y < this->weatherConditions[4] * 2)
@@ -538,8 +540,7 @@ void Safator::updateCommonLiquids(int _x, int _y, int _posInVector, int _spreadR
     float _vX = (float)_x + _p->velocity.x;
     float _vY = (float)_y - _p->velocity.y;
 
-    Particle _tempA = *_p;
-    Particle _tempB;
+    Particle _tempA = *_p, _tempB;
 
     ReactionInfo _ri;
     bool _reactionReallyExists = false;
@@ -549,103 +550,56 @@ void Safator::updateCommonLiquids(int _x, int _y, int _posInVector, int _spreadR
     int _spotsToMoveY = 0, _spotsToMoveX = 0;
 
     for(int _spotY = 0; _spotY < _spotsToCheckY; _spotY++) {
-        if(this->isEmpty((int)_vX, _y - _spotY - 1)) {
+        if(this->isEmpty((int)_x, _y - _spotY - 1)) {
             _canMove = true;
             _spotsToMoveY++;
             continue;
         }
 
-        bool _alreadyHasVelocityOnX = true;
-        if(_p->velocity.x == 0) {
-            _p->velocity.x = this->random.randomi(0, 1) ? 1.0f : -1.0f;
-            _vX = (float)_x + _p->velocity.x;
+        if(_p->velocity.x == 0)
+            _p->velocity.x = this->random.randomi(0, 1) == 0 ? 1.0f : -1.0f;
 
-            if(!this->isEmpty((int)_vX, _y - _spotY)) {
-                _p->velocity.x *= -1.0f;
-                _vX = (float)_x + _p->velocity.x;
-            }
-
-            _alreadyHasVelocityOnX = false;
-
-//            int _right = ((int)_x + 1) + this->textureWidth * (_y - _spotsToMoveY), _left = ((int)_x - 1) + this->textureWidth * (_y - _spotsToMoveY);
-//            if(this->is((int)_vX - 1, (_y - _spotsToMoveY), _p->type) && this->particles[_left].velocity.x != 0) {
-//                _p->velocity.x = this->particles[_left].velocity.x;
-//                LOG_TRACE("getting from left");
-//            } else if(this->is((int)_vX + 1, (_y - _spotsToMoveY), _p->type) && this->particles[_right].velocity.x != 0) {
-//                _p->velocity.x = this->particles[_right].velocity.x;
-//                LOG_TRACE("getting from right");
-//            } else {
-//                _p->velocity.x = this->random.randomi(0, 1) ? 1.0f : -1.0f;
-//                _vX = (float)_x + _p->velocity.x;
-//
-//                if(!this->isEmpty((int)_vX, _y - _spotY)) {
-//                    _p->velocity.x *= -1.0f;
-//                    _vX = (float)_x + _p->velocity.x;
-//                }
-//            }
-        }
-
-        int _spotsToCheckX = std::abs(_y - (int)std::abs(_vY));
-        _spotsToCheckX = _spotsToCheckX ? 1 : _spotsToCheckX;
-
-        for(int _spotX = 0; _spotX < _spotsToCheckX; _spotX++) {
+        for(int _spotX = 0; _spotX < _spreadRate; _spotX++) {
             int _nextPosX = _x + _spotX * (int)_p->velocity.x + (int)_p->velocity.x;
-            if (this->isEmpty(_nextPosX, _y - _spotsToMoveY) && _y != 0 && _nextPosX < this->textureWidth) {
+            if (this->isEmpty(_nextPosX, _y - _spotY) && _y != 0) {
                 _canMove = true;
                 _spotsToMoveX += (int) (1.f * _p->velocity.x);
                 continue;
             }
+
+            break;
         }
 
-//        _p->velocity.x *= -1.f;
-//
-//        for(int _spotX = 0; _spotX < _spotsToCheckX; _spotX++) {
-//            int _nextPosX = _x + _spotX * (int)_p->velocity.x + (int)_p->velocity.x;
-//            if (this->isEmpty(_nextPosX, _y - _spotsToMoveY) && _y != 0 && _nextPosX < this->textureWidth) {
-//                _canMove = true;
-//                _spotsToMoveX += (int) (1.f * _p->velocity.x);
-//                continue;
-//            }
-//        }
+        if(_spotsToMoveX == 0) {
+            _p->velocity.x *= -1.f;
+            for(int _spotX = 0; _spotX < _spreadRate; _spotX++) {
+                int _nextPosX = _x + _spotX * (int)_p->velocity.x + (int)_p->velocity.x;
+                if (this->isEmpty(_nextPosX, _y - _spotY) && _y != 0) {
+                    _canMove = true;
+                    _spotsToMoveX += (int) (1.f * _p->velocity.x);
+                    continue;
+                }
 
-//
-//        for(int _side = 0; _side < 2; _side++) {
-//            if(!_canMove) {
-//                for(int _spotX = 0; _spotX < _spotsToCheckX; _spotX++) {
-//                    if(this->isEmpty(_x + _spotX * (int)_p->velocity.x + (int)_p->velocity.x, _y - _spotY) && _y != 0) {
-//                        _canMove = true;
-//                        _spotsToMoveX += (int)(1.f * _p->velocity.x);
-//                    } else
-//                        _spotX = 10;
-//                }
-//            }
-//
-//            if(!_alreadyHasVelocityOnX)
-//                _p->velocity.x *= -1.f;
-//        }
+                break;
+            }
+        }
 
-        if(!_canMove)
-            break;
+        break;
     }
 
     if(_canMove) {
         _vY = (float)(_y - _spotsToMoveY);
         _vX = (float)(_x + _spotsToMoveX);
         _tempB = this->particles[(int)_vX + this->textureWidth * (int)_vY];
-        this->writeParticle((int)_vX, (int)_vY, _tempA);
+        this->writeParticle((int)_vX, (int)_vY, *_p);
         this->writeParticle(_x, _y, _tempB);
         this->activateNeighbours(_x, _y);
         this->activateNeighbours((int)_vX, (int)_vY);
-        return;
     } else {
         _p->canUpdate = false;
         _p->velocity = {0.f, 0.f};
     }
 
-//    if(!_reactionReallyExists || _y == 0) {
-//        _p->canUpdate = false;
-//        _p->velocity.x = 0.0f;
-//    }
 }
 void Safator::updateCommonGases(int _x, int _y, int _posInVector, Timestep _dt) {
     Particle* _p = &this->particles[_posInVector];
@@ -1355,18 +1309,22 @@ void Safator::imGuiDrawingWindow(engine::Timestep _dt) {
 void Safator::imGuiConditions(engine::Timestep _dt) {
     ImGui::Text("Unfitted drops");
     ImGui::Indent(30.f);
-    ImGui::RadioButton("Remove", &this->whatToDoWithUnfittingDrops, 0);
-    ImGui::RadioButton("Evaporate", &this->whatToDoWithUnfittingDrops, 1);
-    ImGui::RadioButton("Live", &this->whatToDoWithUnfittingDrops, 2);
+    ImGui::PushID(1);
+        ImGui::RadioButton("Remove", &this->whatToDoWithUnfittingDrops, 0);
+        ImGui::RadioButton("Evaporate", &this->whatToDoWithUnfittingDrops, 1);
+        ImGui::RadioButton("Live", &this->whatToDoWithUnfittingDrops, 2);
+    ImGui::PopID();
     ImGui::Unindent(30.f);
 
     ImGui::Separator();
 
     ImGui::Text("Unfitted Gases");
     ImGui::Indent(30.f);
-    ImGui::RadioButton("Remove", &this->whatToDoWithUnfittingGas, 0);
-    ImGui::RadioButton("Condensate", &this->whatToDoWithUnfittingGas, 1);
-    ImGui::RadioButton("Live", &this->whatToDoWithUnfittingGas, 2);
+    ImGui::PushID(2);
+        ImGui::RadioButton("Remove", &this->whatToDoWithUnfittingGas, 0);
+        ImGui::RadioButton("Condensate", &this->whatToDoWithUnfittingGas, 1);
+        ImGui::RadioButton("Live", &this->whatToDoWithUnfittingGas, 2);
+    ImGui::PopID();
     ImGui::Unindent(30.f);
 }
 void Safator::imGuiWeather(engine::Timestep _dt) {
