@@ -118,8 +118,8 @@ void Safator::onRender(engine::Timestep _dt) {
                                       {(float) this->worldTexture->getWidth(), (float) this->worldTexture->getHeight()},
                                       this->worldTexture);
 
-        engine::Renderer::drawTexture({Input::getMouseX() - this->app.getWindowSize().x / 2,
-                                       Input::getMouseY() - this->app.getWindowSize().y / 2},
+        engine::Renderer::drawTexture({Input::getMouseX() - this->app.getWindowSize().x / 2.f,
+                                       Input::getMouseY() - this->app.getWindowSize().y / 2.f},
                                       {(float) this->circleTexture->getWidth(), (float) this->circleTexture->getHeight()},
                                       this->circleTexture);
     engine::Renderer::endDrawCall();
@@ -544,44 +544,108 @@ void Safator::updateCommonLiquids(int _x, int _y, int _posInVector, int _spreadR
     ReactionInfo _ri;
     bool _reactionReallyExists = false;
 
-    float _initialVx = _vX, _initialVy = _vY;
-    _p->velocity.x = (this->random.randomi(0, 1) == 0 ? 1.f : -1.f);
     bool _canMove = false;
-    auto _newYPosition = (float)_y, _newXPosition = (float)_x;
+    int _spotsToCheckY = (_y - (int)std::abs(_vY)) > 1 ? _y - (int)std::abs(_vY) : 1;
+    int _spotsToMoveY = 0, _spotsToMoveX = 0;
 
-    while(_newYPosition > _vY) {
-        if(isEmpty((int)_initialVx, (int)_vY)) {
-            _tempB = this->particles[(int)_initialVx + this->textureWidth * (int)_vY];
-            this->writeParticle((int)_initialVx, (int)_vY, _tempA);
-            this->writeParticle(_x, _y, _tempB);
-            this->activateNeighbours(_x, _y);
-            this->activateNeighbours((int)_initialVx, (int)_vY);
-            return;
+    for(int _spotY = 0; _spotY < _spotsToCheckY; _spotY++) {
+        if(this->isEmpty((int)_vX, _y - _spotY - 1)) {
+            _canMove = true;
+            _spotsToMoveY++;
+            continue;
         }
 
+        bool _alreadyHasVelocityOnX = true;
+        if(_p->velocity.x == 0) {
+            _p->velocity.x = this->random.randomi(0, 1) ? 1.0f : -1.0f;
+            _vX = (float)_x + _p->velocity.x;
 
-        if(isEmpty((int)_vX, (int)_vY)) {
-            _tempB = this->particles[(int)_vX + this->textureWidth * (int)_vY];
-            this->writeParticle((int)_vX, (int)_vY, _tempA);
-            this->writeParticle(_x, _y, _tempB);
-            this->activateNeighbours(_x, _y);
-            this->activateNeighbours((int)_vX, (int)_vY);
-            return;
+            if(!this->isEmpty((int)_vX, _y - _spotY)) {
+                _p->velocity.x *= -1.0f;
+                _vX = (float)_x + _p->velocity.x;
+            }
+
+            _alreadyHasVelocityOnX = false;
+
+//            int _right = ((int)_x + 1) + this->textureWidth * (_y - _spotsToMoveY), _left = ((int)_x - 1) + this->textureWidth * (_y - _spotsToMoveY);
+//            if(this->is((int)_vX - 1, (_y - _spotsToMoveY), _p->type) && this->particles[_left].velocity.x != 0) {
+//                _p->velocity.x = this->particles[_left].velocity.x;
+//                LOG_TRACE("getting from left");
+//            } else if(this->is((int)_vX + 1, (_y - _spotsToMoveY), _p->type) && this->particles[_right].velocity.x != 0) {
+//                _p->velocity.x = this->particles[_right].velocity.x;
+//                LOG_TRACE("getting from right");
+//            } else {
+//                _p->velocity.x = this->random.randomi(0, 1) ? 1.0f : -1.0f;
+//                _vX = (float)_x + _p->velocity.x;
+//
+//                if(!this->isEmpty((int)_vX, _y - _spotY)) {
+//                    _p->velocity.x *= -1.0f;
+//                    _vX = (float)_x + _p->velocity.x;
+//                }
+//            }
         }
 
-        _vX += _p->velocity.x * -1.f;
-        _p->velocity.y--;
-        _vY = (float)_y - _p->velocity.y;
+        int _spotsToCheckX = std::abs(_y - (int)std::abs(_vY));
+        _spotsToCheckX = _spotsToCheckX ? 1 : _spotsToCheckX;
+
+        for(int _spotX = 0; _spotX < _spotsToCheckX; _spotX++) {
+            int _nextPosX = _x + _spotX * (int)_p->velocity.x + (int)_p->velocity.x;
+            if (this->isEmpty(_nextPosX, _y - _spotsToMoveY) && _y != 0 && _nextPosX < this->textureWidth) {
+                _canMove = true;
+                _spotsToMoveX += (int) (1.f * _p->velocity.x);
+                continue;
+            }
+        }
+
+//        _p->velocity.x *= -1.f;
+//
+//        for(int _spotX = 0; _spotX < _spotsToCheckX; _spotX++) {
+//            int _nextPosX = _x + _spotX * (int)_p->velocity.x + (int)_p->velocity.x;
+//            if (this->isEmpty(_nextPosX, _y - _spotsToMoveY) && _y != 0 && _nextPosX < this->textureWidth) {
+//                _canMove = true;
+//                _spotsToMoveX += (int) (1.f * _p->velocity.x);
+//                continue;
+//            }
+//        }
+
+//
+//        for(int _side = 0; _side < 2; _side++) {
+//            if(!_canMove) {
+//                for(int _spotX = 0; _spotX < _spotsToCheckX; _spotX++) {
+//                    if(this->isEmpty(_x + _spotX * (int)_p->velocity.x + (int)_p->velocity.x, _y - _spotY) && _y != 0) {
+//                        _canMove = true;
+//                        _spotsToMoveX += (int)(1.f * _p->velocity.x);
+//                    } else
+//                        _spotX = 10;
+//                }
+//            }
+//
+//            if(!_alreadyHasVelocityOnX)
+//                _p->velocity.x *= -1.f;
+//        }
+
+        if(!_canMove)
+            break;
     }
 
     if(_canMove) {
-
-    }
-
-    if(!_reactionReallyExists || _y == 0) {
+        _vY = (float)(_y - _spotsToMoveY);
+        _vX = (float)(_x + _spotsToMoveX);
+        _tempB = this->particles[(int)_vX + this->textureWidth * (int)_vY];
+        this->writeParticle((int)_vX, (int)_vY, _tempA);
+        this->writeParticle(_x, _y, _tempB);
+        this->activateNeighbours(_x, _y);
+        this->activateNeighbours((int)_vX, (int)_vY);
+        return;
+    } else {
         _p->canUpdate = false;
-        _p->velocity.x = 0.0f;
+        _p->velocity = {0.f, 0.f};
     }
+
+//    if(!_reactionReallyExists || _y == 0) {
+//        _p->canUpdate = false;
+//        _p->velocity.x = 0.0f;
+//    }
 }
 void Safator::updateCommonGases(int _x, int _y, int _posInVector, Timestep _dt) {
     Particle* _p = &this->particles[_posInVector];
@@ -799,8 +863,8 @@ const char* Safator::particleTypeToName(const Safator::ParticleType& _type) {
         case FUSE           : _name = "Fuse";           return _name;
         case CRYOGENER      : _name = "Cryogener";      return _name;
         case FROST          : _name = "Frost";          return _name;
+        default             :                           return "Not known particle";
     }
-    return "Not known particle";
 }
 Color Safator::particleTypeToColor(const Safator::ParticleType& _particle) {
     switch (_particle) {
@@ -821,9 +885,8 @@ Color Safator::particleTypeToColor(const Safator::ParticleType& _particle) {
         case FROST          : return this->PARTICLE_COLORS[this->random.randomi(33, 34)];
         case POISON_G       : return this->PARTICLE_COLORS[35];
         case ASH            : return this->PARTICLE_COLORS[this->random.randomi(36, 37)];
+        default             : return this->PARTICLE_COLORS[15];
     }
-
-    return this->PARTICLE_COLORS[15];
 }
 void Safator::generateWithBrush(const Vec2i& _mousePos) {
 
@@ -836,8 +899,8 @@ void Safator::generateWithBrush(const Vec2i& _mousePos) {
                 Vec2i _randPos = this->randomPointInsideCircle({(int)_mousePos.x, (int)_mousePos.y}, this->drawInfo.brushCircleWH);
 
                 while(std::find(_spawnedPositions.begin(), _spawnedPositions.end(), _randPos) != _spawnedPositions.end() ||
-                      (_randPos.x  + _mousePos.x < 0 || _randPos.x  + _mousePos.x >= (float)this->worldTexture->getWidth() - 1) ||
-                      (_randPos.y + _mousePos.y < 0 || _randPos.y + _mousePos.y >= (float)this->worldTexture->getHeight() - 1)) {
+                      (_randPos.x  + _mousePos.x < 0 || (float)_randPos.x  + _mousePos.x >= (float)this->worldTexture->getWidth() - 1) ||
+                      (_randPos.y + _mousePos.y < 0 || (float)_randPos.y + _mousePos.y >= (float)this->worldTexture->getHeight() - 1)) {
                     _randPos = this->randomPointInsideCircle({(int)_mousePos.x, (int)_mousePos.y}, this->drawInfo.brushCircleWH);
                 }
 
@@ -1675,8 +1738,8 @@ void Safator::imGuiWorldSizePopUp(engine::Timestep _dt) {
 
     static int _futurePopWidth = 0, _futurePopHeight = 0;
 
-    ImGui::SetNextWindowPos({(float)_mainWindowPos.x + this->app.getWindowSize().x / 2.f - _futurePopWidth / 2.f,
-                             _mainWindowPos.y + this->app.getWindowSize().y / 2.f - _futurePopHeight / 2.f});
+    ImGui::SetNextWindowPos({(float)_mainWindowPos.x + this->app.getWindowSize().x / 2.f - (float)_futurePopWidth / 2.f,
+                             _mainWindowPos.y + this->app.getWindowSize().y / 2.f - (float)_futurePopHeight / 2.f});
     if(ImGui::BeginPopupModal("World Size Options", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
         _futurePopWidth = (int)ImGui::GetWindowSize().x;
         _futurePopHeight = (int)ImGui::GetWindowSize().y;
