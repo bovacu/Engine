@@ -1,0 +1,69 @@
+                                                =============================
+                                                =   - : needs to be done    =
+                                                =   ~ : almost done         =
+                                                =   $ : done                =
+                                                =============================
+
+TODO
+
+[-] Add autocompleting line drawing.
+[-] Transform gas movement into physics movement.
+[-] Make all current materials usable.
+[-] Make all current materials react between each other.
+[-] Load maps.
+[-] Save maps.
+[-] Complete all weather conditions.
+
+TODO MATERIALS DONE AND WORKING WITH REACTIONS
+-------------------- LIQUIDS -------------------
+[$] Water
+    [$] Acid
+    [$] Lava
+    [$] Salt
+    [$] Frost
+    [$] Ice
+    [-] Fire
+[$] Acid
+    [$] Stone
+[$] Lava
+[-] Poison Liquid
+
+-------------------- Dusts -----------------------
+
+[$] Sand
+[$] Ash
+[$] Salt
+[$] Gunpowder
+    [-] Fire
+
+-------------------- Solids ---------------------
+
+[$] Stone
+[$] Obsidian
+[$] Ice
+[$] Frost
+    [$] Everything
+[-] Wood
+[-] Snow
+[-] Steel
+[-] Wax
+[$] Dirt
+
+-------------------- Gas -------------------------
+
+[$] Steam
+[$] Smoke
+[-] Gas
+[$] Poison gas
+
+-------------------- Various -------------------
+
+[-] Plant
+[-] Cloud
+[-] Fire
+
+-------------------- Usable --------------------
+
+[-] Fuse
+[$] Cryogener
+    [$] Everything

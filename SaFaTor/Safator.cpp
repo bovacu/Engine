@@ -57,14 +57,14 @@ void Safator::onUpdate(engine::Timestep _dt) {
 
     if(Input::isKeyJustPressed(KEY_SPACE))
         this->play = !this->play;
-
+}
+void Safator::onFixedUpdate(engine::Timestep _dt) {
     if(this->play) {
-        if(this->oneStep) {
+        if (this->oneStep) {
             this->play = false;
             this->oneStep = false;
         }
 
-        /// ADDING NEW PARTICLES
         if(!ImGui::IsAnyWindowHovered() && !ImGui::IsAnyItemActive()) {
             auto _mousePos = Input::getMousePosition();
             if(_mousePos >= 0 && _mousePos.x < this->worldTexture->getWidth() && _mousePos.y < this->worldTexture->getHeight()) {
@@ -76,15 +76,9 @@ void Safator::onUpdate(engine::Timestep _dt) {
                 }
             }
         }
-    }
-}
-void Safator::onFixedUpdate(engine::Timestep _dt) {
-    if(this->play) {
-        if (this->oneStep) {
-            this->play = false;
-            this->oneStep = false;
-        }
+
         this->rain();
+
         int _textureWidth = this->worldTexture->getWidth();
         /// UPDATING PARTICLES
         for (int _y = 0; _y < (int) this->worldTexture->getHeight(); _y++) {
@@ -115,15 +109,7 @@ void Safator::onRender(engine::Timestep _dt) {
     engine::Renderer::setClearColor(this->backgroundColor);
     engine::Renderer::clear();
 
-    static float _rotation = 0;
-    _rotation += _dt;
     engine::Renderer::beginDrawCall(this->cameraController.getCamera());
-//        engine::Renderer::drawLine({-this->app.getWindowSize().x / 2.f, 0}, {this->app.getWindowSize().x / 2.f, 0}, Color::Green, 1.f);
-//        engine::Renderer::drawLine({0, this->app.getWindowSize().x / 2.f}, {0, -this->app.getWindowSize().x / 2.f}, Color::Green, 1.f);
-//        engine::Renderer::drawLine({0, 100}, {0, -100}, Color::Green, 1.f);
-
-//        engine::Renderer::drawLine({0, 0}, {100, 0}, Color::Green, 1.f);
-//        engine::Renderer::drawRectangle({0,0}, {1,1}, Color::Red);
         engine::Renderer::drawTexture({0.0f, 0.0f},
                                       {(float) this->worldTexture->getWidth(), (float) this->worldTexture->getHeight()},
                                       this->worldTexture);
@@ -323,10 +309,10 @@ void Safator::updateFrostParticle(int _x, int _y, int _posInVector, Timestep _dt
     Particle* _p = &this->particles[_pos];
     ReactionInfo _ri;
 
-    bool _left  = this->isInBounds(_x - 1, _y) && !this->is(_x - 1, _y, FROST) && !this->is(_x - 1, _y, NONE_PARTICLE);
-    bool _right = this->isInBounds(_x + 1, _y) && !this->is(_x + 1, _y, FROST) && !this->is(_x + 1, _y, NONE_PARTICLE);
-    bool _up    = this->isInBounds(_x, _y + 1) && !this->is(_x, _y + 1, FROST) && !this->is(_x, _y + 1, NONE_PARTICLE);
-    bool _down  = this->isInBounds(_x, _y - 1) && !this->is(_x, _y - 1, FROST) && !this->is(_x, _y - 1, NONE_PARTICLE);
+    bool _left  = this->isInBounds(_x - 1, _y) && !this->is(_x - 1, _y, FROST);
+    bool _right = this->isInBounds(_x + 1, _y) && !this->is(_x + 1, _y, FROST);
+    bool _up    = this->isInBounds(_x, _y + 1) && !this->is(_x, _y + 1, FROST);
+    bool _down  = this->isInBounds(_x, _y - 1) && !this->is(_x, _y - 1, FROST);
     _p->canUpdate = _left || _right || _up || _down;
 
     if(_p->canUpdate) {
@@ -488,7 +474,7 @@ void Safator::updateCommonDusts(int _x, int _y, int _posInVector, Timestep _dt) 
     }
     else {
         _p->velocity.y = 0.0f;
-        _reactionReallyExists = this->reactWithFourNeighbours((int)_vX, (int)_vY, *_p, _tempB, _ri);
+        _reactionReallyExists = this->reactWithFourNeighbours(_x, _y, *_p, _tempB, _ri);
         if(!_reactionReallyExists)
             _p->canUpdate = false;
     }
@@ -553,7 +539,7 @@ void Safator::updateCommonLiquids(int _x, int _y, int _posInVector, int _spreadR
         this->handleUnfittedDrops((int)_vX, (int)_vY, this->calcVecPos((int)_vX, (int)_vY), _dt);
     } else {
         _p->velocity = {0.f, 0.f};
-        _reactionReallyExists = this->reactWithFourNeighbours((int)_vX, (int)_vY, *_p, _tempB, _ri);
+        _reactionReallyExists = this->reactWithFourNeighbours(_x, _y, *_p, _tempB, _ri);
         if(!_reactionReallyExists)
             _p->canUpdate = false;
     }
@@ -1740,7 +1726,11 @@ Safator::ReactionInfo Safator::reactions(const Vec2i& _posA, const Vec2i& _posB,
 
     ReactionInfo _ri;
 
-    if(_particleB.type == CRYOGENER && _particleA.type != _particleB.type)
+    if(_particleA.type == _particleB.type)
+        return _ri;
+
+
+    if(_particleB.type == CRYOGENER)
         return this->reactions(_posB, _posA, _particleB, _particleA);
 
     if(_particleA.type == ACID) {
@@ -1833,12 +1823,10 @@ Safator::ReactionInfo Safator::reactions(const Vec2i& _posA, const Vec2i& _posB,
     }
 
     else if(_particleA.type == CRYOGENER) {
-        if(_particleB.type != NONE_PARTICLE && _particleB.type != CRYOGENER) {
+        if(_particleB.type != FROST) {
             _ri.reactionExists = true;
             if ((_ri.prob = this->random.probability(Safator::probValues(_particleA.type, _particleB.type))).happened) {
-                this->writeParticle(_posA.x, _posA.y, this->noneParticle);
-                this->writeParticle(_posB.x, _posB.y, this->noneParticle);
-                this->drawnPixels -= 2;
+                this->removeParticles({_posB.x, _posB.y});
                 this->generateSpecificParticle({_posB.x, _posB.y}, FROST);
             }
         }
