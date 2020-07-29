@@ -79,27 +79,37 @@ void Safator::onUpdate(engine::Timestep _dt) {
     }
 }
 void Safator::onFixedUpdate(engine::Timestep _dt) {
-    this->rain();
-    int _textureWidth = this->worldTexture->getWidth();
-    /// UPDATING PARTICLES
-    for(int _y = 0; _y < (int)this->worldTexture->getHeight(); _y++) {
-        if(this->random.randomi(0, 1) == 0) {
-            for (int _x = 0; _x < (int) this->worldTexture->getWidth(); _x++) {
-                int _pos = _x + _textureWidth * _y;
-                ParticleType _type = this->particles[_pos].type;
-                if(_type == ParticleType::NONE_PARTICLE || this->isSolid(_type) || !this->particles[_pos].canUpdate) continue;
-                this->updateAllParticles(_x, _y, _pos, _type, _dt);
-            }
-        } else {
-            for (int _x = (int)this->worldTexture->getWidth() - 1; _x > 0; _x--) {
-                int _pos = _x + _textureWidth * _y;
-                ParticleType _type = this->particles[_pos].type;
-                if(_type == ParticleType::NONE_PARTICLE || this->isSolid(_type) || !this->particles[_pos].canUpdate) continue;
-                this->updateAllParticles(_x, _y, _pos, _type, _dt);
+    if(this->play) {
+        if (this->oneStep) {
+            this->play = false;
+            this->oneStep = false;
+        }
+        this->rain();
+        int _textureWidth = this->worldTexture->getWidth();
+        /// UPDATING PARTICLES
+        for (int _y = 0; _y < (int) this->worldTexture->getHeight(); _y++) {
+            if (this->random.randomi(0, 1) == 0) {
+                for (int _x = 0; _x < (int) this->worldTexture->getWidth(); _x++) {
+                    int _pos = _x + _textureWidth * _y;
+                    ParticleType _type = this->particles[_pos].type;
+                    if (_type == ParticleType::NONE_PARTICLE || this->isSolid(_type) ||
+                        !this->particles[_pos].canUpdate)
+                        continue;
+                    this->updateAllParticles(_x, _y, _pos, _type, _dt);
+                }
+            } else {
+                for (int _x = (int) this->worldTexture->getWidth() - 1; _x > 0; _x--) {
+                    int _pos = _x + _textureWidth * _y;
+                    ParticleType _type = this->particles[_pos].type;
+                    if (_type == ParticleType::NONE_PARTICLE || this->isSolid(_type) ||
+                        !this->particles[_pos].canUpdate)
+                        continue;
+                    this->updateAllParticles(_x, _y, _pos, _type, _dt);
+                }
             }
         }
+        this->worldTexture->updateTexture();
     }
-    this->worldTexture->updateTexture();
 }
 void Safator::onRender(engine::Timestep _dt) {
     engine::Renderer::setClearColor(this->backgroundColor);
@@ -238,11 +248,11 @@ void Safator::updateAllParticles(int _x, int _y, int _posInVector, const Particl
         case SALT       : this->updateCommonDusts(_x, _y, _posInVector, _dt);                       break;
         case DIRT       : this->updateDirtParticle(_x, _y, _posInVector, _dt);                      break;
 
-        case WATER      :
-        case ACID       : this->updateCommonLiquids(_x, _y, _posInVector, WATER_SPREAD_RATE, _dt);  break;
+        case WATER      : this->updateCommonLiquids(_x, _y, _posInVector, WATER_SPREAD_RATE, _dt);  break;
+        case ACID       : this->updateCommonLiquids(_x, _y, _posInVector, ACID_SPREAD_RATE, _dt);   break;
         case LAVA       : this->updateCommonLiquids(_x, _y, _posInVector, LAVA_SPREAD_RATE, _dt);   break;
 
-        case ICE        : this->updateIceParticle(_x, _y, _posInVector, _dt);                       break;
+        case ICE        :
         case FROST      : this->updateFrostParticle(_x, _y, _posInVector, _dt);                     break;
 
         case SMOKE      :
@@ -308,65 +318,20 @@ void Safator::updateDirtParticle(int _x, int _y, int _posInVector, Timestep _dt)
         }
     }
 }
-void Safator::updateIceParticle(int _x, int _y, int _posInVector, Timestep _dt) {
-    Particle* _p = &this->particles[this->calcVecPos(_x, _y)];
-    bool _down = this->isInBounds(_x, _y - 1) && this->is(_x, _y - 1, WATER);
-
-    _p->canUpdate = this->isEmpty(_x, _y + 1) || _down;
-
-    if(_p->canUpdate && _down) {
-        ReactionInfo _ri;
-        bool _reactionReallyExists = false;
-        _ri = this->reactions({_x, _y}, {_x, _y - 1}, *_p, this->particles[this->calcVecPos(_x, _y - 1)]);
-        _reactionReallyExists |= _ri.reactionExists;
-        if (_ri.prob.happened) {
-            this->activateNeighbours(_x, _y);
-            _p->canUpdate = false;
-            return;
-        }
-    }
-
-}
 void Safator::updateFrostParticle(int _x, int _y, int _posInVector, Timestep _dt) {
     int _pos = this->calcVecPos(_x, _y);
+    Particle* _p = &this->particles[_pos];
+    ReactionInfo _ri;
+
     bool _left  = this->isInBounds(_x - 1, _y) && !this->is(_x - 1, _y, FROST) && !this->is(_x - 1, _y, NONE_PARTICLE);
     bool _right = this->isInBounds(_x + 1, _y) && !this->is(_x + 1, _y, FROST) && !this->is(_x + 1, _y, NONE_PARTICLE);
     bool _up    = this->isInBounds(_x, _y + 1) && !this->is(_x, _y + 1, FROST) && !this->is(_x, _y + 1, NONE_PARTICLE);
     bool _down  = this->isInBounds(_x, _y - 1) && !this->is(_x, _y - 1, FROST) && !this->is(_x, _y - 1, NONE_PARTICLE);
-    this->particles[_pos].canUpdate = _left || _right || _up || _down;
+    _p->canUpdate = _left || _right || _up || _down;
 
-    Particle* _p;
-    if((_p = &this->particles[_pos])->canUpdate) {
-        ReactionInfo _ri;
-        bool _reactionReallyExists = false;
-
-        if(this->isInBounds(_x - 1, _y)) {
-            _ri = this->reactions({_x, _y}, {_x - 1, _y}, *_p, this->particles[this->calcVecPos(_x - 1, _y)]);
-            _reactionReallyExists |= _ri.reactionExists;
-            if (_ri.prob.happened)
-                this->activateNeighbours(_x, _y);
-        }
-
-        if(this->isInBounds(_x + 1, _y)) {
-            _ri = this->reactions({_x, _y}, {_x + 1, _y}, *_p, this->particles[this->calcVecPos(_x + 1, _y)]);
-            _reactionReallyExists |= _ri.reactionExists;
-            if (_ri.prob.happened)
-                this->activateNeighbours(_x, _y);
-        }
-
-        if(this->isInBounds(_x, _y + 1)) {
-            _ri = this->reactions({_x, _y}, {_x, _y + 1}, *_p, this->particles[this->calcVecPos(_x, _y + 1)]);
-            _reactionReallyExists |= _ri.reactionExists;
-            if (_ri.prob.happened)
-                this->activateNeighbours(_x, _y);
-        }
-
-        if(this->isInBounds(_x, _y - 1)) {
-            _ri = this->reactions({_x, _y}, {_x, _y - 1}, *_p, this->particles[this->calcVecPos(_x, _y - 1)]);
-            _reactionReallyExists |= _ri.reactionExists;
-            if (_ri.prob.happened)
-                this->activateNeighbours(_x, _y);
-        }
+    if(_p->canUpdate) {
+        Particle _tempB;
+        _p->canUpdate = this->reactWithFourNeighbours(_x, _y, *_p, _tempB, _ri);
     }
 }
 
@@ -464,73 +429,71 @@ void Safator::updateCommonDusts(int _x, int _y, int _posInVector, Timestep _dt) 
     if(_p->velocity.y < this->weatherConditions[4] * 2)
         _p->velocity.y += this->weatherConditions[4] * 2 * _dt;
 
-    float _vX = (float)_x + _p->velocity.x + this->weatherConditions[0];
+    float _vX = (float)_x + _p->velocity.x;
     float _vY = (float)_y - _p->velocity.y;
 
     if(this->is((int)_vX, (int)_vY, WATER)) {
         _p->velocity.y *= (this->weatherConditions[4]) * 0.05f;
         _p->velocity.x = this->random.randomf( -2, 2 );
-        _vX = (float)_x + _p->velocity.x;
     }
-
-    Particle _tempA = *_p;
-    Particle _tempB;
 
     ReactionInfo _ri;
     bool _reactionReallyExists = false;
 
-    float _initialVx = _vX;
-    if(_p->velocity.x == 0) {
-        _p->velocity.x = (this->random.randomi(0, 1) == 0 ? 1.f : -1.f);
-        _vX = ((float)_x + _p->velocity.x);
-    }
+    bool _canMove = false;
+    int _spotsToCheckY = (_y - (int)std::abs(_vY)) > 1 ? _y - (int)std::abs(_vY) : 1;
+    int _spotsToMoveY = 0, _spotsToMoveX = 0;
 
-    while(_vY < (float)_y && _y > 0) {
-        if(isEmpty((int)_initialVx, (int)_vY) || this->is((int)_initialVx, (int)_vY, WATER)) {
-            _tempB = this->particles[(int)_initialVx + this->textureWidth * (int)_vY];
-            this->writeParticle((int)_initialVx, (int)_vY, _tempA);
-            this->writeParticle(_x, _y, _tempB);
-            this->activateNeighbours(_x, _y);
-            this->activateNeighbours((int)_initialVx, (int)_vY);
-            return;
-        } else {
-            if(this->isInBounds((int)_initialVx, (int)_vY)) {
-                _tempB = this->particles[(int)_initialVx + this->textureWidth * (int)_vY];
-                _p->velocity.y = 0.f;
-                _ri = this->reactions({_x, _y}, {(int)_initialVx, (int)_vY}, _tempA, _tempB);
-                _reactionReallyExists |= _ri.reactionExists;
-            }
+    for(int _spotY = 0; _spotY < _spotsToCheckY; _spotY++) {
+        bool _inWater = false;
+        if(this->isEmpty((int)_x, _y - _spotY - 1) || (_inWater = this->is((int)_x, _y - _spotY - 1, WATER))) {
+            _canMove = true;
+            _spotsToMoveY++;
+            if(!_inWater)
+                _p->velocity.x = 0;
+            continue;
         }
 
-        for(int _i = 0; _i < 2; _i++) {
-            if(isEmpty((int)_vX, (int)_vY) || this->is((int)_vX, (int)_vY, WATER)) {
-                _tempB = this->particles[(int)_vX + this->textureWidth * (int)_vY];
-                this->writeParticle((int)_vX, (int)_vY, _tempA);
-                this->writeParticle(_x, _y, _tempB);
-                this->activateNeighbours(_x, _y);
-                this->activateNeighbours((int)_vX, (int)_vY);
-                return;
-            } else {
-                if(this->isInBounds((int)_initialVx, (int)_vY)) {
-                    _tempB = this->particles[(int)_initialVx + this->textureWidth * (int)_vY];
-                    _p->velocity.y = 0.f;
-                    _ri = this->reactions({_x, _y}, {(int)_initialVx, (int)_vY}, _tempA, _tempB);
-                    _reactionReallyExists |= _ri.reactionExists;
-                }
-            }
+        if(_p->velocity.x == 0.f)
+            _p->velocity.x = (this->random.randomi(0, 1) == 0 ? 1.f : -1.f);
 
-            _vX = ((float)_x + _p->velocity.x * -1.f);
+        for(int _side = 0; _side < 2; _side++) {
+            int _nextPosX = _x + (int) _p->velocity.x;
+            if (this->isEmpty(_nextPosX, _y - _spotY - 1) || this->is(_nextPosX, _y - _spotY - 1, WATER)) {
+                _spotsToMoveX += (int) (1.f * _p->velocity.x);
+                _side = 10;
+            }
+            _p->velocity.x *= -1.f;
         }
-        _vY++;
+
+        _canMove = _spotsToMoveY != 0 || _spotsToMoveX != 0;
+
+        if(_spotsToMoveX == 0)
+            _p->velocity.x = 0.f;
+
+        break;
     }
 
-    if(!_reactionReallyExists) {
-        _p->canUpdate = false;
-        _p->velocity = {0.f, 0.f};
+    Particle _tempB;
+    if(_canMove) {
+        _vY = (float)(_y - _spotsToMoveY);
+        _vX = (float)(_x + _spotsToMoveX);
+
+        _tempB = this->particles[(int)_vX + this->textureWidth * (int)_vY];
+
+        this->writeParticle((int)_vX, (int)_vY, *_p);
+        this->writeParticle(_x, _y, _tempB);
+        this->activateNeighbours(_x, _y);
+        this->activateNeighbours((int)_vX, (int)_vY);
+    }
+    else {
+        _p->velocity.y = 0.0f;
+        _reactionReallyExists = this->reactWithFourNeighbours((int)_vX, (int)_vY, *_p, _tempB, _ri);
+        if(!_reactionReallyExists)
+            _p->canUpdate = false;
     }
 }
 void Safator::updateCommonLiquids(int _x, int _y, int _posInVector, int _spreadRate, Timestep _dt) {
-    this->handleUnfittedDrops(_x, _y, _posInVector, _dt);
 
     Particle* _p = &this->particles[_posInVector];
 
@@ -559,28 +522,20 @@ void Safator::updateCommonLiquids(int _x, int _y, int _posInVector, int _spreadR
         if(_p->velocity.x == 0)
             _p->velocity.x = this->random.randomi(0, 1) == 0 ? 1.0f : -1.0f;
 
-        for(int _spotX = 0; _spotX < _spreadRate; _spotX++) {
-            int _nextPosX = _x + _spotX * (int)_p->velocity.x + (int)_p->velocity.x;
-            if (this->isEmpty(_nextPosX, _y - _spotY) && _y != 0) {
-                _canMove = true;
-                _spotsToMoveX += (int) (1.f * _p->velocity.x);
-                continue;
-            }
-
-            break;
-        }
-
-        if(_spotsToMoveX == 0) {
-            _p->velocity.x *= -1.f;
-            for(int _spotX = 0; _spotX < _spreadRate; _spotX++) {
-                int _nextPosX = _x + _spotX * (int)_p->velocity.x + (int)_p->velocity.x;
-                if (this->isEmpty(_nextPosX, _y - _spotY) && _y != 0) {
-                    _canMove = true;
-                    _spotsToMoveX += (int) (1.f * _p->velocity.x);
-                    continue;
+        for(int _side = 0; _side < 2; _side++) {
+            if(_spotsToMoveX == 0) {
+                for(int _spotX = 0; _spotX < _spreadRate; _spotX++) {
+                    int _nextPosX = _x + _spotX * (int)_p->velocity.x + (int)_p->velocity.x;
+                    if (this->isEmpty(_nextPosX, _y - _spotY) && _y != 0) {
+                        _canMove = true;
+                        _spotsToMoveX += (int) (1.f * _p->velocity.x);
+                        continue;
+                    }
+                    _spotX = 10;
                 }
 
-                break;
+                if(_spotsToMoveX == 0)
+                    _p->velocity.x *= -1.f;
             }
         }
 
@@ -595,11 +550,13 @@ void Safator::updateCommonLiquids(int _x, int _y, int _posInVector, int _spreadR
         this->writeParticle(_x, _y, _tempB);
         this->activateNeighbours(_x, _y);
         this->activateNeighbours((int)_vX, (int)_vY);
+        this->handleUnfittedDrops((int)_vX, (int)_vY, this->calcVecPos((int)_vX, (int)_vY), _dt);
     } else {
-        _p->canUpdate = false;
         _p->velocity = {0.f, 0.f};
+        _reactionReallyExists = this->reactWithFourNeighbours((int)_vX, (int)_vY, *_p, _tempB, _ri);
+        if(!_reactionReallyExists)
+            _p->canUpdate = false;
     }
-
 }
 void Safator::updateCommonGases(int _x, int _y, int _posInVector, Timestep _dt) {
     Particle* _p = &this->particles[_posInVector];
@@ -777,15 +734,37 @@ void Safator::updateCommonGases(int _x, int _y, int _posInVector, Timestep _dt) 
         _p->updatedThisFrame = false;
     }
 }
-bool Safator::react(const Vec2i& _posA, const Vec2i& _posB, Safator::Particle& _tempA, Safator::Particle& _tempB, Safator::ReactionInfo& _ri) {
-    _ri = this->reactions(_posA, _posB, _tempA, _tempB);
-//    LOG_INFO("Prob: {0}, Happened: {1}, Exists Reaction: {2}", _ri.prob.prob, _ri.prob.happened, _ri.reactionExists);
-//    LOG_INFO("A: {0}, B: {1}", _tempA.type, _tempB.type);
-    if (_ri.prob.happened) {
-        this->activateNeighbours(_posA.x, _posA.y);
-        return true;
+bool Safator::reactWithFourNeighbours(int _x, int _y, Particle& _tempA, Particle& _tempB, Safator::ReactionInfo& _ri) {
+    bool _reactionExists = false;
+    if(this->isInBounds(_x, _y - 1)) {
+        _ri = this->reactions({_x, _y}, {_x, _y - 1}, _tempA, this->particles[this->calcVecPos(_x, _y - 1)]);
+        _reactionExists |= _ri.reactionExists;
+        if(_ri.prob.happened)
+            this->activateNeighbours(_x, _y);
     }
-    return false;
+
+    if(this->isInBounds(_x, _y + 1)) {
+        _ri = this->reactions({_x, _y}, {_x, _y + 1}, _tempA, this->particles[this->calcVecPos(_x, _y + 1)]);
+        _reactionExists |= _ri.reactionExists;
+        if(_ri.prob.happened)
+            this->activateNeighbours(_x, _y);
+    }
+
+    if(this->isInBounds(_x - 1, _y)) {
+        _ri = this->reactions({_x, _y}, {_x - 1, _y}, _tempA, this->particles[this->calcVecPos(_x - 1, _y)]);
+        _reactionExists |= _ri.reactionExists;
+        if(_ri.prob.happened)
+            this->activateNeighbours(_x, _y);
+    }
+
+    if(this->isInBounds(_x + 1, _y)) {
+        _ri = this->reactions({_x, _y}, {_x + 1, _y}, _tempA, this->particles[this->calcVecPos(_x + 1, _y)]);
+        _reactionExists |= _ri.reactionExists;
+        if(_ri.prob.happened)
+            this->activateNeighbours(_x, _y);
+    }
+
+    return _reactionExists;
 }
 
 

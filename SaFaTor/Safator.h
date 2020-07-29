@@ -12,7 +12,7 @@
 #define MAX_STEAM_LIFE      6.f
 #define MIN_STEAM_LIFE      4.f
 
-#define WATER_SPREAD_RATE   3
+#define WATER_SPREAD_RATE   4
 #define ACID_SPREAD_RATE    3
 #define LAVA_SPREAD_RATE    1
 
@@ -194,7 +194,6 @@ class Safator : public engine::Layer {
         void initSimulationWorld();
         void updateAllParticles(int _x, int _y, int _posInVector, const ParticleType& _type, Timestep _dt);
         void updateDirtParticle(int _x, int _y, int _posInVector, Timestep _dt);
-        void updateIceParticle(int _x, int _y, int _posInVector, Timestep _dt);
         void updateFrostParticle(int _x, int _y, int _posInVector, Timestep _dt);
         void handleUnfittedDrops(int _x, int _y, int _vecPos, float _dt);
         void handleUnfittedGases(int _x, int _y, int _vecPos, float _dt);
@@ -203,7 +202,7 @@ class Safator : public engine::Layer {
         void updateCommonLiquids(int _x, int _y, int _posInVector, int _spreadRate, Timestep _dt);
         void updateCommonGases(int _x, int _y, int _posInVector, Timestep _dt);
 
-        bool react(const Vec2i& _posA, const Vec2i& _posB, Particle& _tempA, Particle& _tempB, ReactionInfo& _ri);
+        bool reactWithFourNeighbours(int _x, int _y, Particle& _tempA, Particle& _tempB, ReactionInfo& _ri);
 
         void wind();
         void rain();
