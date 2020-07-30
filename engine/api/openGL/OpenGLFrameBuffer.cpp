@@ -39,7 +39,7 @@ namespace engine {
         glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH24_STENCIL8, this->specs.width, this->specs.height);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, this->depthAttachment, 0);
 
-        ENGINE_CORE_ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "Framebuffer is incomplete!");
+        ENGINE_CORE_ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "Framebuffer is incomplete!")
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }

@@ -28,14 +28,11 @@ namespace engine {
 
         int _width, _height, _channels;
         stbi_set_flip_vertically_on_load(1);
-        stbi_uc* _data = nullptr;
+        stbi_uc* _data;
 
-        {
-//            ENGINE_PROFILE_SCOPE("stbi_load - OpenGLTexture::OpenGLTexture(const std:string&)");
-            _data = stbi_load(_path.c_str(), &_width, &_height, &_channels, 0);
-        }
+        _data = stbi_load(_path.c_str(), &_width, &_height, &_channels, 0);
 
-        ENGINE_CORE_ASSERT(_data, "Failed to load image!");
+        ENGINE_CORE_ASSERT(_data, "Failed to load image!")
         this->width = _width;
         this->height = _height;
         this->bpp = _channels;
@@ -52,7 +49,7 @@ namespace engine {
         this->internalFormat = _internalFormat;
         this->dataFormat = _dataFormat;
 
-        ENGINE_CORE_ASSERT(_internalFormat & _dataFormat, "Format not supported!");
+        ENGINE_CORE_ASSERT(_internalFormat & _dataFormat, "Format not supported!")
 
         glCreateTextures(GL_TEXTURE_2D, 1, &this->rendererID);
         glTextureStorage2D(this->rendererID, 1, this->internalFormat, this->width, this->height);
@@ -75,7 +72,7 @@ namespace engine {
 
     void OpenGLTexture::setData(void* _data, uint32_t _size) {
         uint32_t _bpp = this->dataFormat == GL_RGBA ? 4 : 3;
-        ENGINE_CORE_ASSERT(_size == this->width * this->height * _bpp, "Data must be entire texture!");
+        ENGINE_CORE_ASSERT(_size == this->width * this->height * _bpp, "Data must be entire texture!")
         glTextureSubImage2D(this->rendererID, 0, 0, 0, this->width, this->height, this->dataFormat, GL_UNSIGNED_BYTE, _data);
     }
 
@@ -117,8 +114,8 @@ namespace engine {
         // Load from file
         int image_width = 0;
         int image_height = 0;
-        unsigned char* image_data = stbi_load(filename, &image_width, &image_height, NULL, 4);
-        if (image_data == NULL)
+        unsigned char* image_data = stbi_load(filename, &image_width, &image_height, nullptr, 4);
+        if (image_data == nullptr)
             return false;
 
         // Create a OpenGL texture identifier
@@ -147,7 +144,7 @@ namespace engine {
     OpenGLImGuiTexture::OpenGLImGuiTexture(const char* _filePath) {
         unsigned char* image_data = stbi_load(_filePath, &this->width, &this->height, nullptr, 4);
         if (image_data == nullptr)
-            ENGINE_CORE_ASSERT(false, "Couldn't load ImGui Texture");
+            ENGINE_CORE_ASSERT(false, "Couldn't load ImGui Texture")
 
         // Create a OpenGL texture identifier
         glGenTextures(1, &this->texture);

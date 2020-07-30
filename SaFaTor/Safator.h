@@ -75,8 +75,8 @@ class Safator : public engine::Layer {
         Texture2DPtr                            worldTexture,
                                                 circleTexture;
 
-        int                                     totalOfPixels,
-                                                drawnPixels;
+        int                                     totalOfPixels = 0,
+                                                drawnPixels = 0;
 
         ImGuiTexture2DPtr                       pauseTexture,
                                                 resumeTexture,
@@ -86,7 +86,7 @@ class Safator : public engine::Layer {
                                                 eraseTexture,
                                                 zoomTexture;
 
-        Particle*                               particles;
+        Particle*                               particles = nullptr;
         Application&                            app;
 
         ParticleType                            selectedParticle = SAND;
@@ -125,8 +125,8 @@ class Safator : public engine::Layer {
                                                 gasParticle,
                                                 fireParticle;
 
-        int                                     textureWidth,
-                                                textureHeight;
+        int                                     textureWidth = 0,
+                                                textureHeight = 0;
 
         Color                                   PARTICLE_COLORS[39] = {
                                                     { 202, 188, 145, 255 }, /// SAND_0
@@ -228,8 +228,10 @@ class Safator : public engine::Layer {
         bool isSurrounded(int _x, int _y);
         bool isInBounds(int _x, int _y);
         bool is(int _x, int _y, const ParticleType& _particle);
-        bool isSolid(const ParticleType& _type);
-        bool notUpdatable(const ParticleType& _particleType);
+
+        /// They are both static as CLion suggested
+        static bool isSolid(const ParticleType& _type);
+        static bool notUpdatable(const ParticleType& _particleType);
 
         void generateParticles(const Vec2i& _mousePos);
         void generateSpecificParticle(const Vec2i& _pos, const ParticleType& _type);

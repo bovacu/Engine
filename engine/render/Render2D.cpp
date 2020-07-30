@@ -3,13 +3,11 @@
 
 #include <engine/render/elements/VertexArray.h>
 #include <engine/render/elements/Shader.h>
-#include <engine/render/RenderCommand.h>
+#include <engine/render/RenderMiddle.h>
 
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace engine {
-
-    RenderingType Render2D::renderingType = RenderingType::QUADS;
 
     struct QuadVertex {
         glm::vec3 position;
@@ -17,10 +15,6 @@ namespace engine {
         glm::vec2 texCoord;
         float texIndex;
         float tilingFactor;
-    };
-    struct PixelVertex {
-        glm::vec3 position;
-        glm::vec4 color;
     };
 
     struct Render2DData {
@@ -42,9 +36,10 @@ namespace engine {
         std::array<Texture2DPtr, maxTextureSlots> textureSlots;
         uint32_t textureSlotIndex = 1; // 0 = white texture
 
-        glm::vec4 quadVertexPositions[4];
-
+        glm::vec4 quadVertexPositions[4]{};
+    #if defined(ENGINE_DEBUG)
         Render2D::Statistics stats;
+    #endif
     };
 
     int Render2DData::numberOfVertices = 4;
@@ -114,7 +109,7 @@ namespace engine {
         delete [] data.quadVertexBufferBase;
     }
 
-    void Render2D::beginDraw(const OrthographicCamera& camera, const RenderingType& _type) {
+    void Render2D::beginDraw(const OrthographicCamera& camera) {
         data.textureShader->bind();
         data.textureShader->setMat4("viewProjection_uniform", camera.getViewProjectionMatrix());
 
@@ -134,9 +129,11 @@ namespace engine {
         // Bind textures
         for (uint32_t i = 0; i < data.textureSlotIndex; i++)
             data.textureSlots[i]->bind(i);
-        RenderCommand::drawIndexed(data.quadVertexArray, data.quadIndexCount);
+        RenderMiddle::drawIndexed(data.quadVertexArray, data.quadIndexCount);
 
-        data.stats.drawCalls++;
+        #if defined(ENGINE_DEBUG)
+            data.stats.drawCalls++;
+        #endif
     }
     void Render2D::flushAndReset() {
         Render2D::endDraw();
@@ -150,8 +147,6 @@ namespace engine {
         const float _dX = _p0.x - _p1.x;
         const float _dY = _p0.y - _p1.y;
         float _angle = std::atan2(_dY, _dX);
-//        LOG_TRACE("Angle Deg: {0}, Angle Rads: {1}", _angle * 180.f / M_PI, _angle);
-        float _adapter = OrthographicCamera::usingAspectRatio ? ASPECT_RATIO_PIXEL : 1;
 
         constexpr size_t        _quadVertexCount = 4;
         const float             _textureIndex = 0.0f; // White Texture
@@ -178,7 +173,9 @@ namespace engine {
 
         data.quadIndexCount += 6;
 
-        data.stats.quadCount++;
+        #if defined(ENGINE_DEBUG)
+            data.stats.quadCount++;
+        #endif
     }
 
     void Render2D::drawRect(const Vec2f& _position, const Vec2f& _size, const Color& _color) {
@@ -209,7 +206,9 @@ namespace engine {
 
         data.quadIndexCount += 6;
 
-        data.stats.quadCount++;
+        #if defined(ENGINE_DEBUG)
+            data.stats.quadCount++;
+        #endif
     }
 
     void Render2D::drawTexture(const Vec2f& _position, const Vec2f& _size, const Texture2DPtr& _texture, float _rotation, const Color& _tintColor) {
@@ -258,7 +257,10 @@ namespace engine {
         }
 
         data.quadIndexCount += 6;
-        data.stats.quadCount++;
+
+        #if defined(ENGINE_DEBUG)
+            data.stats.quadCount++;
+        #endif
     }
 
     void Render2D::drawRotatedRect(const Vec2f& _position, const Vec2f& _size, float _rotation, const Color& _color) {
@@ -290,7 +292,9 @@ namespace engine {
 
         data.quadIndexCount += 6;
 
-        data.stats.quadCount++;
+        #if defined(ENGINE_DEBUG)
+            data.stats.quadCount++;
+        #endif
     }
 
     void Render2D::drawRotatedTexture(const Vec2f& _position, const Vec2f& _size, float rotation, const Texture2DPtr& _texture, float _tilingFactor, const glm::vec4& _tintColor) {
@@ -339,12 +343,14 @@ namespace engine {
 
         data.quadIndexCount += 6;
 
-        data.stats.quadCount++;
+        #if defined(ENGINE_DEBUG)
+            data.stats.quadCount++;
+        #endif
     }
 
     void Render2D::draw(const GameObjectPtr& _gameObject, float _tilingFactor, const glm::vec4& _tintColor) {
         auto _sprite = _gameObject->getComponentOfType<Sprite>();
-        ENGINE_CORE_ASSERT(_sprite, "CAN'T DRAW A GAME OBJECT WITHOUT A SPRITE AS COMPONENT");
+        ENGINE_CORE_ASSERT(_sprite, "CAN'T DRAW A GAME OBJECT WITHOUT A SPRITE AS COMPONENT")
 
         if(_sprite->getRotation() != 0) {
             Render2D::drawRotated(_sprite, _sprite->getRotation(), _tilingFactor, _tintColor);
@@ -392,7 +398,9 @@ namespace engine {
         }
 
         data.quadIndexCount += 6;
-        data.stats.quadCount++;
+        #if defined(ENGINE_DEBUG)
+            data.stats.quadCount++;
+        #endif
     }
     void Render2D::drawRotated(const SpritePtr& _sprite, float _rotation, float _tilingFactor, const glm::vec4& _tintColor) {
         constexpr size_t        _quadVertexCount = 4;
@@ -437,7 +445,10 @@ namespace engine {
         }
 
         data.quadIndexCount += 6;
-        data.stats.quadCount++;
+
+        #if defined(ENGINE_DEBUG)
+            data.stats.quadCount++;
+        #endif
     }
 
     void Render2D::drawTexture(const Vec2f& _position, const Vec2f& _size, const TextureRegionPtr& _textureRegion, float _rotation,const Color& _tintColor) {
@@ -485,13 +496,18 @@ namespace engine {
         }
 
         data.quadIndexCount += 6;
+
+        #if defined(ENGINE_DEBUG)
         data.stats.quadCount++;
+        #endif
     }
 
+#if defined(ENGINE_DEBUG)
     void Render2D::resetStats() {
         memset(&data.stats, 0, sizeof(Statistics));
     }
     Render2D::Statistics Render2D::getStats() {
         return data.stats;
     }
+#endif
 }

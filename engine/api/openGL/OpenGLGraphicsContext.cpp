@@ -12,7 +12,7 @@ namespace engine {
     void OpenGLGraphicsContext::init() {
         glfwMakeContextCurrent(this->windowHandle);
         int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
-        ENGINE_CORE_ASSERT(status, "Failed to initialize Glad!");
+        ENGINE_CORE_ASSERT(status, "Failed to initialize Glad!")
 
         #ifdef ENGINE_DEBUG
             LOG_INFO_CORE("OpenGL Info:");
@@ -27,7 +27,7 @@ namespace engine {
                 glGetIntegerv(GL_MAJOR_VERSION, &versionMajor);
                 glGetIntegerv(GL_MINOR_VERSION, &versionMinor);
 
-                ENGINE_CORE_ASSERT(versionMajor > 4 || (versionMajor == 4 && versionMinor >= 5), "Engine requires at least OpenGL version 4.5!");
+                ENGINE_CORE_ASSERT(versionMajor > 4 || (versionMajor == 4 && versionMinor >= 5), "Engine requires at least OpenGL version 4.5!")
         #endif
     }
 

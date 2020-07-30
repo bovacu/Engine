@@ -94,7 +94,6 @@ namespace engine {
         static const char* _resSelected = "800x480";
 
         ImGui::Begin("Debugging");
-        auto stats = engine::Render2D::getStats();
 
         if(ImGui::Checkbox("VSync Active", &_vsync)) {
             engine::Application::get().getWindow().setVSync(_vsync);
@@ -130,11 +129,11 @@ namespace engine {
 
         ImGui::Separator();
 
-        ImGui::Text("Render2D Stats:");
-        ImGui::Text("Draw Calls: %d", stats.drawCalls);
-        ImGui::Text("Quads: %d", stats.quadCount);
-        ImGui::Text("Vertices: %d", stats.getTotalVertexCount());
-        ImGui::Text("Indices: %d", stats.getTotalIndexCount());
+//        ImGui::Text("Render2D Stats:");
+//        ImGui::Text("Draw Calls: %d", stats.drawCalls);
+//        ImGui::Text("Quads: %d", stats.quadCount);
+//        ImGui::Text("Vertices: %d", stats.getTotalVertexCount());
+//        ImGui::Text("Indices: %d", stats.getTotalIndexCount());
         ImGui::End();
     }
 

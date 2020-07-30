@@ -111,7 +111,7 @@ void StressTest::onRender(engine::Timestep _dt) {
     if(this->tests[2]) {
         Renderer::beginDrawCall(this->cameraController.getCamera());
             for(int _i = 0; _i < 4; _i++)
-                Render2D::draw(this->cars[_i]);
+                Renderer::draw(this->cars[_i]);
         Renderer::endDrawCall();
     }
 
@@ -123,7 +123,7 @@ void StressTest::onRender(engine::Timestep _dt) {
         }
         Renderer::beginDrawCall(this->cameraController.getCamera());
             for(int _i = 0; _i < this->stressTestInfo.numberOfSprites; _i++) {
-                Render2D::drawTexture(this->stressTestInfo.positionsAndTexture[_i].position, {16, 16}, this->stressSubTextures[this->stressTestInfo.positionsAndTexture[_i].textureIndex],
+                Renderer::drawTexture(this->stressTestInfo.positionsAndTexture[_i].position, {16, 16}, this->stressSubTextures[this->stressTestInfo.positionsAndTexture[_i].textureIndex],
                         this->stressTestInfo.rotation);
             }
         Renderer::endDrawCall();
@@ -132,7 +132,7 @@ void StressTest::onRender(engine::Timestep _dt) {
     if(this->tests[3]) {
         Renderer::beginDrawCall(this->cameraController.getCamera());
         for(int _i = 0; _i < 5; _i++)
-            Render2D::draw(this->physics[_i]);
+            Renderer::draw(this->physics[_i]);
         Renderer::drawRectangle(this->physics[4]->getComponentOfType<Collider>()->center, {32, 32}, {0, 255, 0, 125}, this->physics[4]->transform.rotation);
         Renderer::endDrawCall();
     }

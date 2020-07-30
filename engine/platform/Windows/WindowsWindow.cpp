@@ -29,8 +29,8 @@ namespace engine {
     void WindowsWindow::init(const WindowProperties& _props) {
 
         this->data.title = _props.title;
-        this->data.width = _props.width;
-        this->data.height = _props.height;
+        this->data.width = (int)_props.width;
+        this->data.height = (int)_props.height;
 
         #ifdef ENGINE_DEBUG
             LOG_WARN_CORE("Running in debug mode");
@@ -39,7 +39,7 @@ namespace engine {
 
         if (GLFWWindowCount == 0) {
             int success = glfwInit();
-            ENGINE_CORE_ASSERT(success, "Could not initialize GLFW!");
+            ENGINE_CORE_ASSERT(success, "Could not initialize GLFW!")
             glfwSetErrorCallback(GLFWErrorCallback);
         }
 
@@ -234,7 +234,7 @@ namespace engine {
         int _w = 0, _h = 0;
         unsigned char* _pixels = stbi_load(_path, &_w, &_h, nullptr, 4);
         if (_pixels == nullptr)
-            ENGINE_CORE_ASSERT(false, "Couldn't load ImGui Texture");
+            ENGINE_CORE_ASSERT(false, "Couldn't load ImGui Texture")
 
         glfwSetWindowIcon(this->window, 0, nullptr);
         GLFWimage _image[1];

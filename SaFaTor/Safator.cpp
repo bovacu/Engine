@@ -357,10 +357,10 @@ void Safator::handleUnfittedDrops(int _x, int _y, int _vecPos, float _dt) {
 }
 void Safator::handleUnfittedGases(int _x, int _y, int _vecPos, float _dt) {
 
-    if(_y >= this->textureHeight - 1) {
-        this->writeParticle(_x, _y, _vecPos, this->noneParticle);
-        this->drawnPixels--;
-    }
+//    if(_y >= this->textureHeight - 1) {
+//        this->writeParticle(_x, _y, _vecPos, this->noneParticle);
+//        this->drawnPixels--;
+//    }
 
     if(this->whatToDoWithUnfittingGas == 2)
         return;
@@ -368,22 +368,18 @@ void Safator::handleUnfittedGases(int _x, int _y, int _vecPos, float _dt) {
     if (this->whatToDoWithUnfittingGas == 0) {
         if(this->particles[_vecPos].lastHeight == _y)
             this->particles[_vecPos].lifeTimer += _dt;
-        else {
+        else
             this->particles[_vecPos].lastHeight = _y;
-            this->particles[_vecPos].lifeTimer = 0.0f;
-        }
 
         if(this->particles[_vecPos].lifeTimer >= this->particles[_vecPos].lifeTime) {
             this->writeParticle(_x, _y, _vecPos, this->noneParticle);
             this->drawnPixels--;
         }
     } else if (this->whatToDoWithUnfittingGas == 1){
-        if(this->particles[_vecPos].lastHeight == _y) {
+        if(this->particles[_vecPos].lastHeight == _y)
             this->particles[_vecPos].lifeTimer += _dt;
-        } else {
+        else
             this->particles[_vecPos].lastHeight = _y;
-            this->particles[_vecPos].lifeTimer = 0.0f;
-        }
 
         if(this->particles[_vecPos].lifeTimer >= this->particles[_vecPos].lifeTime) {
             if(this->particles[_vecPos].type == STEAM) {
@@ -601,7 +597,7 @@ void Safator::updateCommonGases(int _x, int _y, int _posInVector, Timestep _dt) 
             this->writeParticle(_x, _y, _tempB);
             this->activateNeighbours(_x, _y);
             this->activateNeighbours((int)_vX, (int)_vY);
-//            this->handleUnfittedGases((int)_vX, (int)_vY, this->calcVecPos((int)_vX, (int)_vY), _dt);
+            this->handleUnfittedGases((int)_vX, (int)_vY, this->calcVecPos((int)_vX, (int)_vY), _dt);
         } else {
             _p->velocity.y = 0.f;
             this->reactWithFourNeighbours(_x, _y, *_p, _tempB, _ri);

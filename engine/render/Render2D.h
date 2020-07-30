@@ -11,26 +11,24 @@
 
 namespace engine {
 
-    enum RenderingType { QUADS, PIXEL };
-
     class Render2D {
-        // Stats
+        /// This is just for the debugging, in release there's not such data and won't even be compiled
+    #if defined(ENGINE_DEBUG)
         public:
             struct Statistics {
                 uint32_t drawCalls = 0;
                 uint32_t quadCount = 0;
 
-                uint32_t getTotalVertexCount() { return quadCount * 4; }
-                uint32_t getTotalIndexCount() { return quadCount * 6; }
+                [[nodiscard]] uint32_t getTotalVertexCount() const { return quadCount * 4; }
+                [[nodiscard]] uint32_t getTotalIndexCount()  const { return quadCount * 6; }
             };
+    #endif
 
-            static RenderingType renderingType;
-
-        public:
+        private:
             static void init();
             static void shutdown();
 
-            static void beginDraw(const OrthographicCamera& camera, const RenderingType& _type = RenderingType::QUADS);
+            static void beginDraw(const OrthographicCamera& camera);
             static void endDraw();
             static void flush();
 
@@ -43,10 +41,11 @@ namespace engine {
             static void draw(const GameObjectPtr& _gameObject, float _tilingFactor = 1.0f, const glm::vec4& _tintColor = glm::vec4(1.0f));
             static void drawLine(const Vec2f& _p0, const Vec2f& _p1, const Color& _color, float _thickness = 1.0f);
 
-            static void resetStats();
-            static Statistics getStats();
+            #if defined(ENGINE_DEBUG)
+                static void resetStats();
+                static Statistics getStats();
+            #endif
 
-        private:
             static void flushAndReset();
             static void drawRotated(const SpritePtr & _sprite, float _rotation, float _tilingFactor = 1.0f, const glm::vec4& _tintColor = glm::vec4(1.0f));
             static void drawRect(const glm::vec3& _position, const glm::vec2& _size, const glm::vec4& _color);
@@ -54,6 +53,9 @@ namespace engine {
             static void drawTexture(const glm::vec3& _position, const glm::vec2& _size, const TextureRegionPtr& _textureRegion, float _rotation = 0.0f, const glm::vec4& _tintColor = glm::vec4(0.0f));
             static void drawRotatedRect(const glm::vec3& _position, const glm::vec2& _size, float _rotation, const glm::vec4& _color);
             static void drawRotatedTexture(const glm::vec3& _position, const glm::vec2& _size, float _rotation, const Texture2DPtr& _texture, float _tilingFactor = 1.0f, const glm::vec4& _tintColor = glm::vec4(1.0f));
+
+        public:
+            friend class Renderer;
     };
 
 }

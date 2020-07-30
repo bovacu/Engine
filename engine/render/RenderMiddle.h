@@ -7,11 +7,11 @@
 
 namespace engine {
 
-    class RenderCommand {
+    class RenderMiddle {
         private:
             static RenderAPIPtr renderAPI;
 
-        public:
+        private:
             static void init() {
                 renderAPI->init();
             }
@@ -35,6 +35,10 @@ namespace engine {
             static void drawIndexed(const VertexArrayPtr& _vertexArray, uint32_t _count = 0) {
                 renderAPI->drawIndexed(_vertexArray, _count);
             }
+
+        public:
+            friend class Renderer;
+            friend class Render2D;
     };
 
 }

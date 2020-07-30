@@ -110,24 +110,24 @@ namespace engine {
     }
 
     void World::debugWorld(const OrthographicCamera& _camera) {
-        if(this->debuggingFunction != nullptr) {
-//            this->debuggingFunction(_batch);
-        } else {
-            Render2D::beginDraw(_camera);
-                for(auto& _object : this->objects) {
-                    auto _colliders = _object->getComponentsOfType<Collider>();
-                    for(auto& _collider : _colliders) {
-                        if(_collider->componentType == ComponentType::CIRCLE_COLLIDER) {
-    //                        float _radius = _collider->size.width;
-    //                        _batch.drawCircle(_collider->center - _radius, _radius);
-                        } else {
-                            Color _color{0, 255, 0, 75};
-                            Render2D::drawRect(_collider->gameObject->transform.position, {_collider->size.width, _collider->size.height}, _color);
-                        }
-                    }
-                }
-            Render2D::endDraw();
-        }
+//        if(this->debuggingFunction != nullptr) {
+////            this->debuggingFunction(_batch);
+//        } else {
+//            Render2D::beginDraw(_camera);
+//                for(auto& _object : this->objects) {
+//                    auto _colliders = _object->getComponentsOfType<Collider>();
+//                    for(auto& _collider : _colliders) {
+//                        if(_collider->componentType == ComponentType::CIRCLE_COLLIDER) {
+//    //                        float _radius = _collider->size.width;
+//    //                        _batch.drawCircle(_collider->center - _radius, _radius);
+//                        } else {
+//                            Color _color{0, 255, 0, 75};
+//                            Render2D::drawRect(_collider->gameObject->transform.position, {_collider->size.width, _collider->size.height}, _color);
+//                        }
+//                    }
+//                }
+//            Render2D::endDraw();
+//        }
     }
 
     void World::setDebuggingFunction(const World::DebuggingFunction &_debuggingFunction) {

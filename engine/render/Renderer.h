@@ -3,7 +3,7 @@
 #ifndef RENDERER_H
 #define RENDERER_H
 
-#include <engine/render/RenderCommand.h>
+#include <engine/render/RenderMiddle.h>
 #include <engine/render/elements/Shader.h>
 #include <engine/render/camera/OrthographicCamera.h>
 #include <engine/render/elements/Texture.h>

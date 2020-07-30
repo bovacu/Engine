@@ -71,13 +71,13 @@ namespace engine {
         size_t pos = _source.find(typeToken, 0); //Start of shader type declaration line
         while (pos != std::string::npos) {
             size_t eol = _source.find_first_of("\r\n", pos); //End of shader type declaration line
-            ENGINE_CORE_ASSERT(eol != std::string::npos, "Syntax error");
+            ENGINE_CORE_ASSERT(eol != std::string::npos, "Syntax error")
             size_t begin = pos + typeTokenLength + 1; //Start of shader type name (after "#type " keyword)
             std::string type = _source.substr(begin, eol - begin);
-            ENGINE_CORE_ASSERT(ShaderTypeFromString(type), "Invalid shader type specified");
+            ENGINE_CORE_ASSERT(ShaderTypeFromString(type), "Invalid shader type specified")
 
             size_t nextLinePos = _source.find_first_not_of("\r\n", eol); //Start of shader code after shader type declaration line
-            ENGINE_CORE_ASSERT(nextLinePos != std::string::npos, "Syntax error");
+            ENGINE_CORE_ASSERT(nextLinePos != std::string::npos, "Syntax error")
             pos = _source.find(typeToken, nextLinePos); //Start of next shader type declaration line
 
             shaderSources[ShaderTypeFromString(type)] = (pos == std::string::npos) ? _source.substr(nextLinePos) : _source.substr(nextLinePos, pos - nextLinePos);
@@ -88,7 +88,7 @@ namespace engine {
 
     void OpenGLShader::compile(const std::unordered_map<GLenum, std::string>& _shaderSources) {
         GLuint _program = glCreateProgram();
-        ENGINE_CORE_ASSERT(_shaderSources.size() <= 2, "We only support 2 shaders for now");
+        ENGINE_CORE_ASSERT(_shaderSources.size() <= 2, "We only support 2 shaders for now")
         std::array<GLenum, 2> _glShaderIDs{};
         int _glShaderIDIndex = 0;
         for (auto& _kv : _shaderSources) {
@@ -114,7 +114,7 @@ namespace engine {
                 glDeleteShader(_shader);
 
                 LOG_ERROR_CORE("{0}", _infoLog.data());
-                ENGINE_CORE_ASSERT(false, "Shader compilation failure!");
+                ENGINE_CORE_ASSERT(false, "Shader compilation failure!")
                 break;
             }
 
@@ -145,7 +145,7 @@ namespace engine {
                 glDeleteShader(_id);
 
             LOG_ERROR_CORE("{0}", _infoLog.data());
-            ENGINE_CORE_ASSERT(false, "Shader link failure!");
+            ENGINE_CORE_ASSERT(false, "Shader link failure!")
             return;
         }
 

@@ -22,7 +22,7 @@ namespace engine {
                 break;
         }
 
-        ENGINE_CORE_ASSERT(false, "Unknown ShaderDataType!");
+        ENGINE_CORE_ASSERT(false, "Unknown ShaderDataType!")
         return 0;
     }
 
@@ -43,7 +43,7 @@ namespace engine {
     }
 
     void OpenGLVertexArray::addVertexBuffer(const VertexBufferPtr& _vertexBuffer) {
-        ENGINE_CORE_ASSERT(_vertexBuffer->getLayout().getElements().size(), "Vertex Buffer has no layout!");
+        ENGINE_CORE_ASSERT(_vertexBuffer->getLayout().getElements().size(), "Vertex Buffer has no layout!")
 
         glBindVertexArray(this->rendererID);
         _vertexBuffer->bind();
@@ -87,7 +87,7 @@ namespace engine {
                     break;
                 }
                 default:
-                    ENGINE_CORE_ASSERT(false, "Unknown ShaderDataType!");
+                    ENGINE_CORE_ASSERT(false, "Unknown ShaderDataType!")
             }
         }
 
