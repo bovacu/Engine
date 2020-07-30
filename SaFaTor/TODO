@@ -67,3 +67,81 @@ TODO MATERIALS DONE AND WORKING WITH REACTIONS
 [-] Fuse
 [$] Cryogener
     [$] Everything
+
+------------------------------------------- For clouds --------------------------
+
+Particle* _p = &this->particles[_posInVector];
+
+    if(!_p->updatedThisFrame) {
+        _p->updatedThisFrame = true;
+
+        if(_p->velocity.y < this->weatherConditions[4] * 2)
+            _p->velocity.y += this->weatherConditions[4] * 2 * _dt;
+
+        float _vX = (float)_x + _p->velocity.x;
+        float _vY = (float)_y + _p->velocity.y;
+
+        Particle _tempA = *_p, _tempB;
+
+        ReactionInfo _ri;
+        bool _reactionReallyExists = false;
+
+        bool _canMove = false;
+        int _spotsToCheckY = ((int)std::abs(_vY) - _y) > 1 ? (int)std::abs(_vY) - _y : 1;
+        int _spotsToMoveY = 0, _spotsToMoveX = 0;
+        _p->velocity.x = (float)this->random.randomi(-5, 5);
+
+        for(int _spotY = 0; _spotY < _spotsToCheckY; _spotY++) {
+            if(this->isEmpty(_x, _y + _spotY)) {
+                _canMove = true;
+                _spotsToMoveY++;
+
+                if(this->isEmpty(_x + (int)_p->velocity.x, _y + _spotY + 1))
+                    _spotsToMoveX = (int)_p->velocity.x;
+
+                continue;
+            }
+
+            _p->velocity.x = this->random.randomi(0, 1) == 0 ? 1.0f : -1.0f;
+            for(int _side = 0; _side < 2; _side++) {
+                if(_spotsToMoveX == 0) {
+                    int _sign = _p->velocity.x >= 0 ? 1 : -1;
+
+                    for(int _spotX = 0; _spotX < (int)std::abs(_p->velocity.x); _spotX++) {
+                        int _nextPosX = _x + _spotX * _sign + _sign;
+                        if (this->isEmpty(_nextPosX, _y + _spotY) && _y < this->textureHeight - 1) {
+                            _canMove = true;
+                            _spotsToMoveX += _sign;
+                            continue;
+                        }
+                        _spotX = 10;
+                    }
+
+                    if(_spotsToMoveX == 0)
+                        _p->velocity.x *= -1.f;
+                }
+            }
+
+            break;
+        }
+
+        if(_canMove) {
+            _vY = (float)(_y + _spotsToMoveY);
+            if(_spotsToMoveX != 0)
+                _vX = (float)(_x + _spotsToMoveX);
+            _tempB = this->particles[(int)_vX + this->textureWidth * (int)_vY];
+            this->writeParticle((int)_vX, (int)_vY, *_p);
+            this->writeParticle(_x, _y, _tempB);
+            this->activateNeighbours(_x, _y);
+            this->activateNeighbours((int)_vX, (int)_vY);
+//            this->handleUnfittedGases((int)_vX, (int)_vY, this->calcVecPos((int)_vX, (int)_vY), _dt);
+        } else {
+            _p->velocity = {0.f, 0.f};
+            _reactionReallyExists = this->reactWithFourNeighbours(_x, _y, *_p, _tempB, _ri);
+            if(!_reactionReallyExists)
+                _p->canUpdate = false;
+        }
+
+    } else {
+        _p->updatedThisFrame = false;
+    }

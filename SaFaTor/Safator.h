@@ -224,10 +224,12 @@ class Safator : public engine::Layer {
         void activateNeighbours(int _x, int _y);
 
         bool isEmpty(int _x, int _y);
+        bool isEmptyForGases(int _x, int _y, const ParticleType& _type);
         bool isSurrounded(int _x, int _y);
         bool isInBounds(int _x, int _y);
         bool is(int _x, int _y, const ParticleType& _particle);
         bool isSolid(const ParticleType& _type);
+        bool notUpdatable(const ParticleType& _particleType);
 
         void generateParticles(const Vec2i& _mousePos);
         void generateSpecificParticle(const Vec2i& _pos, const ParticleType& _type);

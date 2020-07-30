@@ -24,6 +24,10 @@ set(STB_DIR "${LIB_DIR}/stb")
 include_directories(${STB_DIR})
 link_directories(${STB_DIR})
 
+set(ENTT_DIR "${LIB_DIR}/entt")
+include_directories(${ENTT_DIR})
+link_directories(${ENTT_DIR})
+
 set(IMGUI_DOCKING "${LIB_DIR}/imgui-docking")
 include_directories(${IMGUI_DOCKING})
 link_directories(${IMGUI_DOCKING})
@@ -64,9 +68,8 @@ add_executable( Engine engine/main/Application.cpp engine/util/EngineUtil.cpp
                 engine/platform/Linux/LinuxWindow.h engine/platform/Linux/LinuxWindow.cpp engine/platform/Linux/LinuxInput.h engine/platform/Linux/LinuxInput.cpp
 
                 lib/imgui-docking/imgui.cpp lib/imgui-docking/imgui_draw.cpp lib/imgui-docking/imgui_widgets.cpp  lib/imgui-docking/imgui_demo.cpp
-                lib/imgui-docking/examples/imgui_impl_glfw.cpp lib/imgui-docking/examples/imgui_impl_opengl3.cpp engine/scene/SceneManager.cpp
-                engine/scene/SceneManager.h engine/scene/Scene.cpp engine/scene/Scene.h engine/api/openGL/OpenGLFrameBuffer.cpp engine/api/openGL/OpenGLFrameBuffer.h
-                engine/render/elements/FrameBuffer.cpp engine/render/elements/FrameBuffer.h tests/stress/Stress.cpp tests/stress/StressTest.cpp tests/stress/StressTest.h)
+                lib/imgui-docking/examples/imgui_impl_glfw.cpp lib/imgui-docking/examples/imgui_impl_opengl3.cpp engine/api/openGL/OpenGLFrameBuffer.cpp engine/api/openGL/OpenGLFrameBuffer.h
+                engine/render/elements/FrameBuffer.cpp engine/render/elements/FrameBuffer.h tests/stress/Stress.cpp tests/stress/StressTest.cpp tests/stress/StressTest.h engine/ecs/GameObject.cpp engine/ecs/GameObject.h engine/ecs/Scene.cpp engine/ecs/Scene.h engine/ecs/Components.h)
 
 target_link_libraries ( Engine spdlog)
 target_link_libraries ( ${PROJECT_NAME} "glfw" "${GLFW_LIBRARIES}")
