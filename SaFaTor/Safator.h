@@ -218,7 +218,6 @@ class Safator : public engine::Layer {
         void generateWithBrush(const Vec2i& _mousePos);
         void removeParticles(const Vec2i& _mousePos);
         void zoomParticles(const Vec2i& _pos);
-        bool isFullBrushDrawingParticle(const ParticleType& _type);
 
         int calcVecPos(int _x, int _y);
         void activateNeighbours(int _x, int _y);

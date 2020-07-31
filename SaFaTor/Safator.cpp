@@ -76,7 +76,7 @@ void Safator::onFixedUpdate(engine::Timestep _dt) {
                 for (int _x = 0; _x < (int) this->worldTexture->getWidth(); _x++) {
                     int _pos = _x + _textureWidth * _y;
                     ParticleType _type = this->particles[_pos].type;
-                    if (_type == ParticleType::NONE_PARTICLE || this->notUpdatable(_type) ||
+                    if (_type == ParticleType::NONE_PARTICLE || Safator::notUpdatable(_type) ||
                         !this->particles[_pos].canUpdate)
                         continue;
                     this->updateAllParticles(_x, _y, _pos, _type, _dt);
@@ -85,7 +85,7 @@ void Safator::onFixedUpdate(engine::Timestep _dt) {
                 for (int _x = (int) this->worldTexture->getWidth() - 1; _x > 0; _x--) {
                     int _pos = _x + _textureWidth * _y;
                     ParticleType _type = this->particles[_pos].type;
-                    if (_type == ParticleType::NONE_PARTICLE || this->notUpdatable(_type) ||
+                    if (_type == ParticleType::NONE_PARTICLE || Safator::notUpdatable(_type) ||
                         !this->particles[_pos].canUpdate)
                         continue;
                     this->updateAllParticles(_x, _y, _pos, _type, _dt);
@@ -428,22 +428,21 @@ void Safator::updateCommonDusts(int _x, int _y, int _posInVector, Timestep _dt) 
             continue;
         }
 
-        if(_p->velocity.x == 0.f)
-            _p->velocity.x = (this->random.randomi(0, 1) == 0 ? 1.f : -1.f);
+        _p->velocity.x = (this->random.randomi(0, 1) ? 1.f : -1.f);
 
         for(int _side = 0; _side < 2; _side++) {
-            int _nextPosX = _x + (int) _p->velocity.x;
-            if (this->isEmpty(_nextPosX, _y - _spotY - 1) || this->is(_nextPosX, _y - _spotY - 1, WATER)) {
-                _spotsToMoveX += (int) (1.f * _p->velocity.x);
-                _side = 10;
+            if(_spotsToMoveX == 0) {
+                int _nextPosX = _x + (int) _p->velocity.x;
+                if (this->isEmpty(_nextPosX, _y - _spotY - 1) || this->is(_nextPosX, _y - _spotY - 1, WATER)) {
+                    _spotsToMoveX++;
+                    _spotsToMoveY++;
+                    break;
+                }
+                _p->velocity.x *= -1.f;
             }
-            _p->velocity.x *= -1.f;
         }
 
         _canMove = _spotsToMoveY != 0 || _spotsToMoveX != 0;
-
-        if(_spotsToMoveX == 0)
-            _p->velocity.x = 0.f;
 
         break;
     }
@@ -451,7 +450,8 @@ void Safator::updateCommonDusts(int _x, int _y, int _posInVector, Timestep _dt) 
     Particle _tempB;
     if(_canMove) {
         _vY = (float)(_y - _spotsToMoveY);
-        _vX = (float)(_x + _spotsToMoveX);
+        _vX = (float)_x + ((float)_spotsToMoveX * _p->velocity.x);
+        _p->velocity.x = 0;
 
         _tempB = this->particles[(int)_vX + this->textureWidth * (int)_vY];
 
@@ -700,7 +700,7 @@ void Safator::generateWithBrush(const Vec2i& _mousePos) {
     if(this->drawInfo.brushSize == 1) {
         this->generateParticles(_mousePos);
     } else {
-        if(!this->isFullBrushDrawingParticle(this->selectedParticle)) {
+        if(!Safator::isSolid(this->selectedParticle)) {
             std::vector<Vec2i> _spawnedPositions;
             for(int _i = 0; _i < this->drawInfo.brushSize; _i++) {
                 Vec2i _randPos = this->randomPointInsideCircle({(int)_mousePos.x, (int)_mousePos.y}, this->drawInfo.brushCircleWH);
@@ -832,9 +832,6 @@ void Safator::zoomParticles(const Vec2i& _pos) {
                                               ImColor(ImVec4((float)this->zoomInfo.dotColor.r / 255.f, (float)this->zoomInfo.dotColor.g / 255.f, (float)this->zoomInfo.dotColor.b / 255.f, (float)this->zoomInfo.dotColor.a / 255.f)));
 
     ImGui::EndTooltip();
-}
-bool Safator::isFullBrushDrawingParticle(const Safator::ParticleType& _type) {
-    return this->isSolid(_type) || _type == ICE || _type == FROST;
 }
 
 
@@ -974,7 +971,7 @@ bool Safator::isEmpty(int _x, int _y) {
     return this->isInBounds(_x, _y) && this->particles[this->calcVecPos(_x, _y)].type == NONE_PARTICLE;
 }
 bool Safator::isEmptyForGases(int _x, int _y, const ParticleType& _type) {
-    return this->isInBounds(_x, _y) && !this->is(_x, _y, _type) && !this->isSolid(this->particles[this->calcVecPos(_x, _y)].type);
+    return Safator::isInBounds(_x, _y) && !this->is(_x, _y, _type) && !Safator::isSolid(this->particles[this->calcVecPos(_x, _y)].type);
 }
 bool Safator::is(int _x, int _y, const ParticleType& _particle) {
     return this->isInBounds(_x, _y) && this->particles[this->calcVecPos(_x, _y)].type == _particle;
