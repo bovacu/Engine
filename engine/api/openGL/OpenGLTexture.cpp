@@ -44,6 +44,8 @@ namespace engine {
         } else if (_channels == 3) {
             _internalFormat = GL_RGB8;
             _dataFormat = GL_RGB;
+        } else {
+            LOG_CRITICAL_CORE("Images must have 3 or 4 channels! Image's channels not supported");
         }
 
         this->internalFormat = _internalFormat;

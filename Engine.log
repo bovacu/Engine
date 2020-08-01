@@ -1,7 +1,1 @@
-[12:08:05] [warning] Engine: Running in debug mode
-[12:08:05] [info] Engine: Creating window Engine:  (800, 480)
-[12:08:05] [info] Engine: OpenGL Info:
-[12:08:05] [info] Engine:   Vendor: NVIDIA Corporation
-[12:08:05] [info] Engine:   Renderer: GeForce GTX 1060 6GB/PCIe/SSE2
-[12:08:05] [info] Engine:   Version: 4.6.0 NVIDIA 451.67
-[12:08:05] [warning] App: Remember to add colors, create the particles on init, update solids and not updatable
+[16:32:44] [warning] App: Remember to add colors, create the particles on init, update solids and not updatable

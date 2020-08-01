@@ -78,7 +78,7 @@ class Safator : public engine::Layer {
         int                                     totalOfPixels = 0,
                                                 drawnPixels = 0;
 
-        ImGuiTexture2DPtr                       pauseTexture,
+        Texture2DPtr                            pauseTexture,
                                                 resumeTexture,
                                                 advanceTexture,
                                                 oneFrameTexture,

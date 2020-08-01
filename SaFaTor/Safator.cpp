@@ -19,17 +19,17 @@ void Safator::onInit() {
 
     this->initSimulationWorld();
 
-    this->pauseTexture      = engine::ImGuiTexture2D::create("assets/textures/pause.png");
-    this->resumeTexture     = engine::ImGuiTexture2D::create("assets/textures/play-button.png");
-    this->advanceTexture    = engine::ImGuiTexture2D::create("assets/textures/fast-forward.png");
-    this->oneFrameTexture   = engine::ImGuiTexture2D::create("assets/textures/archivo-de-video.png");
-    this->drawTexture       = engine::ImGuiTexture2D::create("assets/textures/editar.png");
-    this->eraseTexture      = engine::ImGuiTexture2D::create("assets/textures/borrador.png");
-    this->zoomTexture       = engine::ImGuiTexture2D::create("assets/textures/buscar.png");
+    this->pauseTexture      = Texture2D::create("assets/textures/pause.png");
+    this->resumeTexture     = Texture2D::create("assets/textures/play-button.png");
+    this->advanceTexture    = Texture2D::create("assets/textures/fast-forward.png");
+    this->oneFrameTexture   = Texture2D::create("assets/textures/archivo-de-video.png");
+    this->drawTexture       = Texture2D::create("assets/textures/editar.png");
+    this->eraseTexture      = Texture2D::create("assets/textures/borrador.png");
+    this->zoomTexture       = Texture2D::create("assets/textures/buscar.png");
 
     this->generateCircleTexture();
 
-    this->frameBuffer = engine::FrameBuffer::create({(uint32_t)this->app.getWindowSize().x, (uint32_t)this->app.getWindowSize().y});
+    this->frameBuffer = FrameBuffer::create({(uint32_t)this->app.getWindowSize().x, (uint32_t)this->app.getWindowSize().y});
 
     LOG_WARN("Remember to add colors, create the particles on init, update solids and not updatable");
 }
@@ -1078,18 +1078,18 @@ void Safator::imGuiControllerWindow(engine::Timestep _dt) {
     ImGui::Text("State: %s", this->play ? "playing" : "paused");
 
     ImGui::Separator();
-    if(ImGui::ImageButton((void*)(intptr_t)this->pauseTexture->getTexture(), ImVec2((float)this->pauseTexture->getWidth(), (float)this->pauseTexture->getHeight())))
+    if(ImGui::ImageButton((void*)(intptr_t)this->pauseTexture->getRendererID(), ImVec2((float)this->pauseTexture->getWidth() / 2.f, (float)this->pauseTexture->getHeight() / 2.f)))
         this->play = false;
     ImGui::SameLine();
-    if(ImGui::ImageButton((void*)(intptr_t)this->resumeTexture->getTexture(), ImVec2((float)this->resumeTexture->getWidth(), (float)this->resumeTexture->getHeight())))
+    if(ImGui::ImageButton((void*)(intptr_t)this->resumeTexture->getRendererID(), ImVec2((float)this->resumeTexture->getWidth() / 2.f, (float)this->resumeTexture->getHeight() / 2.f)))
         this->play = true;
     ImGui::SameLine();
-    if(ImGui::ImageButton((void*)(intptr_t)this->oneFrameTexture->getTexture(), ImVec2((float)this->oneFrameTexture->getWidth(), (float)this->oneFrameTexture->getHeight()))) {
+    if(ImGui::ImageButton((void*)(intptr_t)this->oneFrameTexture->getRendererID(), ImVec2((float)this->oneFrameTexture->getWidth() / 2.f, (float)this->oneFrameTexture->getHeight() / 2.f),ImVec2{ 0, 1 }, ImVec2{ 1, 0 })) {
         this->play = true;
         this->oneStep = true;
     }
     ImGui::SameLine();
-    ImGui::ImageButton((void*)(intptr_t)this->advanceTexture->getTexture(), ImVec2((float)this->advanceTexture->getWidth(), (float)this->advanceTexture->getHeight()));
+    ImGui::ImageButton((void*)(intptr_t)this->advanceTexture->getRendererID(), ImVec2((float)this->advanceTexture->getWidth() / 2.f, (float)this->advanceTexture->getHeight() / 2.f));
     if(ImGui::IsItemActive()) {
         this->play = true;
         this->oneStep = true;
@@ -1099,12 +1099,12 @@ void Safator::imGuiDrawingWindow(engine::Timestep _dt) {
     if(this->tool == DRAW) {
         ImGui::PushStyleColor(ImGuiCol_Button, {(float) Color::Green.r, (float) Color::Green.g, (float) Color::Green.b, (float) Color::Green.a});
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, {(float) Color::Green.r, (float) Color::Green.g, (float) Color::Green.b, (float) Color::Green.a});
-        if(ImGui::ImageButton((void*)(intptr_t)this->drawTexture->getTexture(), ImVec2((float)this->drawTexture->getWidth(), (float)this->drawTexture->getHeight()))) {
+        if(ImGui::ImageButton((void*)(intptr_t)this->drawTexture->getRendererID(), ImVec2((float)this->drawTexture->getWidth() / 2.f, (float)this->drawTexture->getHeight() / 2.f), ImVec2{ 0, 1 }, ImVec2{ 1, 0 })) {
             this->tool = DRAW;
         }
         ImGui::PopStyleColor(2);
     } else {
-        if(ImGui::ImageButton((void*)(intptr_t)this->drawTexture->getTexture(), ImVec2((float)this->drawTexture->getWidth(), (float)this->drawTexture->getHeight()))) {
+        if(ImGui::ImageButton((void*)(intptr_t)this->drawTexture->getRendererID(), ImVec2((float)this->drawTexture->getWidth() / 2.f, (float)this->drawTexture->getHeight() / 2.f), ImVec2{ 0, 1 }, ImVec2{ 1, 0 })) {
         this->tool = DRAW;
     }
     }
@@ -1113,12 +1113,12 @@ void Safator::imGuiDrawingWindow(engine::Timestep _dt) {
     if(this->tool == ERASE) {
         ImGui::PushStyleColor(ImGuiCol_Button, {(float) Color::Green.r, (float) Color::Green.g, (float) Color::Green.b, (float) Color::Green.a});
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, {(float) Color::Green.r, (float) Color::Green.g, (float) Color::Green.b, (float) Color::Green.a});
-        if (ImGui::ImageButton((void*) (intptr_t) this->eraseTexture->getTexture(),ImVec2((float) this->eraseTexture->getWidth(),(float) this->eraseTexture->getHeight()))) {
+        if (ImGui::ImageButton((void*) (intptr_t) this->eraseTexture->getRendererID(),ImVec2((float) this->eraseTexture->getWidth() / 2.f,(float) this->eraseTexture->getHeight() / 2.f), ImVec2{ 0, 1 }, ImVec2{ 1, 0 })) {
             this->tool = ERASE;
         }
         ImGui::PopStyleColor(2);
     } else {
-        if (ImGui::ImageButton((void*) (intptr_t) this->eraseTexture->getTexture(),ImVec2((float) this->eraseTexture->getWidth(),(float) this->eraseTexture->getHeight()))) {
+        if (ImGui::ImageButton((void*) (intptr_t) this->eraseTexture->getRendererID(),ImVec2((float) this->eraseTexture->getWidth() / 2.f,(float) this->eraseTexture->getHeight() / 2.f), ImVec2{ 0, 1 }, ImVec2{ 1, 0 })) {
         this->tool = ERASE;
     }
     }
@@ -1127,12 +1127,12 @@ void Safator::imGuiDrawingWindow(engine::Timestep _dt) {
     if(this->tool == ZOOM) {
         ImGui::PushStyleColor(ImGuiCol_Button, {(float) Color::Green.r, (float) Color::Green.g, (float) Color::Green.b, (float) Color::Green.a});
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, {(float) Color::Green.r, (float) Color::Green.g, (float) Color::Green.b, (float) Color::Green.a});
-        if (ImGui::ImageButton((void*) (intptr_t) this->zoomTexture->getTexture(),ImVec2((float) this->zoomTexture->getWidth(),(float) this->zoomTexture->getHeight()))) {
+        if (ImGui::ImageButton((void*) (intptr_t) this->zoomTexture->getRendererID(),ImVec2((float) this->zoomTexture->getWidth() / 2.f,(float) this->zoomTexture->getHeight() / 2.f), ImVec2{ 0, 1 }, ImVec2{ 1, 0 })) {
             this->tool = ZOOM;
         }
         ImGui::PopStyleColor(2);
     } else {
-        if (ImGui::ImageButton((void*) (intptr_t) this->zoomTexture->getTexture(),ImVec2((float) this->zoomTexture->getWidth(),(float) this->zoomTexture->getHeight()))) {
+        if (ImGui::ImageButton((void*) (intptr_t) this->zoomTexture->getRendererID(),ImVec2((float) this->zoomTexture->getWidth() / 2.f,(float) this->zoomTexture->getHeight() / 2.f), ImVec2{ 0, 1 }, ImVec2{ 1, 0 })) {
             this->tool = ZOOM;
         }
     }
@@ -1620,7 +1620,7 @@ Safator::ReactionInfo Safator::reactions(const Vec2i& _posA, const Vec2i& _posB,
     if(_particleA.type == _particleB.type)
         return _ri;
 
-    if(_particleB.type == FROST)
+    if(_particleB.type == FROST && _particleA.type != CRYOGENER)
         return this->reactions(_posB, _posA, _particleB, _particleA);
 
     if(_particleB.type == CRYOGENER)
@@ -1680,16 +1680,13 @@ Safator::ReactionInfo Safator::reactions(const Vec2i& _posA, const Vec2i& _posB,
                 this->writeParticle(_posB.x, _posB.y, this->noneParticle);
                 this->generateSpecificParticle({_posB.x, _posB.y}, WATER);
             }
-        }
+        } else if(_particleB.type == WATER)
+            return this->reactions(_posB, _posA, _particleB, _particleA);
     }
 
     else if(_particleA.type == ICE) {
-        if(_particleB.type == WATER) {
-            _ri.reactionExists = true;
-            if((_ri.prob = this->random.probability(Safator::probValues(_particleA.type, _particleB.type))).happened) {
-                this->writeParticle(_posB.x, _posB.y, this->iceParticle);
-            }
-        }
+        if(_particleB.type == WATER || _particleB.type == SALT || _particleB.type == LAVA)
+            return this->reactions(_posB, _posA, _particleB, _particleA);
     }
 
     else if(_particleA.type == LAVA) {
@@ -1706,13 +1703,16 @@ Safator::ReactionInfo Safator::reactions(const Vec2i& _posA, const Vec2i& _posB,
                     this->generateSpecificParticle({_posB.x, _posB.y}, STEAM);
                 }
             }
-        } else if(_particleB.type == ICE) {
+        }
+        else if(_particleB.type == ICE) {
             _ri.reactionExists = true;
             if((_ri.prob = this->random.probability(Safator::probValues(_particleA.type, _particleB.type))).happened) {
                 this->removeParticles({_posB.x, _posB.y});
                 this->generateSpecificParticle({_posB.x, _posB.y}, WATER);
             }
         }
+        else if(_particleB.type == ACID)
+            return this->reactions(_posB, _posA, _particleB, _particleA);
     }
 
     else if(_particleA.type == CRYOGENER) {

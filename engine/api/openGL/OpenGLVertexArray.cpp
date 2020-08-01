@@ -87,7 +87,7 @@ namespace engine {
                     break;
                 }
                 default:
-                    ENGINE_CORE_ASSERT(false, "Unknown ShaderDataType!")
+                    ENGINE_CORE_ASSERT(false, "Unknown ShaderDataType!");
             }
         }
 
