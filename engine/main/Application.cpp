@@ -21,7 +21,7 @@ namespace engine {
         pushOverlay(this->imGuiLayer);
 
         if(this->timePerFrame < 0)
-            this->timePerFrame = 1.0f / FPS_60;
+            this->timePerFrame = 1.0f / 60.f;
 
         this->window->setVSync(true);
     }
@@ -108,7 +108,7 @@ namespace engine {
         return false;
     }
 
-    int Application::getFps() { return this->fpsCounter; }
+    int Application::getFps() const { return (int)this->fpsCounter; }
 
     void Application::updateFps() {
         if (this->clock.getElapsedTimeSc() >= 1.f) {
@@ -152,11 +152,13 @@ namespace engine {
     }
 
     void Application::popLayer(Layer* _layer) {
-
+        this->layerStack.popLayer(_layer);
+        _layer->onEnd();
     }
 
     void Application::popOverlay(Layer* _layer) {
-
+        this->layerStack.popOverlay(_layer);
+        _layer->onEnd();
     }
 
     void Application::closeApplication() {

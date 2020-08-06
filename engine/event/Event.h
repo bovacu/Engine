@@ -7,45 +7,66 @@
 
 namespace engine {
 
-    enum class EventType {
+    /// All the different types of events that the engine can manage.
+    enum class EventType : unsigned {
         None, WindowClosed, WindowResized, WindowMoved, WindowFocused, WindowLostFocus, GameFrame, GameUpdate,
         GameRender, KeyPressed, KeyDown, KeyReleased, KeyTyped, MouseButtonPressed, MouseButtonDown, MouseButtonReleased,
         MouseScrolled, MouseMoved, WindowMinimized
     };
 
-    enum EventCategory {
+    /// Masking the different categories of the events. This makes really easy to get which event type is each event.
+    /// Getting it is as easy as making (EventCategoryXXX & customEventCategoryPassed) == EventCategoryXXX.
+    ///
+    /// This is, for example, customEventCategoryPassed = 00000110, that means, an event which is both EventCategoryInput
+    /// and EventCategoryKeyboard. doing 00000110 & 00000100 and later 00000110 & 00000010 gives as that the current
+    /// is both types.
+    enum EventCategory : unsigned {
         None,
-        EventCategoryGame = BIT(0),
-        EventCategoryInput = BIT(1),
-        EventCategoryKeyboard = BIT(2),
-        EventCategoryMouse = BIT(3),
-        EventCategoryMouseButton = BIT(4)
+        EventCategoryGame           = 1u << 0u, /// 00000001
+        EventCategoryInput          = 1u << 1u, /// 00000010
+        EventCategoryKeyboard       = 1u << 2u, /// 00000100
+        EventCategoryMouse          = 1u << 3u, /// 00001000
+        EventCategoryMouseButton    = 1u << 4u  /// 00010000
     };
 
-#define EVENT_CLASS_TYPE(_eventType) static EventType getStaticType() { return EventType::_eventType; }\
-                                     virtual EventType getEventType() const override { return getStaticType(); }\
-                                     virtual const char* getName() const override { return #_eventType; }
-
-#define EVENT_CLASS_CATEGORY(_eventCategory) virtual int getCategoryFlags() const override { return _eventCategory; }
-
+    /// This class is the base for any event and contains the information and methods necessary to capture and control
+    /// the events.
     class Event {
-        friend class EventDispatcher;
+        public:
+            bool handled = false;
 
-    public:
-        bool handled = false;
+        public:
+            /// Returns the type of an event in a static way.
+            /// @return The EventType of the event.
+            static EventType getStaticType()                                                 {  }
 
-    public:
-        static EventType getStaticType();
-        virtual EventType getEventType() const = 0;
-        virtual const char* getName() const = 0;
-        virtual int getCategoryFlags() const = 0;
-        virtual std::string toString() const { return this->getName(); }
+            /// Returns the event type from the current object.
+            /// @return The EventType of the event.
+            [[nodiscard]] virtual EventType getEventType()  const                            = 0;
 
-        inline bool isInCategory(EventCategory _category) { return this->getCategoryFlags() & _category; }
+            /// Returns the event name.
+            /// @return Event name.
+            [[nodiscard]] virtual const char* getName()     const                            = 0;
+
+            /// Returns the categories of an event condensed on a single int.
+            /// @return The flags of the categories it belongs to.
+            [[nodiscard]] virtual int getCategoryFlags()    const                            = 0;
+
+            /// Returns all the event in form of string.
+            /// @return The event in string.
+            [[nodiscard]] virtual std::string toString()    const                            { return "Not defined in specific class"; };
+
+            /// Checks if an event fits in a specific category.
+            /// @param _category Category to check.
+            /// @return true if belongs, false otherwise.
+            [[nodiscard]] inline bool isInCategory(EventCategory _category) const            { return (unsigned)this->getCategoryFlags() & _category; }
     };
 
     class EventDispatcher {
 
+        /// This method is key. It defines a type of method that takes an Event& (although it is not checked to improve
+        /// performance) as a parameter and returns a bool. This methods will be the ones that will execute as a
+        /// callback when an event happens.
         template<typename T>
         using EventFn = std::function<bool(T&)>;
 
@@ -53,11 +74,16 @@ namespace engine {
         Event& event;
 
     public:
-        EventDispatcher(Event& _event) : event(_event) {}
+        explicit EventDispatcher(Event& _event) : event(_event) {}
 
+        /// This method is used to handle internally the event (apart from the handling in the EventFunction callback).
+        /// @param _func The callback associated to the specific event.
+        /// @return true if the event could me managed (not if it was handled), false otherwise.
         template<typename T>
         bool dispatchEvent(EventFn<T> _func) {
+            /// This is why we needed the static version of getType.
             if (this->event.getEventType() == T::getStaticType()) {
+                /// Using *(T*)& was the only way I could find to make this work, fucking pointers.
                 this->event.handled = _func(*(T*)& this->event);
                 return true;
             }
@@ -66,9 +92,7 @@ namespace engine {
         }
     };
 
-    inline std::ostream& operator<<(std::ostream& os, const Event& e) {
-        return os << e.toString();
-    }
+
 }
 
 #endif //EVENT_H

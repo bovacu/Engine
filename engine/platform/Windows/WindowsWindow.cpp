@@ -37,27 +37,36 @@ namespace engine {
             LOG_INFO_CORE("Creating window {0} ({1}, {2})", _props.title, _props.width, _props.height);
         #endif
 
+    #pragma region Initializing
+
+        /// Initialize GLFW, just for the first window.
         if (GLFWWindowCount == 0) {
             int success = glfwInit();
             ENGINE_CORE_ASSERT(success, "Could not initialize GLFW!")
             glfwSetErrorCallback(GLFWErrorCallback);
         }
 
-        {
-            #if defined(ENGINE_DEBUG)
+        #if defined(ENGINE_DEBUG)
             if (Renderer::getAPI() == RenderAPI::API::OpenGL)
-				glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
-            #endif
-            this->window = glfwCreateWindow((int)_props.width, (int)_props.height, this->data.title.c_str(), nullptr, nullptr);
-            ++GLFWWindowCount;
-        }
+                glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
+        #endif
 
+        /// Creating the main window.
+        this->window = glfwCreateWindow((int)_props.width, (int)_props.height, this->data.title.c_str(), nullptr, nullptr);
+        ++GLFWWindowCount;
+
+        /// Initializing the graphics context to be able to draw.
         this->context = GraphicsContext::create(this->window);
         this->context->init();
 
+        /// Setting the basic data of the window to the UserPointer.
         glfwSetWindowUserPointer(this->window, &this->data);
         this->setVSync(false);
 
+    #pragma endregion Initializing
+
+    #pragma region CenteringAndEnablingFullscreen
+        /// This region is to center the window on the screen and to enable fullscreen.
         this->monitor = glfwGetPrimaryMonitor();
         const GLFWvidmode* _mode = glfwGetVideoMode(this->monitor);
         if (!_mode)
@@ -73,7 +82,11 @@ namespace engine {
 
         glfwSetWindowPos(this->window, this->data.position.x, this->data.position.y);
 
-        // Set GLFW callbacks
+    #pragma endregion CenteringAndEnablingFullscreen
+
+    #pragma region GLFWCallbacksSetup
+
+        /// Setting GLFW callbacks for polled events
         glfwSetWindowSizeCallback(this->window, [](GLFWwindow* _window, int _width, int _height) {
             WindowData& _data = *(WindowData*)glfwGetWindowUserPointer(_window);
             _data.width = _width;
@@ -111,7 +124,7 @@ namespace engine {
                 case GLFW_RELEASE: {
                     KeyReleasedEvent _event(static_cast<KeyCode>(_key));
                     _data.eventCallback(_event);
-                    Input::pressedKeys[static_cast<KeyCode>(_key)] = false;
+                    Input::pressedKeyboardKeys[static_cast<KeyCode>(_key)] = false;
                     break;
                 }
 
@@ -120,6 +133,8 @@ namespace engine {
                     _data.eventCallback(_event);
                     break;
                 }
+
+                default: {  };
             }
         });
 
@@ -142,8 +157,11 @@ namespace engine {
                 case GLFW_RELEASE : {
                     MouseButtonReleasedEvent _event(static_cast<MouseCode>(_button));
                     _data.eventCallback(_event);
+                    Input::pressedMouseButtons[static_cast<MouseCode>(_button)] = false;
                     break;
                 }
+
+                default: {  };
             }
         });
 
@@ -167,6 +185,9 @@ namespace engine {
             WindowMinimizedEvent _event(_iconified);
             _data.eventCallback(_event);
         });
+
+    #pragma endregion GLFWCallbacksSetup
+
     }
 
     void WindowsWindow::setWindowSize(int _width, int _height) {
@@ -232,18 +253,28 @@ namespace engine {
 
     void WindowsWindow::setIcon(const char* _path) {
         int _w = 0, _h = 0;
+
+        /// First getting the pixels.
         unsigned char* _pixels = stbi_load(_path, &_w, &_h, nullptr, 4);
+
+        /// Checking pixels could be got.
         if (_pixels == nullptr) {
             ENGINE_CORE_ASSERT(false, "Couldn't load ImGui Texture")
         }
 
+        /// Removing the previous icon.
         glfwSetWindowIcon(this->window, 0, nullptr);
+
+        /// Loading the new icon.
         GLFWimage _image[1];
         _image[0].width = _w;
         _image[0].height = _h;
         _image[0].pixels = _pixels;
+
+        /// Setting the new icon to the window.
         glfwSetWindowIcon(this->window, 1, _image);
 
+        /// Freeing space.
         stbi_image_free(_pixels);
     }
 
@@ -252,6 +283,8 @@ namespace engine {
 
         /// GetWindowLongPtr is used instead of GetWindowLong for x64 system compatibilities
         auto _style = GetWindowLongPtr(_windowHandle, GWL_STYLE);
+
+        /// The style in GLFW works as an int, so to enable or disable a function we add or subtract the desired amount.
         _style += this->windowOptionsToGLFW(_op, _allow);
 
         SetWindowLongPtr(_windowHandle, GWL_STYLE, _style);
@@ -261,6 +294,7 @@ namespace engine {
         LONG_PTR _newStyle = 0L;
         int _toAdd = _allow ? 1 : -1;
 
+        /// Checking each of the mask in case the need to be enabled/disabled and adding it to the new style value.
         if(((unsigned)WindowOptions_::WindowOptions_Minimize & (unsigned)_options) == WindowOptions_::WindowOptions_Minimize)
             _newStyle += WS_MINIMIZEBOX * _toAdd;
 

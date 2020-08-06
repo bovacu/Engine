@@ -1,3 +1,6 @@
+/// This class is the main one to be included in the games or applications made with this engine. No othe includes to
+/// elements of the engine should be made.
+
 #include <engine/util/Logger.h>
 
 #include <engine/main/Application.h>

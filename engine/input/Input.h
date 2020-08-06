@@ -4,48 +4,61 @@
 #define INPUT_H
 
 #include "pch.h"
-#include "engine/input/KeyboardKeys.h"
-#include "engine/input/MouseKeys.h"
-#include "engine/input/GamePadKeys.h"
+#include <engine/input/KeyboardKeys.h>
+#include <engine/input/MouseKeys.h>
+#include <engine/input/GamePadKeys.h>
 
 namespace engine {
 
-    class Input;
-    typedef std::unique_ptr<Input> InputPtr;
-
     class Input {
-        private:
-            static InputPtr inputInstance;
 
         public:
-            static std::unordered_map<KeyCode, bool> pressedKeys;
+            static std::unordered_map<KeyCode,   bool>  pressedKeyboardKeys;
+            static std::unordered_map<MouseCode, bool>  pressedMouseButtons;
+            static std::unordered_map<KeyCode,   bool>  pressedGamepadKeys;
 
         public:
-            static bool isKeyJustPressed(KeyCode _keyCode)          { return inputInstance->isKeyJustPressed_v(_keyCode); }
-            static bool isKeyPressed(KeyCode _keyCode)              { return inputInstance->isKeyPressed_v(_keyCode); }
-            static bool isKeyReleased(KeyCode _keyCode)             { return inputInstance->isKeyReleased_v(_keyCode); }
+            /// Checks if a key has just been pressed, only the first pressed, if continuous pressing it doesn't detect.
+            /// @param _keyCode The code of the key.
+            /// @return true if it is just pressed.
+            static bool isKeyJustPressed(KeyCode _keyCode);
 
-            static bool isMousePressed(MouseCode _mouseButton)      { return inputInstance->isMousePressed_v(_mouseButton); }
-            static bool isMouseReleased(MouseCode _mouseButton)     { return inputInstance->isMouseReleased_v(_mouseButton); }
+            /// Checks if a key is being pressed.
+            /// @param _keyCode The code of the key.
+            /// @return true if it is being pressed.
+            static bool isKeyPressed(KeyCode _keyCode);
 
-            static Vec2f getMousePosition()                         { return inputInstance->getMousePosition_v(); }
-            static float getMouseX()                                { return inputInstance->getMouseX_v(); }
-            static float getMouseY()                                { return inputInstance->getMouseY_v(); }
+            /// Checks if a key has been released.
+            /// @param _keyCode The code of the key.
+            /// @return true if it is been released.
+            static bool isKeyReleased(KeyCode _keyCode);
 
-            virtual ~Input() = default;
-            static InputPtr create();
+            /// Checks if a mouse button has just been pressed, only the first pressed, if continuous pressing it doesn't detect.
+            /// @param _mouseButton The code of the button.
+            /// @return true if it is just pressed.
+            static bool isMouseJustPressed(MouseCode _mouseButton);
 
-        protected:
-            virtual bool isKeyPressed_v(KeyCode _keyCode)           = 0;
-            virtual bool isKeyJustPressed_v(KeyCode _keyCode)       = 0;
-            virtual bool isKeyReleased_v(KeyCode _keyCode)          = 0;
+            /// Checks if a mouse button is being pressed.
+            /// @param _mouseButton The code of the button.
+            /// @return true if it is being pressed.
+            static bool isMousePressed(MouseCode _mouseButton);
 
-            virtual bool isMousePressed_v(MouseCode _mouseButton)   = 0;
-            virtual bool isMouseReleased_v(MouseCode _mouseButton)  = 0;
+            /// Checks if a mouse button has been released.
+            /// @param _mouseButton The code of the button.
+            /// @return true if it is been released.
+            static bool isMouseReleased(MouseCode _mouseButton);
 
-            virtual Vec2f getMousePosition_v()                      = 0;
-            virtual float getMouseX_v()                             = 0;
-            virtual float getMouseY_v()                             = 0;
+            /// Returns the position of the mouse on the screen.
+            /// @return Vec2i with [x,y] of the mouse.
+            static Vec2i getMousePosition();
+
+            /// Returns getMousePosition().x
+            /// @return getMousePosition().x
+            static int getMouseX();
+
+            /// Returns getMousePosition().y
+            /// @return getMousePosition().y
+            static int getMouseY();
     };
 }
 

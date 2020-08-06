@@ -58,7 +58,7 @@ void Safator::onFixedUpdate(engine::Timestep _dt) {
 
         if(!ImGui::IsAnyWindowHovered() && !ImGui::IsAnyItemActive() && !this->anyModalOpen) {
             auto _mousePos = Input::getMousePosition();
-            if(_mousePos >= 0 && _mousePos.x < this->worldTexture->getWidth() && _mousePos.y < this->worldTexture->getHeight()) {
+            if(_mousePos >= 0 && _mousePos.x < (int)this->worldTexture->getWidth() && _mousePos.y < (int)this->worldTexture->getHeight()) {
                 if (Input::isMousePressed(MouseCode::Button0)) {
                     if(this->tool == DRAW)
                         this->generateWithBrush({(int)_mousePos.x, (int)_mousePos.y});

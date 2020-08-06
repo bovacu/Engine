@@ -24,6 +24,7 @@ namespace engine {
 
                 EventCallbackFn eventCallback;
             };
+
             WindowData data;
 
         public:
@@ -56,14 +57,16 @@ namespace engine {
 
             void setIcon(const char* _path)                                 override;
 
-            void setWindowOptions(WindowOptions _op, bool _allow)          override;
+            void setWindowOptions(WindowOptions _op, bool _allow)           override;
 
         private:
             virtual void init(const WindowProperties& _props);
             virtual void shutdown();
+
+            /// Method to transform from engine data to GLFW data. Will be only used if using GLFW.
             LONG_PTR windowOptionsToGLFW(WindowOptions _options, bool _allow);
     };
 
 }
 
-#endif // WINDOW_SWINDOW_H
+#endif // WINDOWS_WINDOW_H

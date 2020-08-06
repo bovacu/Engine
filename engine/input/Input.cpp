@@ -1,18 +1,8 @@
 #include "pch.h"
 #include "Input.h"
 
-#ifdef ENGINE_PLATFORM_WINDOWS
-    #include <engine/platform/Windows/WindowsInput.h>
-#endif
-
-#ifdef ENGINE_PLATFORM_LINUX
-    #include <engine/platform/Linux/LinuxInput.h>
-#endif
-
 namespace engine {
-
-    InputPtr Input::inputInstance = Input::create();
-    std::unordered_map<KeyCode, bool> Input::pressedKeys = {
+    std::unordered_map<KeyCode, bool> Input::pressedKeyboardKeys = {
             {KeyCode::LeftControl,  false},
             {KeyCode::LeftSuper,    false},
             {KeyCode::LeftAlt, false},
@@ -101,16 +91,19 @@ namespace engine {
 
     };
 
-    InputPtr Input::create() {
-
-        #if defined(ENGINE_PLATFORM_WINDOWS)
-                return std::make_unique<WindowsInput>();
-        #elif defined(ENGINE_PLATFORM_LINUX)
-                return std::make_unique<LinuxInput>();
-        #else
-                ENGINE_CORE_ASSERT(false, "Unknown platform!");
-                return nullptr;
-        #endif
-    }
+    std::unordered_map<MouseCode, bool> Input::pressedMouseButtons = {
+            {MouseCode::Button0,        false},
+            {MouseCode::Button1,        false},
+            {MouseCode::Button2,        false},
+            {MouseCode::Button3,        false},
+            {MouseCode::Button4,        false},
+            {MouseCode::Button5,        false},
+            {MouseCode::Button6,        false},
+            {MouseCode::Button7,        false},
+            {MouseCode::ButtonLast,     false},
+            {MouseCode::ButtonLeft,     false},
+            {MouseCode::ButtonMiddle,   false},
+            {MouseCode::ButtonRight,    false},
+    };
 
 }

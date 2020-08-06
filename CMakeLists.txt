@@ -57,15 +57,15 @@ add_executable( Engine engine/main/Application.cpp engine/util/EngineUtil.cpp
                 engine/api/openGL/OpenGLVertexArray.cpp engine/api/openGL/OpenGLVertexArray.h engine/api/openGL/OpenGLBuffer.cpp
                 engine/api/openGL/OpenGLBuffer.h engine/api/openGL/OpenGLGraphicsContext.cpp engine/api/openGL/OpenGLGraphicsContext.h
                 engine/api/openGL/OpenGLRenderAPI.cpp engine/api/openGL/OpenGLRenderAPI.h engine/api/openGL/OpenGLTexture.cpp
-                engine/api/openGL/OpenGLTexture.h engine/platform/Windows/WindowsInput.cpp engine/platform/Windows/WindowsInput.h
-                engine/main/EngineExecuter.h engine/render/layer/Layer.h engine/render/layer/LayerStack.cpp engine/render/layer/LayerStack.h
+                engine/api/openGL/OpenGLTexture.h engine/platform/Windows/WindowsInput.cpp
+        engine/main/EngineExecuter.h engine/render/layer/Layer.h engine/render/layer/LayerStack.cpp engine/render/layer/LayerStack.h
                 engine/util/Timestep.h SaFaTor/Game.cpp SaFaTor/Safator.cpp SaFaTor/Safator.h
                 engine/render/camera/OrthographicCameraController.cpp engine/render/camera/OrthographicCameraController.h
                 engine/input/Input.cpp engine/render/layer/ImGuiLayer.h engine/render/layer/ImGuiLayer.cpp
                 engine/util/Clock.cpp engine/util/Clock.h engine/render/elements/TextureRegion.cpp engine/render/elements/TextureRegion.h
                 engine/components/sprite/Sprite.cpp engine/components/sprite/Sprite.h
                 engine/render/shapes/Shape.cpp engine/render/shapes/Shape.h engine/render/shapes/PolygonShape.cpp engine/render/shapes/PolygonShape.h
-                engine/platform/Linux/LinuxWindow.h engine/platform/Linux/LinuxWindow.cpp engine/platform/Linux/LinuxInput.h engine/platform/Linux/LinuxInput.cpp
+                engine/platform/Linux/LinuxWindow.h engine/platform/Linux/LinuxWindow.cpp engine/platform/Linux/LinuxInput.cpp
 
                 lib/imgui-docking/imgui.cpp lib/imgui-docking/imgui_draw.cpp lib/imgui-docking/imgui_widgets.cpp  lib/imgui-docking/imgui_demo.cpp
                 lib/imgui-docking/examples/imgui_impl_glfw.cpp lib/imgui-docking/examples/imgui_impl_opengl3.cpp engine/api/openGL/OpenGLFrameBuffer.cpp engine/api/openGL/OpenGLFrameBuffer.h

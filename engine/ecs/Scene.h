@@ -8,6 +8,7 @@
 
 namespace engine {
 
+    /// This class acts as the container of a whole bunch of objects or as a map or place.
     class GameObject;
     class Scene {
         private:

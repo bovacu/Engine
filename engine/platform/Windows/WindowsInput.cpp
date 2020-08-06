@@ -1,66 +1,84 @@
 #include "pch.h"
-#include "WindowsInput.h"
+#include <engine/input/Input.h>
 
 #include <GLFW/glfw3.h>
 #include <engine/main/Application.h>
 
 namespace engine {
 
-    bool WindowsInput::isKeyJustPressed_v(KeyCode _keyCode) {
-        if(!Input::pressedKeys[_keyCode]) {
-            auto _window = static_cast<GLFWwindow*>(Application::get().getWindow().getNativeWindow());
-            auto _state = glfwGetKey(_window, static_cast<int32_t>(_keyCode));
-            bool _result = _state == GLFW_PRESS;
+    #if defined(ENGINE_PLATFORM_WINDOWS)
 
-            if(_result)
-                Input::pressedKeys[_keyCode] = true;
+        bool Input::isKeyJustPressed(KeyCode _keyCode) {
+            if(!Input::pressedKeyboardKeys[_keyCode]) {
+                auto _window = static_cast<GLFWwindow*>(Application::get().getWindow().getNativeWindow());
+                auto _state = glfwGetKey(_window, static_cast<int32_t>(_keyCode));
+                bool _result = _state == GLFW_PRESS;
 
-            return _result;
+                if(_result)
+                    Input::pressedKeyboardKeys[_keyCode] = true;
+
+                return _result;
+            }
+
+            return false;
         }
 
-        return false;
-    }
+        bool Input::isKeyPressed(KeyCode _key) {
+            auto _window = static_cast<GLFWwindow*>(Application::get().getWindow().getNativeWindow());
+            auto _state = glfwGetKey(_window, static_cast<int32_t>(_key));
+            return _state == GLFW_PRESS;
+        }
 
-    bool WindowsInput::isKeyPressed_v(KeyCode _key) {
-        auto _window = static_cast<GLFWwindow*>(Application::get().getWindow().getNativeWindow());
-        auto _state = glfwGetKey(_window, static_cast<int32_t>(_key));
-        return _state == GLFW_PRESS;
-    }
+        bool Input::isKeyReleased(KeyCode _key) {
+            auto _window = static_cast<GLFWwindow*>(Application::get().getWindow().getNativeWindow());
+            auto _state = glfwGetKey(_window, static_cast<int32_t>(_key));
+            return _state == GLFW_RELEASE;
+        }
 
-    bool WindowsInput::isKeyReleased_v(KeyCode _key) {
-        auto _window = static_cast<GLFWwindow*>(Application::get().getWindow().getNativeWindow());
-        auto _state = glfwGetKey(_window, static_cast<int32_t>(_key));
-        return _state == GLFW_RELEASE;
-    }
+        bool Input::isMouseJustPressed(MouseCode _mouseButton) {
+            if(!Input::pressedMouseButtons[_mouseButton]) {
+                auto _window = static_cast<GLFWwindow*>(Application::get().getWindow().getNativeWindow());
+                auto _state = glfwGetMouseButton(_window, static_cast<int32_t>(_mouseButton));
+                bool _result = _state == GLFW_PRESS;
 
-    bool WindowsInput::isMousePressed_v(MouseCode _button) {
-        auto _window = static_cast<GLFWwindow*>(Application::get().getWindow().getNativeWindow());
-        auto _state = glfwGetMouseButton(_window, static_cast<int32_t>(_button));
-        return _state == GLFW_PRESS;
-    }
+                if(_result)
+                    Input::pressedMouseButtons[_mouseButton] = true;
 
-    bool WindowsInput::isMouseReleased_v(MouseCode _button) {
-        auto _window = static_cast<GLFWwindow*>(Application::get().getWindow().getNativeWindow());
-        auto _state = glfwGetMouseButton(_window, static_cast<int32_t>(_button));
-        return _state == GLFW_RELEASE;
-    }
+                return _result;
+            }
 
-    Vec2f WindowsInput::getMousePosition_v() {
-        auto _window = static_cast<GLFWwindow*>(Application::get().getWindow().getNativeWindow());
-        int _height, _width;
-        glfwGetWindowSize(_window, &_width, &_height);
+            return false;
+        }
 
-        double _xPos, _yPos;
-        glfwGetCursorPos(_window, &_xPos, &_yPos);
-        return { (float)_xPos, (float)(_height - _yPos) };
-    }
+        bool Input::isMousePressed(MouseCode _button) {
+            auto _window = static_cast<GLFWwindow*>(Application::get().getWindow().getNativeWindow());
+            auto _state = glfwGetMouseButton(_window, static_cast<int32_t>(_button));
+            return _state == GLFW_PRESS;
+        }
 
-    float WindowsInput::getMouseX_v() {
-        return getMousePosition_v().x;
-    }
+        bool Input::isMouseReleased(MouseCode _button) {
+            auto _window = static_cast<GLFWwindow*>(Application::get().getWindow().getNativeWindow());
+            auto _state = glfwGetMouseButton(_window, static_cast<int32_t>(_button));
+            return _state == GLFW_RELEASE;
+        }
 
-    float WindowsInput::getMouseY_v() {
-        return getMousePosition_v().y;
-    }
+        Vec2i Input::getMousePosition() {
+            auto _window = static_cast<GLFWwindow*>(Application::get().getWindow().getNativeWindow());
+            int _height, _width;
+            glfwGetWindowSize(_window, &_width, &_height);
 
+            double _xPos, _yPos;
+            glfwGetCursorPos(_window, &_xPos, &_yPos);
+            return { (int)_xPos, (int)(_height - _yPos) };
+        }
+
+        int Input::getMouseX() {
+            return getMousePosition().x;
+        }
+
+        int Input::getMouseY() {
+            return getMousePosition().y;
+        }
+
+    #endif
 }

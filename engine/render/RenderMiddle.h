@@ -7,6 +7,8 @@
 
 namespace engine {
 
+    /// This class is needed as some of the functions that go from Renderer2D to Renderer needs a middle point to be
+    /// correctly called. That happens with drawIndexed(...).
     class RenderMiddle {
         private:
             static RenderAPIPtr renderAPI;
