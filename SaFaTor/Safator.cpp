@@ -9,6 +9,7 @@ Safator::Safator() : engine::Layer("Prueba"), cameraController(false), app(Appli
 
 void Safator::onInit() {
     this->app.setTitle("Safator");
+    this->app.setWindowOptions(WindowOptions_Maximize | WindowOptions_Resize, false);
     this->worldTexture      = Texture2D::create((uint32_t)this->app.getWindowSize().x, (uint32_t)this->app.getWindowSize().y, true);
     this->circleTexture     = Texture2D::create(128, 128, true);
 
@@ -55,7 +56,7 @@ void Safator::onFixedUpdate(engine::Timestep _dt) {
             this->oneStep = false;
         }
 
-        if(!ImGui::IsAnyWindowHovered() && !ImGui::IsAnyItemActive()) {
+        if(!ImGui::IsAnyWindowHovered() && !ImGui::IsAnyItemActive() && !this->anyModalOpen) {
             auto _mousePos = Input::getMousePosition();
             if(_mousePos >= 0 && _mousePos.x < this->worldTexture->getWidth() && _mousePos.y < this->worldTexture->getHeight()) {
                 if (Input::isMousePressed(MouseCode::Button0)) {
@@ -1049,6 +1050,12 @@ void Safator::imGuiAppWindow(engine::Timestep _dt) {
     ImGui::End();
 }
 void Safator::imGuiInfo(engine::Timestep _dt) {
+    if(ImGui::Button("How to use"))
+        ImGui::OpenPopup("How to use");
+
+    this->imGuiHowToUse(_dt);
+
+    ImGui::Separator();
     ImGui::Text("FPS: %d", this->app.getFps());
     ImGui::Separator();
     ImGui::Text("Updating: %d", this->particlesInSecond);
@@ -1066,6 +1073,163 @@ void Safator::imGuiInfo(engine::Timestep _dt) {
     if(ImGui::Checkbox("Vsync", &_vSync))
         this->app.setVSync(_vSync);
     ImGui::Separator();
+}
+void Safator::imGuiHowToUse(engine::Timestep _dt) {
+    ImGui::SetNextWindowSize({this->app.getWindowSize().x * 0.85f, this->app.getWindowSize().y * 0.65f}, ImGuiCond_Always);
+    int _width = this->textureWidth, _height = this->textureHeight;
+    auto _mainWindowPos = this->app.getPosition();
+
+    ImGui::SetNextWindowPos({(float)_mainWindowPos.x + this->app.getWindowSize().x / 2.f - this->app.getWindowSize().x * 0.85f / 2.f,
+                             _mainWindowPos.y + this->app.getWindowSize().y / 2.f - this->app.getWindowSize().y * 0.65f / 2.f});
+
+    if(ImGui::BeginPopupModal("How to use", nullptr, ImGuiWindowFlags_HorizontalScrollbar)) {
+        this->anyModalOpen = true;
+        ImGui::TextColored({1.f, 1.f, 0.f, 1.f}, "Version: Alpha"); ImGui::SameLine(); ImGui::TextColored({0, 206.f / 255.f, 209.f / 255.f, 1.0f}, "1.0");
+
+        ImGui::NewLine();
+
+        ImGui::BulletText("Controls");
+        ImGui::Indent(30);
+            ImGui::TextColored({1.0, 0.0f, 0.0f, 1.0f}, "Controller");
+                ImGui::Indent();
+                    ImGui::Text("Reset Scene: clears the scene.");
+                    ImGui::Image((void*)(intptr_t)this->pauseTexture->getRendererID(), ImVec2((float)this->pauseTexture->getWidth() / 2.f, (float)this->pauseTexture->getHeight() / 2.f),ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+                    ImGui::SameLine(); ImGui::Text("Stops the simulation.");
+                    ImGui::Image((void*)(intptr_t)this->resumeTexture->getRendererID(), ImVec2((float)this->resumeTexture->getWidth() / 2.f, (float)this->resumeTexture->getHeight() / 2.f),ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+                    ImGui::SameLine(); ImGui::Text("Resumes the simulation.");
+                    ImGui::Image((void*)(intptr_t)this->oneFrameTexture->getRendererID(), ImVec2((float)this->oneFrameTexture->getWidth() / 2.f, (float)this->oneFrameTexture->getHeight() / 2.f),ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+                    ImGui::SameLine(); ImGui::Text("Advances one frame on the simulation if it is paused.");
+                    ImGui::Image((void*)(intptr_t)this->advanceTexture->getRendererID(), ImVec2((float)this->advanceTexture->getWidth() / 2.f, (float)this->advanceTexture->getHeight() / 2.f),ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+                    ImGui::SameLine(); ImGui::Text("Advances as many frames as time is pressed on the simulation if it is paused.");
+                ImGui::Unindent();
+
+            ImGui::NewLine();
+
+            ImGui::TextColored({1.0, 0.0f, 0.0f, 1.0f}, "Drawing");
+                ImGui::Indent();
+                    ImGui::Image((void*)(intptr_t)this->drawTexture->getRendererID(), ImVec2((float)this->drawTexture->getWidth() / 2.f, (float)this->drawTexture->getHeight() / 2.f),ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+                    ImGui::SameLine(); ImGui::Text("Allows you to create particles on the simulation.");
+                    ImGui::Image((void*)(intptr_t)this->eraseTexture->getRendererID(), ImVec2((float)this->eraseTexture->getWidth() / 2.f, (float)this->eraseTexture->getHeight() / 2.f),ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+                    ImGui::SameLine(); ImGui::Text("Allows you to remove particles from the simulation.");
+                    ImGui::Image((void*)(intptr_t)this->zoomTexture->getRendererID(), ImVec2((float)this->zoomTexture->getWidth() / 2.f, (float)this->zoomTexture->getHeight() / 2.f),ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+                    ImGui::SameLine(); ImGui::Text("Allows you to have a closer look of the simulation.");
+                ImGui::Unindent();
+
+            ImGui::NewLine();
+
+            ImGui::TextColored({1.0, 0.0f, 0.0f, 1.0f}, "Shortcuts");
+                ImGui::Indent();
+                    ImGui::Text("Space: pause/resume the simulation.");
+                    ImGui::Text("1: quick access to draw tool.");
+                    ImGui::Text("2: quick access to erase tool.");
+                    ImGui::Text("3: quick access to zoom tool.");
+                ImGui::Unindent();
+
+        ImGui::Unindent(30);
+
+        ImGui::NewLine();
+
+        ImGui::BulletText("Conditions");
+        ImGui::Indent(30);
+        ImGui::Text("When simulating, some particles may be moving forever, and can cause worse performance, so here you have some options");
+
+        ImGui::NewLine();
+
+            ImGui::TextColored({1.0, 0.0f, 0.0f, 1.0f}, "Unfitted drops");
+                ImGui::Indent();
+                    ImGui::Text("Live: they will move forever if they have to.");
+                    ImGui::Text("Remove: they will be removed once certain time has passed.");
+                    ImGui::Text("Evaporate: they will be evaporated once certain time has passed.");
+                ImGui::Unindent();
+
+            ImGui::NewLine();
+
+            ImGui::TextColored({1.0, 0.0f, 0.0f, 1.0f}, "Unfitted gases");
+                ImGui::Indent();
+                    ImGui::Text("Live: they will move forever if they have to.");
+                    ImGui::Text("Remove: they will be removed once certain time has passed.");
+                    ImGui::Text("Condensate: they will be condensed once certain time has passed.");
+                ImGui::Unindent();
+            ImGui::Unindent(30);
+
+        ImGui::NewLine();
+
+        ImGui::BulletText("Weather");
+        ImGui::Indent(30);
+            ImGui::Text("In this update of the simulator only the rain is working, all the other options among others will be the next update.");
+        ImGui::Unindent(30);
+
+        ImGui::BulletText("Materials");
+        ImGui::Indent(30);
+            ImGui::TextColored({1.0, 0.0f, 0.0f, 1.0f}, "Liquids");
+            ImGui::Indent();
+                ImGui::Text("Acid: working, reacts with stone, water, lava.");
+                ImGui::Text("Water: working, reacts lava, salt and ice.");
+                ImGui::Text("Lava: working, reacts with ice.");
+            ImGui::Unindent();
+
+            ImGui::NewLine();
+
+            ImGui::TextColored({1.0, 0.0f, 0.0f, 1.0f}, "Dusts");
+            ImGui::Indent();
+                ImGui::Text("Ash: working, no reactions yet.");
+                ImGui::Text("Dirt: working, no reactions yet.");
+                ImGui::Text("Gunpowder: working, no reactions yet.");
+                ImGui::Text("Salt: working, no reactions yet.");
+                ImGui::Text("Sand: working.");
+            ImGui::Unindent();
+
+            ImGui::NewLine();
+
+            ImGui::TextColored({1.0, 0.0f, 0.0f, 1.0f}, "Solids");
+            ImGui::Text("They have no gravity.");
+            ImGui::Indent();
+                ImGui::Text("Frost: working, freezes everything.");
+                ImGui::Text("Ice: working.");
+                ImGui::Text("Obsidian: working, no reactions yet.");
+                ImGui::Text("Snow: not implemented yet, next update.");
+                ImGui::Text("Steel: not implemented yet, next update.");
+                ImGui::Text("Stone: working.");
+                ImGui::Text("Wax: not implemented yet, next update.");
+                ImGui::Text("Wood: not implemented yet, next update.");
+            ImGui::Unindent();
+
+            ImGui::NewLine();
+
+            ImGui::TextColored({1.0, 0.0f, 0.0f, 1.0f}, "Gases");
+            ImGui::Indent();
+                ImGui::Text("Gas: not implemented yet, next update.");
+                ImGui::Text("Poison Gas: working, no reactions yet.");
+                ImGui::Text("Smoke: working, no reactions yet.");
+                ImGui::Text("Steam: working, no reactions yet.");
+            ImGui::Unindent();
+
+            ImGui::NewLine();
+
+            ImGui::TextColored({1.0, 0.0f, 0.0f, 1.0f}, "Others");
+            ImGui::Indent();
+                ImGui::Text("Cloud: not implemented yet, next update.");
+                ImGui::Text("Fire: not implemented yet, next update.");
+                ImGui::Text("Plant: not implemented yet, next update.");
+            ImGui::Unindent();
+
+            ImGui::NewLine();
+
+            ImGui::TextColored({1.0, 0.0f, 0.0f, 1.0f}, "Usable");
+            ImGui::Indent();
+                ImGui::Text("Cryogener: working, freezes everything.");
+                ImGui::Text("Fuse: not implemented yet, next update.");
+            ImGui::Unindent();
+
+        ImGui::Unindent(30);
+
+        if(ImGui::Button("Close")) {
+            ImGui::CloseCurrentPopup();
+            this->anyModalOpen = false;
+        }
+
+        ImGui::EndPopup();
+    }
 }
 void Safator::imGuiControllerWindow(engine::Timestep _dt) {
     if(ImGui::Button("Reset Scene")) {
@@ -1555,6 +1719,7 @@ void Safator::imGuiWorldSizePopUp(engine::Timestep _dt) {
     ImGui::SetNextWindowPos({(float)_mainWindowPos.x + this->app.getWindowSize().x / 2.f - (float)_futurePopWidth / 2.f,
                              _mainWindowPos.y + this->app.getWindowSize().y / 2.f - (float)_futurePopHeight / 2.f});
     if(ImGui::BeginPopupModal("World Size Options", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+        this->anyModalOpen = true;
         _futurePopWidth = (int)ImGui::GetWindowSize().x;
         _futurePopHeight = (int)ImGui::GetWindowSize().y;
         ImGui::Text("World Width"); ImGui::SameLine(100); ImGui::InputInt("", &_width);
@@ -1563,8 +1728,10 @@ void Safator::imGuiWorldSizePopUp(engine::Timestep _dt) {
         ImGui::Separator();
 
         ImGui::Button("Apply"); ImGui::SameLine();
-        if(ImGui::Button("Cancel"))
+        if(ImGui::Button("Cancel")) {
+            this->anyModalOpen = false;
             ImGui::CloseCurrentPopup();
+        }
 
         ImGui::EndPopup();
     }
@@ -1913,3 +2080,5 @@ void Safator::loadWorld(const std::string& _worldName) {
 
     LOG_INFO("Loaded, width: {0}, height: {1}", _mapInfo.width, _mapInfo.height);
 }
+
+

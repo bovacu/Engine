@@ -12,6 +12,16 @@ namespace engine {
     class Window;
     typedef std::unique_ptr<Window> WindowPtr;
 
+    typedef int WindowOptions;
+    enum WindowOptions_ : unsigned {    WindowOptions_Minimize    = 1u << 0u, /// 00000001
+                                        WindowOptions_Maximize    = 1u << 1u, /// 00000010
+                                        WindowOptions_Resize      = 1u << 2u, /// 00000100
+                                        WindowOptions_Visible     = 1u << 3u, /// 00001000
+                                        WindowOptions_H_Scroll    = 1u << 4u, /// 00010000
+                                        WindowOptions_V_Scroll    = 1u << 5u, /// 00100000
+                                        WindowOptions_Disabled    = 1u << 6u  /// 01000000
+    };
+
     struct WindowProperties {
         std::string title;
         unsigned int width;
@@ -24,6 +34,7 @@ namespace engine {
     };
 
     class Window {
+
         public:
 
             virtual ~Window()                                                       = default;
@@ -52,6 +63,8 @@ namespace engine {
             virtual void setPosition(const Vec2i& _position)                        = 0;
 
             virtual void setIcon(const char* _path)                                 = 0;
+
+            virtual void setWindowOptions(WindowOptions _op, bool _allow)           = 0;
 
             static std::unique_ptr<Window> createWindow(const WindowProperties& _windowProperties = WindowProperties());
     };

@@ -99,28 +99,30 @@ namespace engine {
 
             int getFps();
             void setTitle(const std::string& _title);
-            [[nodiscard]] const std::string& getTitle() const   { return this->window->getTitle(); }
+            [[nodiscard]] const std::string& getTitle() const       { return this->window->getTitle(); }
 
             void setWindowSize(int _width, int _height);
-            [[nodiscard]] Vec2i getWindowSize() const           { return Vec2i(this->window->getWidth(), this->window->getHeight()); }
+            [[nodiscard]] Vec2i getWindowSize() const               { return Vec2i(this->window->getWidth(), this->window->getHeight()); }
 
-            void setTimePerFrame(float _timePerFrame)           { this->timePerFrame = _timePerFrame; }
-            [[nodiscard]] float getTimePerFrame() const         { return this->timePerFrame; }
+            void setTimePerFrame(float _timePerFrame)               { this->timePerFrame = _timePerFrame; }
+            [[nodiscard]] float getTimePerFrame() const             { return this->timePerFrame; }
 
             void setVSync(bool _vsync);
             bool isVSync();
 
-            [[nodiscard]] Timestep getDelta() const             { return this->dt; }
-            [[nodiscard]] Vec2i getMousePos() const             { return Vec2i( (int)(-this->getWindowSize().x / 2.f + Input::getMouseX()),
+            [[nodiscard]] Timestep getDelta() const                 { return this->dt; }
+            [[nodiscard]] Vec2i getMousePos() const                 { return Vec2i( (int)(-this->getWindowSize().x / 2.f + Input::getMouseX()),
                                                                                 (int)(this->getWindowSize().y / 2.f - Input::getMouseY())); }
 
             void setFullscreen(bool _fullscreen);
-            [[nodiscard]] bool isFullscreen() const             {  return this->window->isFullscreen(); }
+            [[nodiscard]] bool isFullscreen() const                 {  return this->window->isFullscreen(); }
 
-            void setPosition(const Vec2i& _position)            { this->window->setPosition(_position); }
-            Vec2i getPosition() const                           { return this->window->getPosition(); }
+            void setPosition(const Vec2i& _position)                { this->window->setPosition(_position); }
+            Vec2i getPosition() const                               { return this->window->getPosition(); }
 
-            void setAppIcon(const char* _path)                  { this->window->setIcon(_path); }
+            void setAppIcon(const char* _path)                      { this->window->setIcon(_path); }
+
+            void setWindowOptions(WindowOptions _op, bool _allow)   { this->window->setWindowOptions(_op, _allow); }
 
         public:
             void onRun();

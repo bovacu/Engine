@@ -233,8 +233,9 @@ namespace engine {
     void WindowsWindow::setIcon(const char* _path) {
         int _w = 0, _h = 0;
         unsigned char* _pixels = stbi_load(_path, &_w, &_h, nullptr, 4);
-        if (_pixels == nullptr)
+        if (_pixels == nullptr) {
             ENGINE_CORE_ASSERT(false, "Couldn't load ImGui Texture")
+        }
 
         glfwSetWindowIcon(this->window, 0, nullptr);
         GLFWimage _image[1];
@@ -244,6 +245,44 @@ namespace engine {
         glfwSetWindowIcon(this->window, 1, _image);
 
         stbi_image_free(_pixels);
+    }
+
+    void WindowsWindow::setWindowOptions(WindowOptions _op, bool _allow) {
+        auto _windowHandle = GetForegroundWindow();
+
+        /// GetWindowLongPtr is used instead of GetWindowLong for x64 system compatibilities
+        auto _style = GetWindowLongPtr(_windowHandle, GWL_STYLE);
+        _style += this->windowOptionsToGLFW(_op, _allow);
+
+        SetWindowLongPtr(_windowHandle, GWL_STYLE, _style);
+    }
+
+    LONG_PTR WindowsWindow::windowOptionsToGLFW(WindowOptions _options, bool _allow) {
+        LONG_PTR _newStyle = 0L;
+        int _toAdd = _allow ? 1 : -1;
+
+        if(((unsigned)WindowOptions_::WindowOptions_Minimize & (unsigned)_options) == WindowOptions_::WindowOptions_Minimize)
+            _newStyle += WS_MINIMIZEBOX * _toAdd;
+
+        if(((unsigned)WindowOptions_::WindowOptions_Maximize & (unsigned)_options) == WindowOptions_::WindowOptions_Maximize)
+            _newStyle += WS_MAXIMIZEBOX * _toAdd;
+
+        if(((unsigned)WindowOptions_::WindowOptions_Resize & (unsigned)_options) == WindowOptions_::WindowOptions_Resize)
+            _newStyle += WS_THICKFRAME * _toAdd;
+
+        if(((unsigned)WindowOptions_::WindowOptions_Visible & (unsigned)_options) == WindowOptions_::WindowOptions_Visible)
+            _newStyle += WS_VISIBLE * _toAdd;
+
+        if(((unsigned)WindowOptions_::WindowOptions_Disabled & (unsigned)_options) == WindowOptions_::WindowOptions_Disabled)
+            _newStyle += WS_DISABLED * _toAdd;
+
+        if(((unsigned)WindowOptions_::WindowOptions_H_Scroll & (unsigned)_options) == WindowOptions_::WindowOptions_H_Scroll)
+            _newStyle += WS_HSCROLL * _toAdd;
+
+        if(((unsigned)WindowOptions_::WindowOptions_V_Scroll & (unsigned)_options) == WindowOptions_::WindowOptions_V_Scroll)
+            _newStyle += WS_VSCROLL * _toAdd;
+
+        return _newStyle;
     }
 
 }

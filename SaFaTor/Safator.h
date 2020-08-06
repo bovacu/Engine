@@ -177,6 +177,7 @@ class Safator : public engine::Layer {
                                                     0       ,   /// Snow
                                                     9.8f    ,   /// Gravity
                                                 };
+        bool                                    anyModalOpen = false;
 
     public:
         Safator();
@@ -239,6 +240,7 @@ class Safator : public engine::Layer {
 
         void imGuiAppWindow(engine::Timestep _dt);
         void imGuiInfo(engine::Timestep _dt);
+        void imGuiHowToUse(engine::Timestep _dt);
         void imGuiControllerWindow(engine::Timestep _dt);
         void imGuiConditions(engine::Timestep _dt);
         void imGuiWeather(engine::Timestep _dt);

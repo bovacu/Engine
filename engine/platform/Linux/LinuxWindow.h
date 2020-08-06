@@ -56,9 +56,12 @@ namespace engine {
 
             void setIcon(const char* _path)                                 override;
 
+            void setWindowOptions(WindowOptions _options, bool _allow)      override;
+
         private:
             virtual void init(const WindowProperties& _props);
             virtual void shutdown();
+            LONG_PTR windowOptionsToGLFW(WindowOptions _options, bool _allow);
     };
 
 }
