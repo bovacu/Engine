@@ -16,15 +16,15 @@ namespace engine {
         _logSinks[0]->set_pattern("%^[%T] %n: %v%$");
         _logSinks[1]->set_pattern("[%T] [%l] %n: %v");
 
-        coreLogger = std::make_shared<spdlog::logger>("Engine", begin(_logSinks), end(_logSinks));
-        spdlog::register_logger(coreLogger);
-        coreLogger->set_level(spdlog::level::trace);
-        coreLogger->flush_on(spdlog::level::trace);
+        Logger::coreLogger = std::make_shared<spdlog::logger>("Engine", begin(_logSinks), end(_logSinks));
+        spdlog::register_logger(Logger::coreLogger);
+        Logger::coreLogger->set_level(spdlog::level::trace);
+        Logger::coreLogger->flush_on(spdlog::level::trace);
 
-        clientLogger = std::make_shared<spdlog::logger>("App", begin(_logSinks), end(_logSinks));
-        spdlog::register_logger(clientLogger);
-        clientLogger->set_level(spdlog::level::trace);
-        clientLogger->flush_on(spdlog::level::trace);
+        Logger::clientLogger = std::make_shared<spdlog::logger>("App", begin(_logSinks), end(_logSinks));
+        spdlog::register_logger(Logger::clientLogger);
+        Logger::clientLogger->set_level(spdlog::level::trace);
+        Logger::clientLogger->flush_on(spdlog::level::trace);
     }
 
 }

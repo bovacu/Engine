@@ -10,16 +10,20 @@
     =                                      ENGINE UTIL                                              =
     =================================================================================================
     = (*) This class is a collection of objects used all over the code and functions that           =
-    =     that can be useful, but doesn't really belong to any class but still need to exist.       =
+    =     that can be useful, but doesn't really belong to any class but still needs to exist.      =
     =                                                                                               =
-    = (*) Vec2f is the representation of a vector or point in a 2D plane, with the expected         =
-    =     operations between vectors.                                                               =
+    = (*) Vec2 is the representation of a vector or point in a 2D plane, with the expected          =
+    =     operations between vectors. Can contain various types of data in Vec2X                    =
     =                                                                                               =
     = (*) Size is the representation of the width and height of an Object.                          =
     =                                                                                               =
 	= (*) Color represents the RGBA values of any possible color combination						=
     =                                                                                               =
     = (*) Functions will be described on themselves.                                                =
+    =                                                                                               =
+    = (*) Random is a class that generates random numbers and random probabilities                  =
+    =                                                                                               =
+    = (*) Easing provides the basic easing functions.                                               =
     =                                                                                               =
     ================================================================================================= 
 */
@@ -29,6 +33,7 @@
 
 namespace engine {
 
+    #pragma region Vector2
     template<typename T>
     struct Vec2 {
         public:
@@ -128,7 +133,10 @@ namespace engine {
     typedef Vec2<int>           Vec2i;
     typedef Vec2<double>        Vec2d;
     typedef Vec2<unsigned int>  Vec2ui;
+    #pragma endregion
 
+    /// TODO remove this piece of shit.
+    #pragma region Size
     struct Size {
 		float width, height;
 
@@ -147,7 +155,9 @@ namespace engine {
 			return this->width == _p.width && this->height == _p.height;
 		}
 	};
+    #pragma endregion Size
 
+    #pragma region Color
 	struct Color {
         unsigned char r, g, b, a;
 
@@ -167,12 +177,16 @@ namespace engine {
 		static const Color Gray;
 		static const Color Transparent;
 	};
+    #pragma endregion Color
 
+    #pragma region Prob
     struct Probability {
         float prob = 0.0f;
         bool happened = false;
     };
+    #pragma endregion Prob
 
+    #pragma region Random
 	class Random {
 	    private:
             std::random_device rd;
@@ -221,7 +235,9 @@ namespace engine {
                 return this->probability((float)_chanceToHappen / 100.f);
             }
 	};
+    #pragma endregion Random
 
+    #pragma region Easing
 	class Easing {
 	    public:
 	        /// Linear
@@ -338,11 +354,11 @@ namespace engine {
                 return _changeInValue / 2 * ((float)std::sqrt(1 - _currentTime * _currentTime) + 1) + _startValue;
             }
 	};
+    #pragma endregion Easing
 
     namespace functions {
-
-        // This method return _value if _value is between _minValue and _maxValue,
-        // _minValue if _value is lower and _maxValue if _value is higher
+        /// This method return _value if _value is between _minValue and _maxValue,
+        /// _minValue if _value is lower and _maxValue if _value is higher
         float clamp(float _value, float _minValue, float _maxValue);
     }
 }
