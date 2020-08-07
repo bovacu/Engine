@@ -9,7 +9,7 @@ namespace engine {
 
     class OpenGLVertexBuffer : public VertexBuffer {
         private:
-            uint32_t            rendererID;
+            uint32_t            rendererID = 0;
             BufferLayout        layout;
 
         public:
@@ -28,8 +28,8 @@ namespace engine {
 
     class OpenGLIndexBuffer : public IndexBuffer {
         private:
-            uint32_t            rendererID;
-            uint32_t            count;
+            uint32_t            rendererID = 0;
+            uint32_t            count      = 0;
 
         public:
             OpenGLIndexBuffer(uint32_t* _indices, uint32_t _count);

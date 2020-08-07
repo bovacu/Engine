@@ -25,14 +25,4 @@ namespace engine {
         ENGINE_CORE_ASSERT(false, "Unknown RendererAPI!");
         return nullptr;
     }
-
-    ImGuiTexture2DPtr ImGuiTexture2D::create(const std::string& _path) {
-        switch (Renderer::getAPI()) {
-            case RenderAPI::API::None:    ENGINE_CORE_ASSERT(false, "RendererAPI::None is currently not supported!"); return nullptr;
-            case RenderAPI::API::OpenGL:  return std::make_shared<OpenGLImGuiTexture>(_path.c_str());
-        }
-
-        ENGINE_CORE_ASSERT(false, "Unknown RendererAPI!");
-        return nullptr;
-    }
 }

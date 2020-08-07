@@ -21,18 +21,18 @@ namespace engine {
             static API api;
 
         public:
-            virtual void init() = 0;
-            virtual void setViewport(uint32_t _x, uint32_t _y, uint32_t _width, uint32_t _height) = 0;
-            virtual void setClearColor(const Color& _color) = 0;
-            virtual void clear() = 0;
+            virtual void init()                                                                     = 0;
+            virtual void setViewport(uint32_t _x, uint32_t _y, uint32_t _width, uint32_t _height)   = 0;
+            virtual void setClearColor(const Color& _color)                                         = 0;
+            virtual void clear()                                                                    = 0;
 
-            virtual void drawIndexed(const VertexArrayPtr& _vertexArray, uint32_t _indexCount = 0) = 0;
+            virtual void drawIndexed(const VertexArrayPtr& _vertexArray, uint32_t _indexCount = 0)  = 0;
 
-            static API getAPI() { return api; }
-            static RenderAPIPtr create();
+            static API getAPI()                                                                     { return api; }
+            static RenderAPIPtr create()                                                            noexcept;
 
         private:
-            virtual void setClearColor(const glm::vec4& _color) = 0;
+            virtual void setClearColor(const glm::vec4& _color)                                     = 0;
 
     };
 

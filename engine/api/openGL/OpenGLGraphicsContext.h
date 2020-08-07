@@ -11,13 +11,13 @@ namespace engine {
 
     class OpenGLGraphicsContext : public GraphicsContext {
         private:
-            GLFWwindow*                     windowHandle;
+            GLFWwindow*                     windowHandle = nullptr;
 
         public:
-            OpenGLGraphicsContext(GLFWwindow* _windowHandle);
+            explicit OpenGLGraphicsContext(GLFWwindow* _windowHandle);
 
-            virtual void init()             override;
-            virtual void swapBuffers()      override;
+            void init()             override;
+            void swapBuffers()      override;
     };
 
 }

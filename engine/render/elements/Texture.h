@@ -45,19 +45,6 @@ namespace engine {
             static Texture2DPtr create(uint32_t _width, uint32_t _height, bool _useAlpha = false);
             static Texture2DPtr create(const std::string& _path);
     };
-
-    class ImGuiTexture2D;
-    typedef std::shared_ptr<ImGuiTexture2D> ImGuiTexture2DPtr;
-    class ImGuiTexture2D {
-        public:
-            static ImGuiTexture2DPtr create(const std::string& _path);
-
-            virtual ~ImGuiTexture2D() = default;
-
-            virtual int getWidth()              = 0;
-            virtual int getHeight()             = 0;
-            virtual unsigned int getTexture()   = 0;
-    };
 }
 
 

@@ -7,10 +7,12 @@ namespace engine {
 
     OpenGLTexture::OpenGLTexture(uint32_t _width, uint32_t _height, bool _useAlpha)
             : width(_width), height(_height) {
+        /// This constructor is to create a texture and modify it 100% through code.
         this->bpp = _useAlpha ? 4 : 3;
         this->internalFormat = _useAlpha ? GL_RGBA8 : GL_RGB8;
         this->dataFormat = _useAlpha ? GL_RGBA : GL_RGB;
 
+        /// Same process as the below constructor.
         glCreateTextures(GL_TEXTURE_2D, 1, &this->rendererID);
         glTextureStorage2D(this->rendererID, 1, this->internalFormat, this->width, this->height);
 
@@ -20,6 +22,7 @@ namespace engine {
         glTextureParameteri(this->rendererID, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTextureParameteri(this->rendererID, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
+        /// In this case we store in memory the data.
         this->bufferData = new GLubyte[_width * _height * (_useAlpha ? 4 : 3)];
     }
 
@@ -27,11 +30,15 @@ namespace engine {
             : path(_path) {
 
         int _width, _height, _channels;
+
+        /// As for how stb_img loads the image and how OpenGL renders them, we need to flip it vertically.
         stbi_set_flip_vertically_on_load(1);
         stbi_uc* _data;
 
+        /// Then we load the image pixels.
         _data = stbi_load(_path.c_str(), &_width, &_height, &_channels, 0);
 
+        /// We set the basic information.
         ENGINE_CORE_ASSERT(_data, "Failed to load image!")
         this->width = _width;
         this->height = _height;
@@ -51,23 +58,33 @@ namespace engine {
         this->internalFormat = _internalFormat;
         this->dataFormat = _dataFormat;
 
+        /// Check if the image format is or not supported.
         ENGINE_CORE_ASSERT(_internalFormat & _dataFormat, "Format not supported!")
 
+        /// With the data of the image loaded, we can proceed to create the memory buffer.
         glCreateTextures(GL_TEXTURE_2D, 1, &this->rendererID);
+
+        /// Then we tell OpenGL that on this buffer we are storing a 2D texture.
         glTextureStorage2D(this->rendererID, 1, this->internalFormat, this->width, this->height);
 
+        /// We set the up/down resizing algorithms
         glTextureParameteri(this->rendererID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTextureParameteri(this->rendererID, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
+        /// And the up/down wrapping algorithms
         glTextureParameteri(this->rendererID, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTextureParameteri(this->rendererID, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
+        /// Then we specify the data of the texture with SubImage2D, as we already set the basic information on glTextureStorage2D.
+        /// glTextureStorage2D could also be used for this task, but is slower.
         glTextureSubImage2D(this->rendererID, 0, 0, 0, this->width, this->height, this->dataFormat, GL_UNSIGNED_BYTE, _data);
 
+        /// Free the memory not needed anymore.
         stbi_image_free(_data);
     }
 
     OpenGLTexture::~OpenGLTexture() {
+        /// Freeing the texture buffer.
         glDeleteTextures(1, &this->rendererID);
 //        delete this->bufferData;
     }
@@ -109,60 +126,7 @@ namespace engine {
     }
 
     void OpenGLTexture::updateTexture() {
+        /// If the pixels are modified in a single way, then the texture needs to be reloaded.
         glTextureSubImage2D(this->rendererID, 0, 0, 0, this->width, this->height, this->dataFormat, GL_UNSIGNED_BYTE, this->bufferData);
-    }
-
-    bool OpenGLTexture::LoadTextureFromFile(const char* filename, unsigned int* out_texture, int* out_width, int* out_height) {
-        // Load from file
-        int image_width = 0;
-        int image_height = 0;
-        unsigned char* image_data = stbi_load(filename, &image_width, &image_height, nullptr, 4);
-        if (image_data == nullptr)
-            return false;
-
-        // Create a OpenGL texture identifier
-        GLuint image_texture;
-        glGenTextures(1, &image_texture);
-        glBindTexture(GL_TEXTURE_2D, image_texture);
-
-        // Setup filtering parameters for display
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-        // Upload pixels into texture
-        glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image_width, image_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data);
-        stbi_image_free(image_data);
-
-        *out_texture = image_texture;
-        *out_width = image_width;
-        *out_height = image_height;
-
-        return true;
-    }
-
-    //--------------------------------
-
-    OpenGLImGuiTexture::OpenGLImGuiTexture(const char* _filePath) {
-        unsigned char* image_data = stbi_load(_filePath, &this->width, &this->height, nullptr, 4);
-        if (image_data == nullptr)
-            ENGINE_CORE_ASSERT(false, "Couldn't load ImGui Texture")
-
-        // Create a OpenGL texture identifier
-        glGenTextures(1, &this->texture);
-        glBindTexture(GL_TEXTURE_2D, this->texture);
-
-        // Setup filtering parameters for display
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-        // Upload pixels into texture
-        glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, this->width, this->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data);
-        stbi_image_free(image_data);
-    }
-
-    OpenGLImGuiTexture::~OpenGLImGuiTexture() {
-        glDeleteTextures(1, &this->texture);
     }
 }

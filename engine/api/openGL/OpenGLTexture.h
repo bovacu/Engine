@@ -11,11 +11,11 @@ namespace engine {
     class OpenGLTexture : public Texture2D {
         private:
             std::string     path;
-            uint32_t        width, height;
-            uint32_t        rendererID;
+            uint32_t        width = 0, height = 0;
+            uint32_t        rendererID = 0;
             GLenum          internalFormat, dataFormat;
-            GLubyte*        bufferData;
-            int             bpp;
+            GLubyte*        bufferData = nullptr;
+            int             bpp = 0;
 
         public:
             OpenGLTexture(uint32_t _width, uint32_t _height, bool _useAlpha = false);
@@ -44,21 +44,6 @@ namespace engine {
             uint32_t getRendererID()                                                                                    override { return this->rendererID; }
 
             bool operator==(const Texture& other) const                                                                 override { return this->rendererID == ((OpenGLTexture&)other).rendererID; }
-
-            bool LoadTextureFromFile(const char* filename, unsigned int* out_texture, int* out_width, int* out_height)  override;
-    };
-
-    class OpenGLImGuiTexture : public ImGuiTexture2D {
-        public:
-            int width, height;
-            unsigned int texture;
-
-            int getWidth()              override { return this->width; }
-            int getHeight()             override { return this->height; }
-            unsigned int getTexture()   override { return this->texture; }
-
-            OpenGLImGuiTexture(const char* _filePath);
-            ~OpenGLImGuiTexture()               override;
     };
 }
 

@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef ENGINE_OPENGLFRAMEBUFFER_H
-#define ENGINE_OPENGLFRAMEBUFFER_H
+#ifndef ENGINE_OPENGL_FRAMEBUFFER_H
+#define ENGINE_OPENGL_FRAMEBUFFER_H
 
 
 #include <engine/render/elements/FrameBuffer.h>
@@ -18,6 +18,8 @@ namespace engine {
             explicit OpenGLFrameBuffer(const FrameBufferSpecification& _specs);
             ~OpenGLFrameBuffer() override;
 
+            /// This method checks if there's a valid FrameBuffer already in memory, in that case it removes it and
+            /// creates a new one with a custom FrameBufferSpecification.
             void invalidate();
 
             void bind()                                                             override;
@@ -32,4 +34,4 @@ namespace engine {
 
 }
 
-#endif //ENGINE_OPENGLFRAMEBUFFER_H
+#endif //ENGINE_OPENGL_FRAMEBUFFER_H

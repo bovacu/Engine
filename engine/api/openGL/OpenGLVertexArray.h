@@ -9,7 +9,7 @@ namespace engine {
 
     class OpenGLVertexArray : public VertexArray {
         private:
-            uint32_t                        rendererID;
+            uint32_t                        rendererID = 0;
             uint32_t                        vertexBufferIndex = 0;
             std::vector<VertexBufferPtr>    vertexBuffers;
             IndexBufferPtr                  indexBuffer;
