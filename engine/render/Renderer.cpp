@@ -60,8 +60,5 @@ namespace engine {
     void Renderer::drawTexture(const Vec2f& _position, const Vec2f& _size, const TextureRegionPtr& _textureRegion, float _rotation, const Color& _tintColor) {
         Render2D::drawTexture(_position, _size, _textureRegion, _rotation, _tintColor);
     }
-    void Renderer::draw(const GameObjectPtr& _gameObject) {
-        Render2D::draw(_gameObject);
-    }
 
 }

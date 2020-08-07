@@ -5,18 +5,6 @@
 
 #include <engine/main/Application.h>
 
-#include <engine/components/colliders/Collider.h>
-#include <engine/components/colliders/PolygonCollider.h>
-#include <engine/components/colliders/BoxCollider.h>
-#include <engine/components/colliders/CircleCollider.h>
-
-#include <engine/components/physics/PhysicsBody.h>
-
-#include <engine/components/Component.h>
-#include <engine/gameObject/GameObject.h>
-
-#include <engine/world/World.h>
-
 #include <engine/render/layer/Layer.h>
 #include <engine/render/layer/LayerStack.h>
 

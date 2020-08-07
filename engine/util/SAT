@@ -1,0 +1,91 @@
+    Mtv Collider::collidingWithSat(Collider& _collider, float _push) {
+        Vec2f _smallestAxis;
+        float _minimumDistance = BIG_NUM;
+
+        // Checking A over B
+        for(int _i = 0; _i < Collider::numberOfVertices; _i++) {
+            Vec2f _currentVertex = Collider::vertices.at(_i);
+            Vec2f _nextVertex = Collider::vertices.at((_i + 1) % Collider::numberOfVertices);
+            Vec2f _vector = _nextVertex - _currentVertex;
+            Vec2f _axis(-_vector.y, _vector.x);
+            _axis = Vec2f::normalize(_axis);
+
+            float _maximumProjectionOfBodyA = -std::numeric_limits<float>::infinity();
+            float _minimumProjectionOfBodyA = std::numeric_limits<float>::infinity();
+            float _maximumProjectionOfBodyB = -std::numeric_limits<float>::infinity();
+            float _minimumProjectionOfBodyB = std::numeric_limits<float>::infinity();
+
+            for(int _v = 0; _v < Collider::numberOfVertices; _v++) {
+                float _projection = Collider::vertices.at(_v).dotProduct(_axis);
+                if(_projection < _minimumProjectionOfBodyA) _minimumProjectionOfBodyA = _projection;
+                if(_projection > _maximumProjectionOfBodyA) _maximumProjectionOfBodyA = _projection;
+            }
+
+            for(int _v = 0; _v < _collider.numberOfVertices; _v++) {
+                float _projection = _collider.vertices.at(_v).dotProduct(_axis);
+                if(_projection < _minimumProjectionOfBodyB) _minimumProjectionOfBodyB = _projection;
+                if(_projection > _maximumProjectionOfBodyB) _maximumProjectionOfBodyB = _projection;
+            }
+            
+            if(_maximumProjectionOfBodyA < _minimumProjectionOfBodyB || _maximumProjectionOfBodyB < _minimumProjectionOfBodyA)
+                return Mtv();
+            else {
+                double _distance = std::min(_maximumProjectionOfBodyB - _minimumProjectionOfBodyA,
+                                            _maximumProjectionOfBodyA - _minimumProjectionOfBodyB);
+
+                if(_distance < _minimumDistance) {
+                    _minimumDistance = (float)_distance;
+                    _smallestAxis = _axis;
+                }  
+            }
+	    }
+
+        // Checking B over A
+        for(int _i = 0; _i < _collider.numberOfVertices; _i++) {
+            Vec2f _currentVertex = _collider.vertices.at(_i);
+            Vec2f _nextVertex = _collider.vertices.at((_i + 1) % _collider.numberOfVertices);
+            Vec2f _vector = _nextVertex - _currentVertex;
+            Vec2f _axis(-_vector.y, _vector.x);
+            _axis = Vec2f::normalize(_axis);
+
+            float _maximumProjectionOfBodyA = -std::numeric_limits<float>::infinity();
+            float _minimumProjectionOfBodyA = std::numeric_limits<float>::infinity();
+            float _maximumProjectionOfBodyB = -std::numeric_limits<float>::infinity();
+            float _minimumProjectionOfBodyB = std::numeric_limits<float>::infinity();
+
+            for(int _v = 0; _v < Collider::numberOfVertices; _v++) {
+                float _projection = Collider::vertices.at(_v).dotProduct(_axis);
+                if(_projection < _minimumProjectionOfBodyA) _minimumProjectionOfBodyA = _projection;
+                if(_projection > _maximumProjectionOfBodyA) _maximumProjectionOfBodyA = _projection;
+            }
+
+            for(int _v = 0; _v < _collider.numberOfVertices; _v++) {
+                float _projection = _collider.vertices.at(_v).dotProduct(_axis);
+                if(_projection < _minimumProjectionOfBodyB) _minimumProjectionOfBodyB = _projection;
+                if(_projection > _maximumProjectionOfBodyB) _maximumProjectionOfBodyB = _projection;
+            }
+            
+            if(_maximumProjectionOfBodyA < _minimumProjectionOfBodyB || _maximumProjectionOfBodyB < _minimumProjectionOfBodyA)
+                return Mtv();
+            else {
+                double _distance = std::min(_maximumProjectionOfBodyB - _minimumProjectionOfBodyA,
+                                            _maximumProjectionOfBodyA - _minimumProjectionOfBodyB);
+
+                if(_distance < _minimumDistance) {
+                    _minimumDistance = (float)_distance;
+                    _smallestAxis = _axis;
+                }  
+            }
+	    }
+
+        Mtv _mtv;
+        _mtv.collision = true;
+
+        float _distanceBetweenOrthogonalVectorSquared = _minimumDistance / _smallestAxis.dotProduct(_smallestAxis);
+        _mtv.translation = _smallestAxis * _distanceBetweenOrthogonalVectorSquared;
+        Vec2f _d = _collider.center - Collider::center;
+        if (_d.dotProduct(_mtv.translation) > 0)
+            _mtv.translation = _mtv.translation * -1;
+
+        return _mtv;
+    }

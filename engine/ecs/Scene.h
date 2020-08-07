@@ -8,8 +8,9 @@
 
 namespace engine {
 
-    /// This class acts as the container of a whole bunch of objects or as a map or place.
     class GameObject;
+
+    /// This class acts as the container of a whole bunch of objects or as a map or place.
     class Scene {
         private:
             entt::registry gameObjectsRegistry;
@@ -23,6 +24,7 @@ namespace engine {
             void onUpdate(Timestep _dt);
             void onFixUpdate(Timestep _fixedDt);
             void onRender(Timestep _dt);
+            void onImGuiRender(Timestep _dt);
 
             friend class GameObject;
     };

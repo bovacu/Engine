@@ -8,7 +8,6 @@
 #include <engine/render/camera/OrthographicCamera.h>
 #include <engine/render/elements/Texture.h>
 #include <engine/render/elements/TextureRegion.h>
-#include <engine/gameObject/GameObject.h>
 #include <engine/render/shapes/Shape.h>
 
 namespace engine {
@@ -39,7 +38,6 @@ namespace engine {
             static void drawShape(Shape& _shape, const Color& _color, float _thickness = 1.0f);
             static void drawTexture(const Vec2f& _position, const Vec2f& _size, const Texture2DPtr& _texture, float _rotation = 0.0f, const Color& _tintColor = Color::Transparent);
             static void drawTexture(const Vec2f& _position, const Vec2f& _size, const TextureRegionPtr& _textureRegion, float _rotation = 0.0f, const Color& _tintColor = Color::Transparent);
-            static void draw(const GameObjectPtr& _gameObject);
 
             static void endDrawCall();
 

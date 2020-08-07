@@ -33,4 +33,8 @@ namespace engine {
 
     }
 
+    void Scene::onImGuiRender(Timestep _dt) {
+
+    }
+
 }

@@ -6,8 +6,8 @@
 #include <engine/render/camera/OrthographicCamera.h>
 #include <engine/render/elements/Texture.h>
 #include <glm/glm.hpp>
-#include <engine/gameObject/GameObject.h>
 #include <engine/render/shapes/Shape.h>
+#include <engine/render/elements/TextureRegion.h>
 
 namespace engine {
 
@@ -38,7 +38,6 @@ namespace engine {
             static void drawTexture(const Vec2f& _position, const Vec2f& _size, const TextureRegionPtr& _textureRegion, float _rotation = 0.0f, const Color& _tintColor = Color::Transparent);
             static void drawRotatedRect(const Vec2f& _position, const Vec2f& _size, float _rotation = 0.0f, const Color& _color = Color::Transparent);
             static void drawRotatedTexture(const Vec2f& _position, const Vec2f& _size, float _rotation, const Texture2DPtr& _texture, float _tilingFactor = 1.0f, const glm::vec4& _tintColor = glm::vec4(1.0f));
-            static void draw(const GameObjectPtr& _gameObject, float _tilingFactor = 1.0f, const glm::vec4& _tintColor = glm::vec4(1.0f));
             static void drawLine(const Vec2f& _p0, const Vec2f& _p1, const Color& _color, float _thickness = 1.0f);
             static void drawShape(Shape& _shape, const Color& _color, float _thickness = 1.0f);
 
@@ -48,7 +47,6 @@ namespace engine {
             #endif
 
             static void flushAndReset();
-            static void drawRotated(const SpritePtr & _sprite, float _rotation, float _tilingFactor = 1.0f, const glm::vec4& _tintColor = glm::vec4(1.0f));
             static void drawRect(const glm::vec3& _position, const glm::vec2& _size, const glm::vec4& _color);
             static void drawTexture(const glm::vec3& _position, const glm::vec2& _size, const Texture2DPtr& _texture, float _rotation = 0.0f, const glm::vec4& _tintColor = glm::vec4(1.0f));
             static void drawTexture(const glm::vec3& _position, const glm::vec2& _size, const TextureRegionPtr& _textureRegion, float _rotation = 0.0f, const glm::vec4& _tintColor = glm::vec4(0.0f));

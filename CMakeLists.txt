@@ -39,10 +39,7 @@ set(BOX2D_DIR "${LIB_DIR}/box2d")
 add_subdirectory("${BOX2D_DIR}")
 
 add_executable( Engine engine/main/Application.cpp engine/util/EngineUtil.cpp
-                engine/components/colliders/Collider.cpp engine/components/colliders/BoxCollider.cpp engine/components/colliders/CircleCollider.cpp
-                engine/components/colliders/PolygonCollider.cpp engine/components/physics/PhysicsBody.cpp
-                engine/components/transform/Transform2D.cpp engine/gameObject/GameObject.cpp engine/gameObject/GameObjectCollection.cpp
-                engine/world/World.cpp engine/input/Input.h engine/render/elements/Texture.cpp engine/render/elements/Texture.h
+                engine/input/Input.h engine/render/elements/Texture.cpp engine/render/elements/Texture.h
                 engine/render/elements/Buffer.cpp engine/render/elements/Buffer.h engine/render/elements/Shader.cpp
                 engine/render/elements/Shader.h engine/render/elements/VertexArray.cpp engine/render/elements/VertexArray.h
                 engine/render/camera/OrthographicCamera.cpp engine/render/camera/OrthographicCamera.h
@@ -53,19 +50,18 @@ add_executable( Engine engine/main/Application.cpp engine/util/EngineUtil.cpp
                 lib/stb/stb_image.cpp engine/util/Logger.cpp engine/main/Core.h engine/platform/Windows/WindowsWindow.cpp
                 engine/platform/Windows/WindowsWindow.h engine/render/Renderer.cpp engine/render/Renderer.h
                 engine/render/RenderAPI.cpp engine/render/RenderAPI.h
-        engine/render/Render2D.cpp engine/render/Render2D.h
+                engine/render/Render2D.cpp engine/render/Render2D.h
                 engine/api/openGL/OpenGLVertexArray.cpp engine/api/openGL/OpenGLVertexArray.h engine/api/openGL/OpenGLBuffer.cpp
                 engine/api/openGL/OpenGLBuffer.h engine/api/openGL/OpenGLGraphicsContext.cpp engine/api/openGL/OpenGLGraphicsContext.h
                 engine/api/openGL/OpenGLRenderAPI.cpp engine/api/openGL/OpenGLRenderAPI.h engine/api/openGL/OpenGLTexture.cpp
                 engine/api/openGL/OpenGLTexture.h engine/platform/Windows/WindowsInput.cpp
-        engine/main/EngineExecuter.h engine/render/layer/Layer.h engine/render/layer/LayerStack.cpp engine/render/layer/LayerStack.h
+                engine/main/EngineExecuter.h engine/render/layer/Layer.h engine/render/layer/LayerStack.cpp engine/render/layer/LayerStack.h
                 engine/util/Timestep.h SaFaTor/Game.cpp SaFaTor/Safator.cpp SaFaTor/Safator.h
                 engine/render/camera/OrthographicCameraController.cpp engine/render/camera/OrthographicCameraController.h
                 engine/input/Input.cpp engine/render/layer/ImGuiLayer.h engine/render/layer/ImGuiLayer.cpp
                 engine/util/Clock.cpp engine/util/Clock.h engine/render/elements/TextureRegion.cpp engine/render/elements/TextureRegion.h
-                engine/components/sprite/Sprite.cpp engine/components/sprite/Sprite.h
                 engine/render/shapes/Shape.cpp engine/render/shapes/Shape.h
-        engine/platform/Linux/LinuxWindow.h engine/platform/Linux/LinuxWindow.cpp engine/platform/Linux/LinuxInput.cpp
+                engine/platform/Linux/LinuxWindow.h engine/platform/Linux/LinuxWindow.cpp engine/platform/Linux/LinuxInput.cpp
 
                 lib/imgui-docking/imgui.cpp lib/imgui-docking/imgui_draw.cpp lib/imgui-docking/imgui_widgets.cpp  lib/imgui-docking/imgui_demo.cpp
                 lib/imgui-docking/examples/imgui_impl_glfw.cpp lib/imgui-docking/examples/imgui_impl_opengl3.cpp engine/api/openGL/OpenGLFrameBuffer.cpp engine/api/openGL/OpenGLFrameBuffer.h

@@ -1,7 +1,5 @@
 Class: Window
-    - Add set/get application icon.
     - Show/hide mouse
     - Set mouse icon
-    - Set stuck FPS
     - Set active/inactive
     - Set visible
