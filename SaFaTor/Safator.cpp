@@ -105,8 +105,8 @@ void Safator::onRender(engine::Timestep _dt) {
                                       {(float) this->worldTexture->getWidth(), (float) this->worldTexture->getHeight()},
                                       this->worldTexture);
 
-        engine::Renderer::drawTexture({Input::getMouseX() - this->app.getWindowSize().x / 2.f,
-                                       Input::getMouseY() - this->app.getWindowSize().y / 2.f},
+        engine::Renderer::drawTexture({(float)Input::getMouseX() - this->app.getWindowSize().x / 2.f,
+                                       (float)Input::getMouseY() - this->app.getWindowSize().y / 2.f},
                                       {(float) this->circleTexture->getWidth(), (float) this->circleTexture->getHeight()},
                                       this->circleTexture);
     engine::Renderer::endDrawCall();

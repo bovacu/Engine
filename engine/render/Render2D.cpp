@@ -178,6 +178,53 @@ namespace engine {
             data.stats.quadCount++;
         #endif
     }
+    void Render2D::drawShape(Shape& _shape, const Color& _color, float _thickness) {
+        Vec2f _p0, _p1;
+
+        for(int _v = 0; _v < _shape.getVertices().size(); _v++) {
+
+            if(_v < _shape.getVertices().size() - 1) {
+                _p0 = _shape.getVertices()[_v];
+                _p1 = _shape.getVertices()[_v + 1];
+            } else {
+                _p0 = _shape.getVertices()[_v];
+                _p1 = _shape.getVertices()[0];
+            }
+
+            constexpr size_t _quadVertexCount = 4;
+            const float _textureIndex = 0.0f; // White Texture
+            constexpr glm::vec2 _textureCoords[] = {{0.0f, 0.0f},
+                                                    {1.0f, 0.0f},
+                                                    {1.0f, 1.0f},
+                                                    {0.0f, 1.0f}};
+            const float _tilingFactor = 1.0f;
+
+            if (data.quadIndexCount >= Render2DData::maxIndices)
+                Render2D::flushAndReset();
+
+            glm::vec3 _position = {(_p1.x + _p0.x) / 2.f, (_p1.y + _p0.y) / 2.f, 0.0f};
+            glm::vec3 _size = {_p0.distance(_p1), _thickness, 0.0f};
+
+            glm::mat4 _transform = glm::translate(glm::mat4(1.0f), _position)
+                                   * glm::rotate(glm::mat4(1.0f), _shape.getAngles()[_v], {0.0f, 0.0f, 1.0f})
+                                   * glm::scale(glm::mat4(1.0f), _size);
+
+            for (size_t _i = 0; _i < _quadVertexCount; _i++) {
+                data.quadVertexBufferPtr->position = _transform * data.quadVertexPositions[_i];
+                data.quadVertexBufferPtr->color = {_color.r, _color.g, _color.b, _color.a};
+                data.quadVertexBufferPtr->texCoord = _textureCoords[_i];
+                data.quadVertexBufferPtr->texIndex = _textureIndex;
+                data.quadVertexBufferPtr->tilingFactor = _tilingFactor;
+                data.quadVertexBufferPtr++;
+            }
+
+            data.quadIndexCount += 6;
+
+            #if defined(ENGINE_DEBUG)
+            data.stats.quadCount++;
+            #endif
+        }
+    }
 
     void Render2D::drawRect(const Vec2f& _position, const Vec2f& _size, const Color& _color) {
         float _adapter = OrthographicCamera::usingAspectRatio ? ASPECT_RATIO_PIXEL : 1;

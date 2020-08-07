@@ -5,32 +5,36 @@
 
 namespace engine {
 
-    enum ShapeType { NONE_SHAPE, RECTANGLE, CONVEX_POLYGON, CIRCLE, NON_CONVEX_POLYGON };
-
     class Shape {
+        public:
+            virtual std::vector<Vec2f>& getVertices()   = 0;
+            virtual std::vector<float>& getAngles()     = 0;
+    };
+
+    class Polygon : public Shape {
         private:
             std::vector<Vec2f> vertices;
-            Size size;
-            Color color;
-            ShapeType shapeType;
-            Vec2f position;
+            std::vector<float> angles;
 
         public:
-            explicit Shape(const std::vector<Vec2f>& _vertices, const Vec2f& _position = {0, 0}, const ShapeType& _shapeType = ShapeType::NONE_SHAPE);
+            explicit Polygon(const std::vector<Vec2f>& _vertices);
 
-            [[nodiscard]] const std::vector<Vec2f>& getVertices() const { return this->vertices; }
-            [[nodiscard]] Size getSize() const { return this->size; }
-            [[nodiscard]] ShapeType getShapeType() const { return this->shapeType; }
+            std::vector<Vec2f>& getVertices()  override { return this->vertices; }
+            std::vector<float>& getAngles()    override { return this->angles; }
+    };
 
-            [[nodiscard]] Color getColor() const { return this->color; }
-            void setColor(const Color& _color) { this->color = _color; }
-
-            [[nodiscard]] Vec2f getPosition() const { return this->position; }
-            void setPosition(const Vec2f& _position) { this->position = _position; }
-
+    class Circle : public Shape {
         private:
-            Size calSize(const std::vector<Vec2f>& _vertices);
+            std::vector<Vec2f> vertices;
+            std::vector<float> angles;
+            float radius;
+            Vec2f center;
 
+        public:
+            Circle(const Vec2f& _center, float _radius, int _precision = 50);
+
+            std::vector<Vec2f>& getVertices()  override { return this->vertices; }
+            std::vector<float>& getAngles()    override { return this->angles; }
     };
 
 }

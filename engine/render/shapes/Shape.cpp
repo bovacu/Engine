@@ -3,24 +3,52 @@
 
 namespace engine {
 
-    Shape::Shape(const std::vector<Vec2f>& _vertices, const Vec2f& _position, const ShapeType& _shapeType) : vertices(_vertices), shapeType(_shapeType) {
-        this->size = this->calSize(_vertices);
-        this->position = _position;
+    Polygon::Polygon(const std::vector<Vec2f>& _vertices) : vertices(_vertices) {
+        for(int _v = 0; _v < _vertices.size(); _v++) {
+            Vec2f _v0, _v1;
+
+            if(_v < _vertices.size() - 1) {
+                _v0 = _vertices[_v];
+                _v1 = _vertices[_v + 1];
+            } else {
+                _v0 = _vertices[_v];
+                _v1 = _vertices[0];
+            }
+
+            const float _dX = _v0.x - _v1.x;
+            const float _dY = _v0.y - _v1.y;
+            this->angles.emplace_back(std::atan2(_dY, _dX));
+        }
     }
 
-    Size Shape::calSize(const std::vector<Vec2f>& _vertices) {
-        ENGINE_CORE_ASSERT(_vertices.size(), "Can't draw shape without vertices");
-        float _minY = _vertices[0].y, _maxY = _minY;
-        float _minX = _vertices[0].x, _maxX = _minX;
+    Circle::Circle(const Vec2f& _center, float _radius, int _precision) : center(_center), radius(_radius) {
 
-        for(auto& _vertex : _vertices) {
-            _minX = std::min(_vertex.x, _minX);
-            _maxX = std::max(_vertex.x, _maxX);
+        const float _angleToAdd = (float)(PI / 180.f) * (360.f / 50.f);
+        float _angle = 0.f;
 
-            _minY = std::min(_vertex.y, _minY);
-            _maxY = std::max(_vertex.y, _maxY);
+        for(int _v = 0; _v < _precision; _v++) {
+            float _x = _center.x + _radius * std::cos(_angle);
+            float _y = _center.x + _radius * std::sin(_angle);
+
+            this->vertices.emplace_back(_x, _y);
+
+            _angle += _angleToAdd;
         }
 
-        return Size( std::abs(_maxX - _minX) , std::abs(_minY - _maxY));
+        for(int _v = 0; _v < this->vertices.size(); _v++) {
+            Vec2f _v0, _v1;
+
+            if(_v < this->vertices.size() - 1) {
+                _v0 = this->vertices[_v];
+                _v1 = this->vertices[_v + 1];
+            } else {
+                _v0 = this->vertices[_v];
+                _v1 = this->vertices[0];
+            }
+
+            const float _dX = _v0.x - _v1.x;
+            const float _dY = _v0.y - _v1.y;
+            this->angles.emplace_back(std::atan2(_dY, _dX));
+        }
     }
 }

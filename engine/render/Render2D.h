@@ -40,6 +40,7 @@ namespace engine {
             static void drawRotatedTexture(const Vec2f& _position, const Vec2f& _size, float _rotation, const Texture2DPtr& _texture, float _tilingFactor = 1.0f, const glm::vec4& _tintColor = glm::vec4(1.0f));
             static void draw(const GameObjectPtr& _gameObject, float _tilingFactor = 1.0f, const glm::vec4& _tintColor = glm::vec4(1.0f));
             static void drawLine(const Vec2f& _p0, const Vec2f& _p1, const Color& _color, float _thickness = 1.0f);
+            static void drawShape(Shape& _shape, const Color& _color, float _thickness = 1.0f);
 
             #if defined(ENGINE_DEBUG)
                 static void resetStats();

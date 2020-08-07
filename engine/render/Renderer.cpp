@@ -44,6 +44,9 @@ namespace engine {
     void Renderer::drawLine(const Vec2f& _p0, const Vec2f& _p1, const Color& _color, float _thickness) {
         Render2D::drawLine(_p0, _p1, _color, _thickness);
     }
+    void Renderer::drawShape(Shape& _shape, const Color& _color, float _thickness) {
+        Render2D::drawShape(_shape, _color, _thickness);
+    }
 
     void Renderer::drawRectangle(const Vec2f& _position, const Vec2f& _size, const Color& _color, float _rotation, const Color& _tintColor) {
         if(_rotation > 0)

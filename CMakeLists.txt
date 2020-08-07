@@ -64,8 +64,8 @@ add_executable( Engine engine/main/Application.cpp engine/util/EngineUtil.cpp
                 engine/input/Input.cpp engine/render/layer/ImGuiLayer.h engine/render/layer/ImGuiLayer.cpp
                 engine/util/Clock.cpp engine/util/Clock.h engine/render/elements/TextureRegion.cpp engine/render/elements/TextureRegion.h
                 engine/components/sprite/Sprite.cpp engine/components/sprite/Sprite.h
-                engine/render/shapes/Shape.cpp engine/render/shapes/Shape.h engine/render/shapes/PolygonShape.cpp engine/render/shapes/PolygonShape.h
-                engine/platform/Linux/LinuxWindow.h engine/platform/Linux/LinuxWindow.cpp engine/platform/Linux/LinuxInput.cpp
+                engine/render/shapes/Shape.cpp engine/render/shapes/Shape.h
+        engine/platform/Linux/LinuxWindow.h engine/platform/Linux/LinuxWindow.cpp engine/platform/Linux/LinuxInput.cpp
 
                 lib/imgui-docking/imgui.cpp lib/imgui-docking/imgui_draw.cpp lib/imgui-docking/imgui_widgets.cpp  lib/imgui-docking/imgui_demo.cpp
                 lib/imgui-docking/examples/imgui_impl_glfw.cpp lib/imgui-docking/examples/imgui_impl_opengl3.cpp engine/api/openGL/OpenGLFrameBuffer.cpp engine/api/openGL/OpenGLFrameBuffer.h

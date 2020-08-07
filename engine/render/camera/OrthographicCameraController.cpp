@@ -29,45 +29,11 @@ namespace engine {
     }
 
     void OrthographicCameraController::onUpdate(Timestep _ts) {
-//        if (Input::isKeyPressed(KEY_A)) {
-//            this->cameraPosition.x -= cos(glm::radians(this->cameraRotation)) * this->cameraTranslationSpeed * _ts;
-//            this->cameraPosition.y -= sin(glm::radians(this->cameraRotation)) * this->cameraTranslationSpeed * _ts;
-//        }
-//        else if (Input::isKeyPressed(KEY_D)) {
-//            this->cameraPosition.x += cos(glm::radians(this->cameraRotation)) * this->cameraTranslationSpeed * _ts;
-//            this->cameraPosition.y += sin(glm::radians(this->cameraRotation)) * this->cameraTranslationSpeed * _ts;
-//        }
-//
-//        if (Input::isKeyPressed(KEY_W)) {
-//            this->cameraPosition.x += -sin(glm::radians(this->cameraRotation)) * this->cameraTranslationSpeed * _ts;
-//            this->cameraPosition.y += cos(glm::radians(this->cameraRotation)) * this->cameraTranslationSpeed * _ts;
-//        }
-//        else if (Input::isKeyPressed(KEY_S)) {
-//            this->cameraPosition.x -= -sin(glm::radians(this->cameraRotation)) * this->cameraTranslationSpeed * _ts;
-//            this->cameraPosition.y -= cos(glm::radians(this->cameraRotation)) * this->cameraTranslationSpeed * _ts;
-//        }
-//
-//        if (this->rotation) {
-//            if (Input::isKeyPressed(KEY_Q))
-//                this->cameraRotation += this->cameraRotationSpeed * _ts;
-//            if (Input::isKeyPressed(KEY_E))
-//                this->cameraRotation -= this->cameraRotationSpeed * _ts;
-//
-//            if (this->cameraRotation > 180.0f)
-//                this->cameraRotation -= 360.0f;
-//            else if (this->cameraRotation <= -180.0f)
-//                this->cameraRotation += 360.0f;
-//
-//            this->camera.setRotation(this->cameraRotation);
-//        }
-
         this->camera.setPosition({this->cameraPosition.x, this->cameraPosition.y, 0.0f});
-
         this->cameraTranslationSpeed = this->zoomLevel;
     }
 
     void OrthographicCameraController::onEvent(Event& _e) {
-
         EventDispatcher dispatcher(_e);
         dispatcher.dispatchEvent<MouseScrolledEvent>(ENGINE_BIND_EVENT_FN(OrthographicCameraController::onMouseScrolled));
         dispatcher.dispatchEvent<WindowResizedEvent>(ENGINE_BIND_EVENT_FN(OrthographicCameraController::onWindowResized));
