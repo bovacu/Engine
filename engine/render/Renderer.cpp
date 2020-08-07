@@ -5,9 +5,10 @@
 namespace engine {
 
     std::unique_ptr<Renderer::SceneData> Renderer::sceneData = std::make_unique<Renderer::SceneData>();
+    RenderAPIPtr Renderer::renderAPI = RenderAPI::create();
 
     void Renderer::init() {
-        RenderMiddle::init();
+        renderAPI->init();
         Render2D::init();
     }
     void Renderer::shutdown() {
@@ -15,14 +16,14 @@ namespace engine {
     }
 
     void Renderer::onWindowResize(uint32_t _width, uint32_t _height) {
-        RenderMiddle::setViewport(0, 0, _width, _height);
+        renderAPI->setViewport(0, 0, _width, _height);
     }
 
     void Renderer::setClearColor(const Color& _color) {
-        RenderMiddle::setClearColor(_color);
+        renderAPI->setClearColor(_color);
     }
     void Renderer::clear() {
-        RenderMiddle::clear();
+        renderAPI->clear();
     }
 
     void Renderer::beginDrawCall(OrthographicCamera& _camera) {
@@ -37,7 +38,7 @@ namespace engine {
         _shader->setMat4("u_Transform", _transform);
 
         _vertexArray->bind();
-        RenderMiddle::drawIndexed(_vertexArray);
+        renderAPI->drawIndexed(_vertexArray);
     }
 
     void Renderer::drawLine(const Vec2f& _p0, const Vec2f& _p1, const Color& _color, float _thickness) {

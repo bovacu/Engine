@@ -3,7 +3,7 @@
 
 #include <engine/render/elements/VertexArray.h>
 #include <engine/render/elements/Shader.h>
-#include <engine/render/RenderMiddle.h>
+#include <engine/render/Renderer.h>
 
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -129,7 +129,8 @@ namespace engine {
         // Bind textures
         for (uint32_t i = 0; i < data.textureSlotIndex; i++)
             data.textureSlots[i]->bind(i);
-        RenderMiddle::drawIndexed(data.quadVertexArray, data.quadIndexCount);
+
+        Renderer::getRendererAPI()->drawIndexed(data.quadVertexArray, data.quadIndexCount);
 
         #if defined(ENGINE_DEBUG)
             data.stats.drawCalls++;

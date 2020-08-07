@@ -3,7 +3,7 @@
 #ifndef RENDERER_H
 #define RENDERER_H
 
-#include <engine/render/RenderMiddle.h>
+#include <engine/render/RenderAPI.h>
 #include <engine/render/elements/Shader.h>
 #include <engine/render/camera/OrthographicCamera.h>
 #include <engine/render/elements/Texture.h>
@@ -13,12 +13,18 @@
 namespace engine {
 
     class Renderer {
+        friend class Render2D;
+
         private:
             struct SceneData {
                 glm::mat4 viewProjectionMatrix;
             };
 
         static std::unique_ptr<SceneData> sceneData;
+        static RenderAPIPtr renderAPI;
+
+        private:
+            static RenderAPIPtr& getRendererAPI() { return renderAPI; }
 
         public:
             static void init();

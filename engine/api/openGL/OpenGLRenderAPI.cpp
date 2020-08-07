@@ -58,4 +58,8 @@ namespace engine {
         glBindTexture(GL_TEXTURE_2D, 0);
     }
 
+    void OpenGLRenderAPI::setClearColor(const Color& _color) {
+        this->setClearColor(glm::vec4{_color.r, _color.g, _color.b, _color.a});
+    }
+
 }

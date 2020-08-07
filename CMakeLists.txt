@@ -52,8 +52,8 @@ add_executable( Engine engine/main/Application.cpp engine/util/EngineUtil.cpp
                 engine/render/Window.cpp engine/render/Window.h  engine/api/openGL/OpenGLShader.cpp engine/api/openGL/OpenGLShader.h
                 lib/stb/stb_image.cpp engine/util/Logger.cpp engine/main/Core.h engine/platform/Windows/WindowsWindow.cpp
                 engine/platform/Windows/WindowsWindow.h engine/render/Renderer.cpp engine/render/Renderer.h
-                engine/render/RenderAPI.cpp engine/render/RenderAPI.h engine/render/RenderMiddle.cpp
-        engine/render/RenderMiddle.h engine/render/Render2D.cpp engine/render/Render2D.h
+                engine/render/RenderAPI.cpp engine/render/RenderAPI.h
+        engine/render/Render2D.cpp engine/render/Render2D.h
                 engine/api/openGL/OpenGLVertexArray.cpp engine/api/openGL/OpenGLVertexArray.h engine/api/openGL/OpenGLBuffer.cpp
                 engine/api/openGL/OpenGLBuffer.h engine/api/openGL/OpenGLGraphicsContext.cpp engine/api/openGL/OpenGLGraphicsContext.h
                 engine/api/openGL/OpenGLRenderAPI.cpp engine/api/openGL/OpenGLRenderAPI.h engine/api/openGL/OpenGLTexture.cpp
