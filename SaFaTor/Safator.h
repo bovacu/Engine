@@ -6,7 +6,7 @@
 #define MAX_BRUSH_THICKNESS 60
 #define MAX_ZOOM_LEVEL      15.f
 
-#define INFINITE_LIFE_TIME -1.f
+#define INFINITE_LIFE_TIME  -1.f
 #define MAX_WATER_LIFE      8.f
 #define MIN_WATER_LIFE      4.f
 #define MAX_STEAM_LIFE      6.f
@@ -177,7 +177,7 @@ class Safator : public engine::Layer {
                                                     0       ,   /// Snow
                                                     9.8f    ,   /// Gravity
                                                 };
-        bool                                    anyModalOpen = false;
+        bool                                    anyModalOpen = false, openInfo = false;
 
     public:
         Safator();

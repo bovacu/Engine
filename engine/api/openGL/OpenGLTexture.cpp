@@ -86,7 +86,7 @@ namespace engine {
     OpenGLTexture::~OpenGLTexture() {
         /// Freeing the texture buffer.
         glDeleteTextures(1, &this->rendererID);
-//        delete this->bufferData;
+        delete this->bufferData;
     }
 
     void OpenGLTexture::setData(void* _data, uint32_t _size) {

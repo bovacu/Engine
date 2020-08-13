@@ -1050,8 +1050,10 @@ void Safator::imGuiAppWindow(engine::Timestep _dt) {
     ImGui::End();
 }
 void Safator::imGuiInfo(engine::Timestep _dt) {
-    if(ImGui::Button("How to use"))
+    if(ImGui::Button("How to use")) {
+        this->openInfo = true;
         ImGui::OpenPopup("How to use");
+    }
 
     this->imGuiHowToUse(_dt);
 
@@ -1082,9 +1084,9 @@ void Safator::imGuiHowToUse(engine::Timestep _dt) {
     ImGui::SetNextWindowPos({(float)_mainWindowPos.x + this->app.getWindowSize().x / 2.f - this->app.getWindowSize().x * 0.85f / 2.f,
                              _mainWindowPos.y + this->app.getWindowSize().y / 2.f - this->app.getWindowSize().y * 0.65f / 2.f});
 
-    if(ImGui::BeginPopupModal("How to use", nullptr, ImGuiWindowFlags_HorizontalScrollbar)) {
+    if(ImGui::BeginPopupModal("How to use", &this->openInfo, ImGuiWindowFlags_HorizontalScrollbar)) {
         this->anyModalOpen = true;
-        ImGui::TextColored({1.f, 1.f, 0.f, 1.f}, "Version: Alpha"); ImGui::SameLine(); ImGui::TextColored({0, 206.f / 255.f, 209.f / 255.f, 1.0f}, "1.0");
+        ImGui::TextColored({1.f, 1.f, 0.f, 1.f}, "Version: Alpha"); ImGui::SameLine(); ImGui::TextColored({0, 206.f / 255.f, 209.f / 255.f, 1.0f}, "1.1");
 
         ImGui::NewLine();
 

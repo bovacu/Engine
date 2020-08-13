@@ -1,7 +1,7 @@
 #pragma once
 
 #include <memory>
-#include "engine/util/Logger.h"
+#include <engine/util/Logger.h>
 
 /// Default paths to essential elements, can be modified if needed.
 #define DEFAULT_SHADER_PATH "assets/shaders/Texture.glsl"
@@ -74,9 +74,6 @@
     #define ENGINE_ASSERT(x, ...)
     #define ENGINE_CORE_ASSERT(x, ...)
 #endif
-
-/// A simple macro to shift bits one position to the left.
-#define BIT(x) (1u << x)
 
 /// This method was initially simpler, I found some performance downgrades with that and CLion gave a warning on not
 /// using it. It took some time to found a working solution replacing 'std::bind(&fn, this, std::placeholders::_1)'.

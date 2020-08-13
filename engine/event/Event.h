@@ -84,7 +84,8 @@ namespace engine {
             /// This is why we needed the static version of getType.
             if (this->event.getEventType() == T::getStaticType()) {
                 /// Using *(T*)& was the only way I could find to make this work, fucking pointers.
-                this->event.handled = _func(*(T*)& this->event);
+                /// Update: it can be done via static_cast<T&>.
+                this->event.handled = _func(static_cast<T&>(this->event));
                 return true;
             }
 
