@@ -4,16 +4,20 @@
 #define ENGINE_SCENE_H
 
 #include <entt.hpp>
-#include <engine/util/Timestep.h>
+#include <engine/util/Delta.h>
 
 namespace engine {
 
     class GameObject;
 
+    class Scene;
+    typedef std::shared_ptr<Scene> ScenePtr;
     /// This class acts as the container of a whole bunch of objects or as a map or place.
     class Scene {
         private:
             entt::registry gameObjectsRegistry;
+            int viewportWidth = 0, viewportHeight = 0;
+
         public:
             Scene();
             ~Scene();
@@ -21,10 +25,13 @@ namespace engine {
             GameObject createGameObject(const std::string& _name = "");
 
         public:
-            void onUpdate(Timestep _dt);
-            void onFixUpdate(Timestep _fixedDt);
-            void onRender(Timestep _dt);
-            void onImGuiRender(Timestep _dt);
+            void onUpdate(Delta _dt);
+            void onFixUpdate(Delta _fixedDt);
+            void onRender(Delta _dt);
+            void onImGuiRender(Delta _dt);
+            void onViewportResize(int _width, int _height);
+
+            static ScenePtr create();
 
             friend class GameObject;
     };

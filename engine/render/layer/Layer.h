@@ -4,7 +4,7 @@
 #define LAYER_H
 
 #include <engine/main/Core.h>
-#include <engine/util/Timestep.h>
+#include <engine/util/Delta.h>
 #include <engine/event/Event.h>
 
 namespace engine {
@@ -19,10 +19,10 @@ namespace engine {
 
             virtual void onInit()                       = 0;
             virtual void onEvent(Event& _event)         = 0;
-            virtual void onUpdate(Timestep _dt)         = 0;
-            virtual void onFixedUpdate(Timestep _dt)    {  }
-            virtual void onRender(Timestep _dt)         = 0;
-            virtual void onImGuiRender(Timestep _dt)    {  }
+            virtual void onUpdate(Delta _dt)         = 0;
+            virtual void onFixedUpdate(Delta _dt)    {  }
+            virtual void onRender(Delta _dt)         = 0;
+            virtual void onImGuiRender(Delta _dt)    {  }
             virtual void onEnd()                        {  }
 
             [[nodiscard]] const std::string& getName() const { return this->debugName; }

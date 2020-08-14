@@ -7,7 +7,7 @@
 #include <engine/main/Core.h>
 #include <engine/render/Window.h>
 #include <engine/event/WindowEvent.h>
-#include <engine/util/Timestep.h>
+#include <engine/util/Delta.h>
 #include <engine/util/Clock.h>
 #include <engine/render/layer/Layer.h>
 #include <engine/render/layer/LayerStack.h>
@@ -57,7 +57,7 @@ namespace engine {
 	        float timePerFrame = -1;
 			int fps;
             float lastFrame = 0.0f;
-			Timestep dt;
+			Delta dt;
 			unsigned int fpsCounter = 0, frameCounter = 0;
 
 	    private:
@@ -119,7 +119,7 @@ namespace engine {
 
             /// Returns the delta (time passed between the actual frame and the previous one) on any moment.
             /// @return The current delta.
-            [[nodiscard]] Timestep getDelta() const                 { return this->dt; }
+            [[nodiscard]] Delta getDelta() const                 { return this->dt; }
 
             /// Returns in a Vec2i the current position of the mouse on the screen.
             /// @return Vec2i with the [x,y] coordinates.
@@ -170,15 +170,15 @@ namespace engine {
 
             /// This method handles the non-physics based updates of the game and also is used to capture all the inputs.
             /// @param _dt The amount of time passed from the previous frame to this current one.
-            void onUpdate(Timestep _dt);
+            void onUpdate(Delta _dt);
 
             /// This method is like onUpdate, but this one handles the physics-based updates.
             /// @param _fixedDt Fixed value to multiply the physics movements, by default 1 / 60.
-            void onFixedUpdate(Timestep _fixedDt);
+            void onFixedUpdate(Delta _fixedDt);
 
             /// This method is used to render everything in our game, renderization shouldn't be done other method.
             /// @param _dt The amount of time passed from the previous frame to this current one.
-            void onRender(Timestep _dt);
+            void onRender(Delta _dt);
 
 	    public:
 	        /// This method allows us to add a renderization layer to the stack.

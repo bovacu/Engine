@@ -5,12 +5,12 @@
 
 namespace engine {
 
-    class Timestep {
+    class Delta {
         private:
             float time;
 
         public:
-            Timestep(float _time = 0.0f) : time(_time) {  }
+            Delta(float _time = 0.0f) : time(_time) {  }
 
             operator float() const { return this->time; }
 

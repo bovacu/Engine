@@ -29,5 +29,11 @@
 #include <engine/input/MouseKeys.h>
 #include <engine/input/GamePadKeys.h>
 
+#include <engine/ecs/Scene.h>
+#include <engine/ecs/GameObject.h>
+#include <engine/ecs/Components.h>
+#include <engine/ecs/ScriptableObject.h>
+#include <engine/ecs/SceneCamera.h>
+
 #include <glm/glm.hpp>
 #include <imgui.h>

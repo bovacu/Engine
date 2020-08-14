@@ -32,7 +32,7 @@ namespace engine {
 
         Vec2i position;
 
-        explicit WindowProperties(std::string _title = "Engine: ", unsigned int _width = 800, unsigned int _height = 480) :
+        explicit WindowProperties(std::string _title = "Engine: ", unsigned int _width = 1280, unsigned int _height = 720) :
                 title(std::move(_title)), width(_width), height(_height) {  }
     };
 

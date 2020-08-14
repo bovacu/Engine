@@ -4,7 +4,7 @@
 #define ORTHOGRAPHIC_CAMERA_CONTROLLER_H
 
 #include <engine/render/camera/OrthographicCamera.h>
-#include <engine/util/Timestep.h>
+#include <engine/util/Delta.h>
 
 #include <engine/event/WindowEvent.h>
 #include <engine/event/MouseEvent.h>
@@ -17,7 +17,7 @@ namespace engine {
     class OrthographicCameraController {
         private:
             float aspectRatio;
-            float zoomLevel = .5f;
+            float zoomLevel = 1.f;
             OrthographicCamera camera;
 
             bool rotation;
@@ -28,9 +28,12 @@ namespace engine {
 
         public:
             explicit OrthographicCameraController(bool _aspectRatio = true, bool _rotation = false);
+            explicit OrthographicCameraController(float _aspectRatio, bool _rotation = false);
 
-            void onUpdate(Timestep _ts);
+            void onUpdate(Delta _ts);
             void onEvent(Event& _e);
+
+            void onResize(float _width, float _height);
 
             OrthographicCamera& getCamera() { return this->camera; }
             [[nodiscard]] const OrthographicCamera& getCamera() const { return this->camera; }

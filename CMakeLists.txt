@@ -55,7 +55,7 @@ add_executable( Engine engine/main/Application.cpp engine/util/EngineUtil.cpp
                 engine/api/openGL/OpenGLRenderAPI.cpp engine/api/openGL/OpenGLRenderAPI.h engine/api/openGL/OpenGLTexture.cpp
                 engine/api/openGL/OpenGLTexture.h engine/platform/Windows/WindowsInput.cpp
                 engine/main/EngineExecuter.h engine/render/layer/Layer.h engine/render/layer/LayerStack.cpp engine/render/layer/LayerStack.h
-                engine/util/Timestep.h SaFaTor/Game.cpp SaFaTor/Safator.cpp SaFaTor/Safator.h
+        engine/util/Delta.h SaFaTor/Game.cpp SaFaTor/Safator.cpp SaFaTor/Safator.h
                 engine/render/camera/OrthographicCameraController.cpp engine/render/camera/OrthographicCameraController.h
                 engine/input/Input.cpp engine/render/layer/ImGuiLayer.h engine/render/layer/ImGuiLayer.cpp
                 engine/util/Clock.cpp engine/util/Clock.h engine/render/elements/TextureRegion.cpp engine/render/elements/TextureRegion.h
@@ -64,7 +64,7 @@ add_executable( Engine engine/main/Application.cpp engine/util/EngineUtil.cpp
 
                 lib/imgui-docking/imgui.cpp lib/imgui-docking/imgui_draw.cpp lib/imgui-docking/imgui_widgets.cpp  lib/imgui-docking/imgui_demo.cpp
                 lib/imgui-docking/examples/imgui_impl_glfw.cpp lib/imgui-docking/examples/imgui_impl_opengl3.cpp engine/api/openGL/OpenGLFrameBuffer.cpp engine/api/openGL/OpenGLFrameBuffer.h
-                engine/render/elements/FrameBuffer.cpp engine/render/elements/FrameBuffer.h tests/stress/Stress.cpp tests/stress/StressTest.cpp tests/stress/StressTest.h engine/ecs/GameObject.cpp engine/ecs/GameObject.h engine/ecs/Scene.cpp engine/ecs/Scene.h engine/ecs/Components.h)
+                engine/render/elements/FrameBuffer.cpp engine/render/elements/FrameBuffer.h tests/stress/Stress.cpp tests/stress/StressTest.cpp tests/stress/StressTest.h engine/ecs/GameObject.cpp engine/ecs/GameObject.h engine/ecs/Scene.cpp engine/ecs/Scene.h engine/ecs/Components.h engine/ecs/ScriptableObject.h engineInspector/InspectorApplication.cpp engineInspector/Inspector.cpp engineInspector/Inspector.h engine/render/camera/Camera.h engine/ecs/SceneCamera.cpp engine/ecs/SceneCamera.h)
 
 target_link_libraries ( Engine spdlog)
 target_link_libraries ( ${PROJECT_NAME} "glfw" "${GLFW_LIBRARIES}")

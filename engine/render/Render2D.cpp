@@ -118,6 +118,18 @@ namespace engine {
 
         data.textureSlotIndex = 1;
     }
+
+    void Render2D::beginDraw(const Camera& _camera, const glm::mat4& _transform) {
+        auto _viewProjectionMatrix = _camera.getProjectionMatrix() * glm::inverse(_transform);
+        data.textureShader->bind();
+        data.textureShader->setMat4("viewProjection_uniform", _viewProjectionMatrix);
+
+        data.quadIndexCount = 0;
+        data.quadVertexBufferPtr = data.quadVertexBufferBase;
+
+        data.textureSlotIndex = 1;
+    }
+
     void Render2D::endDraw() {
         auto dataSize = (uint32_t)( (uint8_t*)data.quadVertexBufferPtr - (uint8_t*)data.quadVertexBufferBase );
         data.quadVertexBuffer->setData(data.quadVertexBufferBase, dataSize);
@@ -226,6 +238,30 @@ namespace engine {
         }
     }
 
+    void Render2D::drawRect(const glm::mat4& _transform, const Color& _color) {
+        constexpr size_t    _quadVertexCount = 4;
+        const float         _textureIndex = 0.0f; // White Texture
+        constexpr glm::vec2 _textureCoords[] = { { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f } };
+        const float         _tilingFactor = 1.0f;
+
+        if (data.quadIndexCount >= Render2DData::maxIndices)
+            Render2D::flushAndReset();
+
+        for (size_t _i = 0; _i < _quadVertexCount; _i++) {
+            data.quadVertexBufferPtr->position = _transform * data.quadVertexPositions[_i];
+            data.quadVertexBufferPtr->color = glm::vec4{ _color.r, _color.g, _color.b, _color.a };
+            data.quadVertexBufferPtr->texCoord = _textureCoords[_i];
+            data.quadVertexBufferPtr->texIndex = _textureIndex;
+            data.quadVertexBufferPtr->tilingFactor = _tilingFactor;
+            data.quadVertexBufferPtr++;
+        }
+
+        data.quadIndexCount += 6;
+
+        #if defined(ENGINE_DEBUG)
+        data.stats.quadCount++;
+        #endif
+    }
     void Render2D::drawRect(const Vec2f& _position, const Vec2f& _size, const Color& _color) {
         float _adapter = OrthographicCamera::usingAspectRatio ? ASPECT_RATIO_PIXEL : 1;
         drawRect({_position.x * _adapter, _position.y * _adapter, 0.0f}, {_size.x * _adapter, _size.y * _adapter}, {_color.r, _color.g, _color.b, _color.a});
@@ -259,6 +295,46 @@ namespace engine {
         #endif
     }
 
+    void Render2D::drawTexture(const glm::mat4& _transform, const Texture2DPtr& _texture, float _rotation, const Color& _tintColor) {
+        constexpr size_t _quadVertexCount = 4;
+        constexpr glm::vec4 _color = { 1.0f, 1.0f, 1.0f, 1.0f };
+        constexpr glm::vec2 _textureCoords[] = { { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f } };
+
+        if (data.quadIndexCount >= Render2DData::maxIndices)
+            Render2D::flushAndReset();
+
+        float _textureIndex = 0.0f;
+        for (uint32_t i = 1; i < data.textureSlotIndex; i++) {
+            if (*data.textureSlots[i] == *_texture.get()) {
+                _textureIndex = (float)i;
+                break;
+            }
+        }
+
+        if (_textureIndex == 0.0f) {
+            if (data.textureSlotIndex >= Render2DData::maxTextureSlots)
+                Render2D::flushAndReset();
+
+            _textureIndex = (float)data.textureSlotIndex;
+            data.textureSlots[data.textureSlotIndex] = _texture;
+            data.textureSlotIndex++;
+        }
+
+        for (size_t _i = 0; _i < _quadVertexCount; _i++) {
+            data.quadVertexBufferPtr->position = _transform * data.quadVertexPositions[_i];
+            data.quadVertexBufferPtr->color = _color;
+            data.quadVertexBufferPtr->texCoord = _textureCoords[_i];
+            data.quadVertexBufferPtr->texIndex = _textureIndex;
+            data.quadVertexBufferPtr->tilingFactor = 1.0f;
+            data.quadVertexBufferPtr++;
+        }
+
+        data.quadIndexCount += 6;
+
+        #if defined(ENGINE_DEBUG)
+        data.stats.quadCount++;
+        #endif
+    }
     void Render2D::drawTexture(const Vec2f& _position, const Vec2f& _size, const Texture2DPtr& _texture, float _rotation, const Color& _tintColor) {
         float _adapter = OrthographicCamera::usingAspectRatio ? ASPECT_RATIO_PIXEL : 1;
         Render2D::drawTexture({_position.x * _adapter, _position.y * _adapter, 0.0f},
@@ -396,6 +472,48 @@ namespace engine {
         #endif
     }
 
+    void Render2D::drawTexture(const glm::mat4& _transform, const TextureRegionPtr& _textureRegion, float _rotation,const Color& _tintColor) {
+        constexpr size_t _quadVertexCount = 4;
+        constexpr glm::vec4 _color = { 1.0f, 1.0f, 1.0f, 1.0f };
+        auto* _coords = _textureRegion->getTextureCoords();
+        const glm::vec2 _textureCoords[] = { { _coords[0].x, _coords[0].y }, { _coords[1].x, _coords[1].y }, { _coords[2].x, _coords[2].y }, { _coords[3].x, _coords[3].y } };
+        const Texture2DPtr _texture = _textureRegion->getTexture();
+
+        if (data.quadIndexCount >= Render2DData::maxIndices)
+            Render2D::flushAndReset();
+
+        float _textureIndex = 0.0f;
+        for (uint32_t i = 1; i < data.textureSlotIndex; i++) {
+            if (*data.textureSlots[i] == *_texture.get()) {
+                _textureIndex = (float)i;
+                break;
+            }
+        }
+
+        if (_textureIndex == 0.0f) {
+            if (data.textureSlotIndex >= Render2DData::maxTextureSlots)
+                Render2D::flushAndReset();
+
+            _textureIndex = (float)data.textureSlotIndex;
+            data.textureSlots[data.textureSlotIndex] = _texture;
+            data.textureSlotIndex++;
+        }
+
+        for (size_t _i = 0; _i < _quadVertexCount; _i++) {
+            data.quadVertexBufferPtr->position = _transform * data.quadVertexPositions[_i];
+            data.quadVertexBufferPtr->color = _color;
+            data.quadVertexBufferPtr->texCoord = _textureCoords[_i];
+            data.quadVertexBufferPtr->texIndex = _textureIndex;
+            data.quadVertexBufferPtr->tilingFactor = 1.0f;
+            data.quadVertexBufferPtr++;
+        }
+
+        data.quadIndexCount += 6;
+
+        #if defined(ENGINE_DEBUG)
+        data.stats.quadCount++;
+        #endif
+    }
     void Render2D::drawTexture(const Vec2f& _position, const Vec2f& _size, const TextureRegionPtr& _textureRegion, float _rotation,const Color& _tintColor) {
         drawTexture(glm::vec3{_position.x, _position.y, 1.0f}, glm::vec2{_size.x, _size.y}, _textureRegion, _rotation, glm::vec4{_tintColor.r, _tintColor.g, _tintColor.b, _tintColor.a});
     }

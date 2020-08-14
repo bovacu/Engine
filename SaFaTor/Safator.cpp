@@ -43,13 +43,13 @@ void Safator::onEvent(engine::Event& _e) {
     }
 
 }
-void Safator::onUpdate(engine::Timestep _dt) {
+void Safator::onUpdate(engine::Delta _dt) {
     this->checkForShortcuts();
 
     if(Input::isKeyJustPressed(KEY_SPACE))
         this->play = !this->play;
 }
-void Safator::onFixedUpdate(engine::Timestep _dt) {
+void Safator::onFixedUpdate(engine::Delta _dt) {
     if(this->play) {
         if (this->oneStep) {
             this->play = false;
@@ -96,7 +96,7 @@ void Safator::onFixedUpdate(engine::Timestep _dt) {
         this->worldTexture->updateTexture();
     }
 }
-void Safator::onRender(engine::Timestep _dt) {
+void Safator::onRender(engine::Delta _dt) {
     engine::Renderer::setClearColor(this->backgroundColor);
     engine::Renderer::clear();
 
@@ -111,7 +111,7 @@ void Safator::onRender(engine::Timestep _dt) {
                                       this->circleTexture);
     engine::Renderer::endDrawCall();
 }
-void Safator::onImGuiRender(engine::Timestep _dt) {
+void Safator::onImGuiRender(engine::Delta _dt) {
     this->imGuiAppWindow(_dt);
     this->particlesUpdating = 0;
 }
@@ -216,7 +216,7 @@ bool Safator::onMouseScrolled(MouseScrolledEvent& _e) {
 }
 
 
-void Safator::updateAllParticles(int _x, int _y, int _posInVector, const ParticleType& _type, Timestep _dt) {
+void Safator::updateAllParticles(int _x, int _y, int _posInVector, const ParticleType& _type, Delta _dt) {
 
     this->particlesUpdating++;
     switch (_type) {
@@ -240,7 +240,7 @@ void Safator::updateAllParticles(int _x, int _y, int _posInVector, const Particl
         default         :                                                                           break;
     }
 }
-void Safator::updateDirtParticle(int _x, int _y, int _posInVector, Timestep _dt) {
+void Safator::updateDirtParticle(int _x, int _y, int _posInVector, Delta _dt) {
     Particle* _p = &this->particles[_posInVector];
 
     if(_p->velocity.y < this->weatherConditions[4] * 2)
@@ -297,7 +297,7 @@ void Safator::updateDirtParticle(int _x, int _y, int _posInVector, Timestep _dt)
         }
     }
 }
-void Safator::updateFrostParticle(int _x, int _y, int _posInVector, Timestep _dt) {
+void Safator::updateFrostParticle(int _x, int _y, int _posInVector, Delta _dt) {
     int _pos = this->calcVecPos(_x, _y);
     Particle* _p = &this->particles[_pos];
     ReactionInfo _ri;
@@ -398,7 +398,7 @@ void Safator::handleUnfittedGases(int _x, int _y, int _vecPos, float _dt) {
 }
 
 
-void Safator::updateCommonDusts(int _x, int _y, int _posInVector, Timestep _dt) {
+void Safator::updateCommonDusts(int _x, int _y, int _posInVector, Delta _dt) {
     Particle* _p = &this->particles[_posInVector];
 
     if(_p->velocity.y < this->weatherConditions[4] * 2)
@@ -468,7 +468,7 @@ void Safator::updateCommonDusts(int _x, int _y, int _posInVector, Timestep _dt) 
             _p->canUpdate = false;
     }
 }
-void Safator::updateCommonLiquids(int _x, int _y, int _posInVector, int _spreadRate, Timestep _dt) {
+void Safator::updateCommonLiquids(int _x, int _y, int _posInVector, int _spreadRate, Delta _dt) {
 
     Particle* _p = &this->particles[_posInVector];
 
@@ -534,7 +534,7 @@ void Safator::updateCommonLiquids(int _x, int _y, int _posInVector, int _spreadR
             _p->canUpdate = false;
     }
 }
-void Safator::updateCommonGases(int _x, int _y, int _posInVector, Timestep _dt) {
+void Safator::updateCommonGases(int _x, int _y, int _posInVector, Delta _dt) {
     Particle* _p = &this->particles[_posInVector];
 
     if(!_p->updatedThisFrame) {
@@ -1004,7 +1004,7 @@ void Safator::writeParticle(int _x, int _y, int _vecPos, const Safator::Particle
 }
 
 
-void Safator::imGuiAppWindow(engine::Timestep _dt) {
+void Safator::imGuiAppWindow(engine::Delta _dt) {
 //    static bool _opened = true;
 //    ImGui::ShowDemoWindow(&_opened);
 
@@ -1049,7 +1049,7 @@ void Safator::imGuiAppWindow(engine::Timestep _dt) {
         }
     ImGui::End();
 }
-void Safator::imGuiInfo(engine::Timestep _dt) {
+void Safator::imGuiInfo(engine::Delta _dt) {
     if(ImGui::Button("How to use")) {
         this->openInfo = true;
         ImGui::OpenPopup("How to use");
@@ -1076,7 +1076,7 @@ void Safator::imGuiInfo(engine::Timestep _dt) {
         this->app.setVSync(_vSync);
     ImGui::Separator();
 }
-void Safator::imGuiHowToUse(engine::Timestep _dt) {
+void Safator::imGuiHowToUse(engine::Delta _dt) {
     ImGui::SetNextWindowSize({this->app.getWindowSize().x * 0.85f, this->app.getWindowSize().y * 0.65f}, ImGuiCond_Always);
     int _width = this->textureWidth, _height = this->textureHeight;
     auto _mainWindowPos = this->app.getPosition();
@@ -1233,7 +1233,7 @@ void Safator::imGuiHowToUse(engine::Timestep _dt) {
         ImGui::EndPopup();
     }
 }
-void Safator::imGuiControllerWindow(engine::Timestep _dt) {
+void Safator::imGuiControllerWindow(engine::Delta _dt) {
     if(ImGui::Button("Reset Scene")) {
         delete [] this->particles;
         this->drawnPixels = 0;
@@ -1261,7 +1261,7 @@ void Safator::imGuiControllerWindow(engine::Timestep _dt) {
         this->oneStep = true;
     }
 }
-void Safator::imGuiDrawingWindow(engine::Timestep _dt) {
+void Safator::imGuiDrawingWindow(engine::Delta _dt) {
     if(this->tool == DRAW) {
         ImGui::PushStyleColor(ImGuiCol_Button, {(float) Color::Green.r, (float) Color::Green.g, (float) Color::Green.b, (float) Color::Green.a});
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, {(float) Color::Green.r, (float) Color::Green.g, (float) Color::Green.b, (float) Color::Green.a});
@@ -1328,7 +1328,7 @@ void Safator::imGuiDrawingWindow(engine::Timestep _dt) {
 
     ImGui::Separator();
 }
-void Safator::imGuiConditions(engine::Timestep _dt) {
+void Safator::imGuiConditions(engine::Delta _dt) {
     ImGui::Text("Unfitted drops");
     ImGui::Indent(30.f);
     ImGui::PushID(1);
@@ -1349,7 +1349,7 @@ void Safator::imGuiConditions(engine::Timestep _dt) {
     ImGui::PopID();
     ImGui::Unindent(30.f);
 }
-void Safator::imGuiWeather(engine::Timestep _dt) {
+void Safator::imGuiWeather(engine::Delta _dt) {
     ImGui::SliderFloat("Wind",          &this->weatherConditions[0], 0, 10);
     ImGui::SliderFloat("Temperature",   &this->weatherConditions[1], -50, 200);
 
@@ -1383,7 +1383,7 @@ void Safator::imGuiWeather(engine::Timestep _dt) {
     ImGui::Separator();
     ImGui::SliderFloat("Gravity",       &this->weatherConditions[4], -50, 50);
 }
-void Safator::imGuiMaterials(engine::Timestep _dt) {
+void Safator::imGuiMaterials(engine::Delta _dt) {
     static const char* _materialUsing = "Sand";
 
     ImGui::Text("Current: %s", _materialUsing);
@@ -1670,7 +1670,7 @@ void Safator::imGuiMaterials(engine::Timestep _dt) {
     ImGui::Separator();
 
 }
-void Safator::imGuiSettings(engine::Timestep _dt) {
+void Safator::imGuiSettings(engine::Delta _dt) {
     if(ImGui::Button("Save Simulation")) {
         this->saveWorld("test.safa");
     }
@@ -1712,7 +1712,7 @@ void Safator::imGuiSettings(engine::Timestep _dt) {
 
     ImGui::Separator();
 }
-void Safator::imGuiWorldSizePopUp(engine::Timestep _dt) {
+void Safator::imGuiWorldSizePopUp(engine::Delta _dt) {
     int _width = this->textureWidth, _height = this->textureHeight;
     auto _mainWindowPos = this->app.getPosition();
 
@@ -1738,10 +1738,10 @@ void Safator::imGuiWorldSizePopUp(engine::Timestep _dt) {
         ImGui::EndPopup();
     }
 }
-void Safator::imGuiSaveWorld(engine::Timestep _dt) {
+void Safator::imGuiSaveWorld(engine::Delta _dt) {
 
 }
-void Safator::imGuiLoadWorld(engine::Timestep _dt) {
+void Safator::imGuiLoadWorld(engine::Delta _dt) {
 
 }
 

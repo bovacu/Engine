@@ -36,7 +36,7 @@ namespace engine {
         while (this->running) {
 
             auto _time = (float) glfwGetTime();
-            Timestep _dt = _time - this->lastFrame;
+            Delta _dt = _time - this->lastFrame;
             this->lastFrame = _time;
             _accumulator += _dt;
 
@@ -71,17 +71,17 @@ namespace engine {
         }
     }
 
-    void Application::onFixedUpdate(Timestep _fixedDt) {
+    void Application::onFixedUpdate(Delta _fixedDt) {
         for (Layer* _layer : this->layerStack)
             _layer->onFixedUpdate(_fixedDt);
     }
 
-    void Application::onUpdate(Timestep _dt) {
+    void Application::onUpdate(Delta _dt) {
         for (Layer* _layer : this->layerStack)
             _layer->onUpdate(_dt);
     }
 
-    void Application::onRender(Timestep _dt) {
+    void Application::onRender(Delta _dt) {
         for (Layer* _layer : this->layerStack)
             _layer->onRender(_dt);
 

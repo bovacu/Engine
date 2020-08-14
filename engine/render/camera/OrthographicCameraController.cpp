@@ -5,6 +5,10 @@
 
 namespace engine {
 
+    OrthographicCameraController::OrthographicCameraController(float _aspectRatio, bool _rotation) : aspectRatio(_aspectRatio) ,
+    camera(-this->aspectRatio * this->zoomLevel, this->aspectRatio * this->zoomLevel, -this->zoomLevel, this->zoomLevel) ,
+    rotation(_rotation) {  }
+
     OrthographicCameraController::OrthographicCameraController(bool _aspectRatio, bool _rotation)
             : aspectRatio(1),
             camera(-this->aspectRatio * this->zoomLevel, this->aspectRatio * this->zoomLevel, -this->zoomLevel, this->zoomLevel),
@@ -28,7 +32,7 @@ namespace engine {
         }
     }
 
-    void OrthographicCameraController::onUpdate(Timestep _ts) {
+    void OrthographicCameraController::onUpdate(Delta _ts) {
         this->camera.setPosition({this->cameraPosition.x, this->cameraPosition.y, 0.0f});
         this->cameraTranslationSpeed = this->zoomLevel;
     }
@@ -40,29 +44,19 @@ namespace engine {
     }
 
     bool OrthographicCameraController::onMouseScrolled(MouseScrolledEvent& _e) {
-//        this->zoomLevel -= _e.getScrollY() * 0.05f;
-//        this->zoomLevel = std::max(this->zoomLevel, 0.05f);
-//
-//        if(OrthographicCamera::usingAspectRatio)
-//            this->camera.setProjection(-this->aspectRatio * this->zoomLevel, this->aspectRatio * this->zoomLevel, -this->zoomLevel, this->zoomLevel);
-//        else {
-//            auto& _app = Application::get();
-//            this->camera.setProjection(-_app.getWindowSize().x * this->zoomLevel, _app.getWindowSize().x * this->zoomLevel, -_app.getWindowSize().y *this->zoomLevel,
-//                                       _app.getWindowSize().y * this->zoomLevel);
-//        }
+        this->zoomLevel -= _e.getScrollY() * 0.25f;
+        this->zoomLevel = std::max(this->zoomLevel, 0.25f);
+        this->camera.setProjection(-this->aspectRatio * this->zoomLevel, this->aspectRatio * this->zoomLevel, -this->zoomLevel, this->zoomLevel);
         return false;
     }
 
-    bool OrthographicCameraController::onWindowResized(WindowResizedEvent& _e) {
-        this->aspectRatio = (float)_e.getWidth() / (float)_e.getHeight();
+    void OrthographicCameraController::onResize(float _width, float _height) {
+        this->aspectRatio = _width / _height;
+        this->camera.setProjection(-this->aspectRatio * this->zoomLevel, this->aspectRatio * this->zoomLevel, -this->zoomLevel, this->zoomLevel);
+    }
 
-        if(OrthographicCamera::usingAspectRatio)
-            this->camera.setProjection(-this->aspectRatio * this->zoomLevel, this->aspectRatio * this->zoomLevel, -this->zoomLevel, this->zoomLevel);
-        else {
-            auto& _app = Application::get();
-            this->camera.setProjection(-_app.getWindowSize().x * this->zoomLevel, _app.getWindowSize().x * this->zoomLevel, -_app.getWindowSize().y *this->zoomLevel,
-                                       _app.getWindowSize().y * this->zoomLevel);
-        }
+    bool OrthographicCameraController::onWindowResized(WindowResizedEvent& _e) {
+        onResize((float)_e.getWidth(), (float)_e.getHeight());
         return false;
     }
 

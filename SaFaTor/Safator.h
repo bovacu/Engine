@@ -185,23 +185,23 @@ class Safator : public engine::Layer {
 
         void onInit()                               override;
         void onEvent(engine::Event& _e)             override;
-        void onUpdate(engine::Timestep _dt)         override;
-        void onFixedUpdate(engine::Timestep _dt)    override;
-        void onRender(engine::Timestep _dt)         override;
-        void onImGuiRender(engine::Timestep _dt)    override;
+        void onUpdate(engine::Delta _dt)         override;
+        void onFixedUpdate(engine::Delta _dt)    override;
+        void onRender(engine::Delta _dt)         override;
+        void onImGuiRender(engine::Delta _dt)    override;
         void onEnd()                                override;
 
     private:
         void initSimulationWorld();
-        void updateAllParticles(int _x, int _y, int _posInVector, const ParticleType& _type, Timestep _dt);
-        void updateDirtParticle(int _x, int _y, int _posInVector, Timestep _dt);
-        void updateFrostParticle(int _x, int _y, int _posInVector, Timestep _dt);
+        void updateAllParticles(int _x, int _y, int _posInVector, const ParticleType& _type, Delta _dt);
+        void updateDirtParticle(int _x, int _y, int _posInVector, Delta _dt);
+        void updateFrostParticle(int _x, int _y, int _posInVector, Delta _dt);
         void handleUnfittedDrops(int _x, int _y, int _vecPos, float _dt);
         void handleUnfittedGases(int _x, int _y, int _vecPos, float _dt);
 
-        void updateCommonDusts(int _x, int _y, int _posInVector, Timestep _dt);
-        void updateCommonLiquids(int _x, int _y, int _posInVector, int _spreadRate, Timestep _dt);
-        void updateCommonGases(int _x, int _y, int _posInVector, Timestep _dt);
+        void updateCommonDusts(int _x, int _y, int _posInVector, Delta _dt);
+        void updateCommonLiquids(int _x, int _y, int _posInVector, int _spreadRate, Delta _dt);
+        void updateCommonGases(int _x, int _y, int _posInVector, Delta _dt);
 
         bool reactWithFourNeighbours(int _x, int _y, Particle& _tempA, Particle& _tempB, ReactionInfo& _ri);
 
@@ -238,18 +238,18 @@ class Safator : public engine::Layer {
         void writeParticle(int _x, int _y, const Particle& _particle);
         void writeParticle(int _x, int _y,int _vecPos, const Particle& _particle);
 
-        void imGuiAppWindow(engine::Timestep _dt);
-        void imGuiInfo(engine::Timestep _dt);
-        void imGuiHowToUse(engine::Timestep _dt);
-        void imGuiControllerWindow(engine::Timestep _dt);
-        void imGuiConditions(engine::Timestep _dt);
-        void imGuiWeather(engine::Timestep _dt);
-        void imGuiDrawingWindow(engine::Timestep _dt);
-        void imGuiMaterials(engine::Timestep _dt);
-        void imGuiSettings(engine::Timestep _dt);
-        void imGuiWorldSizePopUp(engine::Timestep _dt);
-        void imGuiSaveWorld(engine::Timestep _dt);
-        void imGuiLoadWorld(engine::Timestep _dt);
+        void imGuiAppWindow(engine::Delta _dt);
+        void imGuiInfo(engine::Delta _dt);
+        void imGuiHowToUse(engine::Delta _dt);
+        void imGuiControllerWindow(engine::Delta _dt);
+        void imGuiConditions(engine::Delta _dt);
+        void imGuiWeather(engine::Delta _dt);
+        void imGuiDrawingWindow(engine::Delta _dt);
+        void imGuiMaterials(engine::Delta _dt);
+        void imGuiSettings(engine::Delta _dt);
+        void imGuiWorldSizePopUp(engine::Delta _dt);
+        void imGuiSaveWorld(engine::Delta _dt);
+        void imGuiLoadWorld(engine::Delta _dt);
 
         static float probValues(const ParticleType& _firstParticle, const ParticleType& _secondParticle);
         ReactionInfo reactions(const Vec2i& _posA, const Vec2i& _posB, Particle& _particleA, Particle& _particleB);

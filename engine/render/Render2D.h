@@ -8,6 +8,7 @@
 #include <glm/glm.hpp>
 #include <engine/render/shapes/Shape.h>
 #include <engine/render/elements/TextureRegion.h>
+#include <engine/render/camera/Camera.h>
 
 namespace engine {
 
@@ -29,8 +30,13 @@ namespace engine {
             static void shutdown();
 
             static void beginDraw(const OrthographicCamera& camera);
+            static void beginDraw(const Camera& _camera, const glm::mat4& _transform);
             static void endDraw();
             static void flush();
+
+            static void drawRect(const glm::mat4& _transform, const Color& _color);
+            static void drawTexture(const glm::mat4& _transform, const Texture2DPtr& _texture, float _rotation, const Color& _tintColor = Color::Transparent);
+            static void drawTexture(const glm::mat4& _transform, const TextureRegionPtr& _textureRegion, float _rotation, const Color& _tintColor = Color::Transparent);
 
             // Primitives
             static void drawRect(const Vec2f& _position, const Vec2f& _size, const Color& _color);

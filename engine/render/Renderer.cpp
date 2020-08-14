@@ -29,6 +29,9 @@ namespace engine {
     void Renderer::beginDrawCall(OrthographicCamera& _camera) {
         Render2D::beginDraw(_camera);
     }
+    void Renderer::beginDrawCall(const Camera& _camera, glm::mat4& _transform) {
+        Render2D::beginDraw(_camera, _transform);
+    }
     void Renderer::endDrawCall() {
         Render2D::endDraw();
     }
@@ -47,7 +50,9 @@ namespace engine {
     void Renderer::drawShape(Shape& _shape, const Color& _color, float _thickness) {
         Render2D::drawShape(_shape, _color, _thickness);
     }
-
+    void Renderer::drawRectangle(const glm::mat4& _transform, const Color& _color) {
+        Render2D::drawRect(_transform, _color);
+    }
     void Renderer::drawRectangle(const Vec2f& _position, const Vec2f& _size, const Color& _color, float _rotation, const Color& _tintColor) {
         if(_rotation > 0)
             Render2D::drawRotatedRect(_position, _size, _rotation, _color);
@@ -60,5 +65,7 @@ namespace engine {
     void Renderer::drawTexture(const Vec2f& _position, const Vec2f& _size, const TextureRegionPtr& _textureRegion, float _rotation, const Color& _tintColor) {
         Render2D::drawTexture(_position, _size, _textureRegion, _rotation, _tintColor);
     }
+
+
 
 }

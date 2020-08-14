@@ -17,9 +17,9 @@ namespace engine {
 
             void onInit()                       override;
             void onEvent(Event& _e)             override;
-            void onUpdate(Timestep _dt)         override {  }
-            void onRender(Timestep _dt)         override {  }
-            void onImGuiRender(Timestep _dt)    override {  }
+            void onUpdate(Delta _dt)         override {  }
+            void onRender(Delta _dt)         override {  }
+            void onImGuiRender(Delta _dt)    override {  }
             void onEnd()                        override;
 
             void begin();
