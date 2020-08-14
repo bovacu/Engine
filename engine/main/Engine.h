@@ -37,3 +37,5 @@
 
 #include <glm/glm.hpp>
 #include <imgui.h>
+#include <lib/glm/glm/gtc/type_ptr.hpp>
+#include <lib/imgui-docking/imgui_internal.h>

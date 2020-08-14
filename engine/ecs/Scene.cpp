@@ -6,11 +6,11 @@
 
 namespace engine {
 
-    ScenePtr Scene::create() {
-        return std::make_shared<Scene>();
+    ScenePtr Scene::create(const std::string& _name) {
+        return std::make_shared<Scene>(_name);
     }
 
-    Scene::Scene() {
+    Scene::Scene(const std::string& _name) : name(_name) {
 
     }
 

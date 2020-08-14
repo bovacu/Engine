@@ -1,8 +1,7 @@
-#include <lib/glm/glm/gtc/type_ptr.hpp>
 #include "Inspector.h"
 
 Inspector::Inspector() : engine::Layer("Inspector"), cameraController(1280.f / 720.f) {
-
+//    engine::Application::get().setVSync(false);
 }
 
 void Inspector::onInit() {
@@ -11,7 +10,7 @@ void Inspector::onInit() {
     _frameBufferSpecification.height = 720;
     this->frameBufferPtr = engine::FrameBuffer::create(_frameBufferSpecification);
 
-    this->scene = engine::Scene::create();
+    this->scene = engine::Scene::create("My First Scene");
     this->squareGbj = this->scene->createGameObject("square_gbj");
     this->squareGbj.addComponent<engine::SpriteRenderer>(engine::Color::Green);
 
@@ -39,8 +38,18 @@ void Inspector::onInit() {
             }
     };
 
-    this->camera.addComponent<engine::NativeScript>().bind<CameraController>();
+    class Dummy : public engine::ScriptableObject {
+        public:
+            void onCreate() {  }
 
+            void onDestroy() {  }
+
+            void onUpdate(engine::Delta _dt) {
+
+            }
+    };
+
+    this->camera.addComponent<engine::NativeScript>().bind<CameraController>();
 }
 
 void Inspector::onEvent(engine::Event& _e) {
@@ -55,7 +64,8 @@ void Inspector::onUpdate(engine::Delta _dt) {
         this->scene->onViewportResize((int)this->viewportSize.x, (int)this->viewportSize.y);
     }
 
-    this->scene->onUpdate(_dt);
+    if(this->playGame)
+        this->scene->onUpdate(_dt);
 }
 
 void Inspector::onFixedUpdate(engine::Delta _dt) {
@@ -74,17 +84,18 @@ void Inspector::onRender(engine::Delta _dt) {
 }
 
 void Inspector::onImGuiRender(engine::Delta _dt) {
+//    ImGui::ShowDemoWindow(nullptr);
     // Note: Switch this to true to enable dockspace
+
     static bool dockspaceOpen = true;
     static bool opt_fullscreen_persistant = true;
     bool opt_fullscreen = opt_fullscreen_persistant;
-    static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
+    static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None | ImGuiDockNodeFlags_NoWindowMenuButton | ImGuiDockNodeFlags_NoCloseButton;
 
     // We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
     // because it would be confusing to have two docking targets within each others.
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
-    if (opt_fullscreen)
-    {
+    if (opt_fullscreen) {
         ImGuiViewport* viewport = ImGui::GetMainViewport();
         ImGui::SetNextWindowPos(viewport->Pos);
         ImGui::SetNextWindowSize(viewport->Size);
@@ -105,68 +116,228 @@ void Inspector::onImGuiRender(engine::Delta _dt) {
     // We cannot preserve the docking relationship between an active window and an inactive docking, otherwise
     // any change of dockspace/settings would lead to windows being stuck in limbo and never being visible.
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-    ImGui::Begin("DockSpace Demo", &dockspaceOpen, window_flags);
+    /// This is the general dockspace, and it is set to not be visible.
+        ImGui::Begin("DockSpace Demo", &dockspaceOpen, window_flags);
+        this->imGuiMenuBar();
+        this->imGuiActionButtonsBar();
     ImGui::PopStyleVar();
+            if (opt_fullscreen)
+                ImGui::PopStyleVar(2);
 
-    if (opt_fullscreen)
-        ImGui::PopStyleVar(2);
+            // DockSpace
+            ImGuiIO& io = ImGui::GetIO();
+            if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable) {
+                ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
+                ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+            }
 
-    // DockSpace
-    ImGuiIO& io = ImGui::GetIO();
-    if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
-    {
-        ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
-        ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
-    }
-
-    if (ImGui::BeginMenuBar())
-    {
-        if (ImGui::BeginMenu("File"))
-        {
-            // Disabling fullscreen would allow the window to be moved to the front of other windows,
-            // which we can't undo at the moment without finer window depth/z control.
-            //ImGui::MenuItem("Fullscreen", NULL, &opt_fullscreen_persistant);
-
-            if (ImGui::MenuItem("Exit")) engine::Application::get().closeApplication();
-            ImGui::EndMenu();
-        }
-
-        ImGui::EndMenuBar();
-    }
-
-    ImGui::Begin("Settings");
-    ImGui::Text("FPS: %d", engine::Application::get().getFps());
-
-    if (this->squareGbj) {
-        ImGui::Separator();
-        auto& tag = this->squareGbj.getComponent<engine::Tag>().tag;
-        ImGui::Text("%s", tag.c_str());
-    }
-
-    ImGui::DragFloat3("Camera Transform",
-                      glm::value_ptr(this->camera.getComponent<engine::Transform>().transform[3]));
-
-
-    ImGui::End();
-
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
-    ImGui::Begin("Viewport");
-
-    this->viewportFocused = ImGui::IsWindowFocused();
-    this->viewportHovered = ImGui::IsWindowHovered();
-//    engine::Application::get().getImGuiLayer()->BlockEvents(!this->viewportFocused || !this->viewportHovered);
-
-    ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
-    this->viewportSize = { viewportPanelSize.x, viewportPanelSize.y };
-
-    uint32_t textureID = this->frameBufferPtr->getColorAttachmentRendererID();
-    ImGui::Image((void*)textureID, ImVec2{ this->viewportSize.x, this->viewportSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
-    ImGui::End();
-    ImGui::PopStyleVar();
-
-    ImGui::End();
+            this->imGuiHierarchy();
+            this->imGuiComponents();
+            this->imGuiConsole();
+            this->imGuiScene();
+            this->imGuiAssets();
+        ImGui::End();
 }
 
 void Inspector::onEnd() {
     Layer::onEnd();
+}
+
+void Inspector::imGuiMenuBar() {
+    if (ImGui::BeginMainMenuBar()) {
+        if (ImGui::BeginMenu("File")) {
+            if (ImGui::MenuItem("Exit"))
+                engine::Application::get().closeApplication();
+            ImGui::EndMenu();
+        }
+
+        if(ImGui::BeginMenu("Edit")) {
+
+            ImGui::EndMenu();
+        }
+
+        if(ImGui::BeginMenu("Help")) {
+
+            ImGui::EndMenu();
+        }
+
+        ImGui::EndMainMenuBar();
+    }
+}
+
+void Inspector::imGuiActionButtonsBar() {
+    const int _width = 50;
+    ImGui::SetNextItemWidth(_width);
+    ImGui::SetCursorPosX(ImGui::GetWindowWidth() / 2 - _width);
+    if(ImGui::Button("Play")) {
+        this->playGame = !this->playGame;
+    }
+
+    ImGui::SameLine();
+
+    if(ImGui::Button("Stop")) {
+        this->playGame = false;
+    }
+
+    if(this->playGame) {
+        ImGui::SameLine();
+        ImGui::TextColored({0.f, 1.f, 0.f, 1.f}, "Playing game");
+    }
+}
+
+void Inspector::imGuiHierarchy() {
+    ImGui::Begin("Hierarchy", nullptr);
+        if (ImGui::TreeNode("scene", "%s", this->scene->getName().c_str())) {
+            static int _selected = -1;
+            int _n = 0;
+            auto _view = this->scene->getGameObjectsRegistry().view<engine::Tag>();
+            for (auto _gameObject : _view) {
+                char buf[32];
+                #if defined(ENGINE_PLATFORM_WINDOWS)
+                    sprintf_s(buf, "%s", (&_view.get<engine::Tag>(_gameObject).tag)->c_str());
+                #elif defined(ENGINE_PLATFORM_LINUX)
+                    sprintf(buf, "%s", (&_view.get<engine::Tag>(_gameObject).tag)->c_str());
+                #endif
+                if (ImGui::Selectable(buf, _selected == _n)) {
+                    _selected = _n;
+                    this->gameObjectSelectedInHierarchy = _gameObject;
+                }
+
+                _n++;
+            }
+
+            ImGui::TreePop();
+        }
+    ImGui::End();
+}
+
+void Inspector::imGuiComponents() {
+    ImGui::Begin("Components", nullptr);
+
+    auto& _registry = this->scene->getGameObjectsRegistry();
+
+    auto _tagView = _registry.view<engine::Tag>();
+    for(auto _gameObject : _tagView) {
+        if(_gameObject == this->gameObjectSelectedInHierarchy) {
+
+            auto& _tag = _tagView.get<engine::Tag>(_gameObject);
+
+            ImGui::Text("Tag: "); ImGui::SameLine();
+            char _myTag[256];
+            strcpy_s(_myTag, _tag.tag.c_str());
+            ImGui::InputText("##myText", _myTag, 256);
+            if(!ImGui::IsItemActive()&& strcmp((char*)_tag.tag.c_str(), _myTag) != 0)
+                _tag.tag = _myTag;
+
+            ImGui::Separator();
+            break;
+        }
+
+    }
+
+    auto _transformView = _registry.view<engine::Transform>();
+    for(auto _gameObject : _transformView) {
+        auto& _transform = _transformView.get<engine::Transform>(_gameObject);
+
+        if(_gameObject == this->gameObjectSelectedInHierarchy) {
+            if (ImGui::CollapsingHeader("Transform", nullptr, ImGuiTreeNodeFlags_DefaultOpen)) {
+                ImGui::Text("Position "); ImGui::SameLine();
+
+                float _x = _transform.getPosition2D().x;
+                ImGui::Text("X "); ImGui::SameLine();
+                ImGui::SetNextItemWidth(50);
+                ImGui::PushID(0);
+                    ImGui::InputFloat("##myInput", &_x, 0, 0, 2);
+                    if(!ImGui::IsItemActive() && _x != _transform.getX())
+                        _transform.setX(_x);
+                ImGui::PopID();
+
+                ImGui::SameLine();
+
+                float _y = _transform.getPosition2D().y;
+                ImGui::Text("Y "); ImGui::SameLine();
+                ImGui::SetNextItemWidth(50);
+                ImGui::PushID(1);
+                    ImGui::InputFloat("##myInput", &_y, 0, 0, 2);
+                    if(!ImGui::IsItemActive() && _y != _transform.getY())
+                        _transform.setX(_x);
+                ImGui::PopID();
+            }
+
+            break;
+        }
+    }
+
+    auto _cameraView = _registry.view<engine::CameraComponent>();
+    for(auto _gameObject : _cameraView) {
+        if(_gameObject == this->gameObjectSelectedInHierarchy) {
+            auto& _camera = _cameraView.get<engine::CameraComponent>(_gameObject);
+            if (ImGui::CollapsingHeader("Camera")) {
+                ImGui::TextColored({0.f, 1.f, 0.f, 1.f}, "We have here a camera!");
+            }
+            break;
+        }
+
+    }
+
+    auto _spriteRendererView = _registry.view<engine::SpriteRenderer>();
+    for(auto _gameObject : _spriteRendererView) {
+        if(_gameObject == this->gameObjectSelectedInHierarchy) {
+            auto& _camera = _spriteRendererView.get<engine::SpriteRenderer>(_gameObject);
+            if (ImGui::CollapsingHeader("Sprite Renderer")) {
+                ImGui::TextColored({0.f, 1.f, 0.f, 1.f}, "We have here a Sprite Renderer!");
+            }
+            break;
+        }
+
+    }
+
+    auto _nativeScriptsView = _registry.view<engine::NativeScript>();
+    for(auto _gameObject : _nativeScriptsView) {
+        if(_gameObject == this->gameObjectSelectedInHierarchy) {
+            auto& _nativeScript = _nativeScriptsView.get<engine::NativeScript>(_gameObject);
+            if (ImGui::CollapsingHeader(_nativeScript.className.c_str())) {
+                ImGui::TextColored({0.f, 1.f, 0.f, 1.f}, "We have here a script!");
+            }
+        }
+
+    }
+
+    ImGui::End();
+}
+
+void Inspector::imGuiAssets() {
+
+}
+
+void Inspector::imGuiScene() {
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
+        ImGui::Begin("Scene", nullptr);
+            this->viewportFocused = ImGui::IsWindowFocused();
+            this->viewportHovered = ImGui::IsWindowHovered();
+            //    engine::Application::get().getImGuiLayer()->BlockEvents(!this->viewportFocused || !this->viewportHovered);
+
+            ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
+            this->viewportSize = { viewportPanelSize.x, viewportPanelSize.y };
+
+            uint32_t textureID = this->frameBufferPtr->getColorAttachmentRendererID();
+            ImGui::Image((void*)(intptr_t)textureID, ImVec2{ this->viewportSize.x, this->viewportSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+        ImGui::End();
+    ImGui::PopStyleVar();
+
+}
+
+void Inspector::imGuiConsole() {
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {ImGui::GetStyle().WindowPadding.x / 2, 0});
+        ImGui::Begin("Console", nullptr);
+    ImGui::PopStyleVar();
+            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, {0, 0});
+                ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1);
+                    ImGui::Button("Clear"); ImGui::SameLine();
+                    ImGui::Button("Stop");
+                ImGui::PopStyleVar();
+            ImGui::PopStyleVar();
+            ImGui::Separator();
+
+        ImGui::End();
 }

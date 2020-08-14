@@ -17,9 +17,10 @@ namespace engine {
         private:
             entt::registry gameObjectsRegistry;
             int viewportWidth = 0, viewportHeight = 0;
+            std::string name;
 
         public:
-            Scene();
+            explicit Scene(const std::string& _name = "");
             ~Scene();
 
             GameObject createGameObject(const std::string& _name = "");
@@ -31,7 +32,10 @@ namespace engine {
             void onImGuiRender(Delta _dt);
             void onViewportResize(int _width, int _height);
 
-            static ScenePtr create();
+            entt::registry& getGameObjectsRegistry() { return this->gameObjectsRegistry; }
+            const std::string& getName() const { return this->name; }
+
+            static ScenePtr create(const std::string& _name = "");
 
             friend class GameObject;
     };
