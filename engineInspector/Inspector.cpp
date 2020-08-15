@@ -164,7 +164,6 @@ void Inspector::imGuiMenuBar() {
         ImGui::EndMainMenuBar();
     }
 }
-
 void Inspector::imGuiActionButtonsBar() {
     const int _width = 50;
     ImGui::SetNextItemWidth(_width);
@@ -184,7 +183,6 @@ void Inspector::imGuiActionButtonsBar() {
         ImGui::TextColored({0.f, 1.f, 0.f, 1.f}, "Playing game");
     }
 }
-
 void Inspector::imGuiHierarchy() {
     ImGui::Begin("Hierarchy", nullptr);
         if (ImGui::TreeNode("scene", "%s", this->scene->getName().c_str())) {
@@ -210,7 +208,6 @@ void Inspector::imGuiHierarchy() {
         }
     ImGui::End();
 }
-
 void Inspector::imGuiComponents() {
     ImGui::Begin("Components", nullptr);
 
@@ -225,6 +222,7 @@ void Inspector::imGuiComponents() {
             ImGui::Text("Tag: "); ImGui::SameLine();
             char _myTag[256];
             strcpy_s(_myTag, _tag.tag.c_str());
+            ImGui::SetNextItemWidth(ImGui::GetWindowContentRegionWidth());
             ImGui::InputText("##myText", _myTag, 256);
             if(!ImGui::IsItemActive()&& strcmp((char*)_tag.tag.c_str(), _myTag) != 0)
                 _tag.tag = _myTag;
@@ -247,8 +245,7 @@ void Inspector::imGuiComponents() {
                 ImGui::Text("X "); ImGui::SameLine();
                 ImGui::SetNextItemWidth(50);
                 ImGui::PushID(0);
-                    ImGui::InputFloat("##myInput", &_x, 0, 0, 2);
-                    if(!ImGui::IsItemActive() && _x != _transform.getX())
+                    if(ImGui::DragFloat("##myInput", &_x, 0.5f))
                         _transform.setX(_x);
                 ImGui::PopID();
 
@@ -258,9 +255,8 @@ void Inspector::imGuiComponents() {
                 ImGui::Text("Y "); ImGui::SameLine();
                 ImGui::SetNextItemWidth(50);
                 ImGui::PushID(1);
-                    ImGui::InputFloat("##myInput", &_y, 0, 0, 2);
-                    if(!ImGui::IsItemActive() && _y != _transform.getY())
-                        _transform.setX(_x);
+                    if(ImGui::DragFloat("##myInput", &_y, 0.5f))
+                        _transform.setY(_y);
                 ImGui::PopID();
             }
 
@@ -273,7 +269,31 @@ void Inspector::imGuiComponents() {
         if(_gameObject == this->gameObjectSelectedInHierarchy) {
             auto& _camera = _cameraView.get<engine::CameraComponent>(_gameObject);
             if (ImGui::CollapsingHeader("Camera")) {
-                ImGui::TextColored({0.f, 1.f, 0.f, 1.f}, "We have here a camera!");
+                float _near = _camera.sceneCamera.getNear();
+                ImGui::Text("Near "); ImGui::SameLine();
+                ImGui::SetNextItemWidth(50);
+                ImGui::PushID(2);
+                    if(ImGui::DragFloat("##myInput", &_near, 0.5f))
+                        _camera.sceneCamera.setOrthographic(_camera.sceneCamera.getOrthographicSize(), _near, _camera.sceneCamera.getFar());
+                ImGui::PopID();
+
+                ImGui::SameLine();
+
+                float _far = _camera.sceneCamera.getFar();
+                ImGui::Text("Far "); ImGui::SameLine();
+                ImGui::SetNextItemWidth(50);
+                ImGui::PushID(3);
+                    if(ImGui::DragFloat("##myInput", &_far, 0.5f))
+                        _camera.sceneCamera.setOrthographic(_camera.sceneCamera.getOrthographicSize(), _camera.sceneCamera.getNear(), _far);
+                ImGui::PopID();
+
+                float _size = _camera.sceneCamera.getOrthographicSize();
+                ImGui::Text("Size "); ImGui::SameLine();
+                ImGui::SetNextItemWidth(50);
+                ImGui::PushID(4);
+                    if(ImGui::DragFloat("##myInput", &_size, 0.5f))
+                        _camera.sceneCamera.setOrthographic(_size, _camera.sceneCamera.getNear(), _camera.sceneCamera.getFar());
+                ImGui::PopID();
             }
             break;
         }
@@ -283,10 +303,9 @@ void Inspector::imGuiComponents() {
     auto _spriteRendererView = _registry.view<engine::SpriteRenderer>();
     for(auto _gameObject : _spriteRendererView) {
         if(_gameObject == this->gameObjectSelectedInHierarchy) {
-            auto& _camera = _spriteRendererView.get<engine::SpriteRenderer>(_gameObject);
-            if (ImGui::CollapsingHeader("Sprite Renderer")) {
-                ImGui::TextColored({0.f, 1.f, 0.f, 1.f}, "We have here a Sprite Renderer!");
-            }
+            auto& _sprite = _spriteRendererView.get<engine::SpriteRenderer>(_gameObject);
+            if (ImGui::CollapsingHeader("Sprite Renderer"))
+                this->imGuiColorPicker(_sprite.color);
             break;
         }
 
@@ -305,11 +324,11 @@ void Inspector::imGuiComponents() {
 
     ImGui::End();
 }
-
 void Inspector::imGuiAssets() {
+    ImGui::Begin("Assets", nullptr);
 
+    ImGui::End();
 }
-
 void Inspector::imGuiScene() {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
         ImGui::Begin("Scene", nullptr);
@@ -326,7 +345,6 @@ void Inspector::imGuiScene() {
     ImGui::PopStyleVar();
 
 }
-
 void Inspector::imGuiConsole() {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {ImGui::GetStyle().WindowPadding.x / 2, 0});
         ImGui::Begin("Console", nullptr);
@@ -340,4 +358,66 @@ void Inspector::imGuiConsole() {
             ImGui::Separator();
 
         ImGui::End();
+}
+void Inspector::imGuiColorPicker(engine::Color& _color) {
+    ImGuiColorEditFlags misc_flags = ImGuiColorEditFlags_AlphaPreview | ImGuiColorEditFlags_AlphaBar;
+    static float _newColor[4] = {(float)_color.r / 255.f, (float)_color.g / 255.f, (float)_color.b / 255.f, (float)_color.a / 255.f };
+    static bool saved_palette_init = true;
+    static ImVec4 saved_palette[32] = {};
+    if (saved_palette_init) {
+        for (int n = 0; n < IM_ARRAYSIZE(saved_palette); n++) {
+            ImGui::ColorConvertHSVtoRGB(n / 31.0f, 0.8f, 0.8f, saved_palette[n].x, saved_palette[n].y, saved_palette[n].z);
+            saved_palette[n].w = 1.0f; // Alpha
+        }
+        saved_palette_init = false;
+    }
+
+    static ImVec4 backup_color;
+    const int _paletteButtonWidth = 60;
+    bool open_popup = ImGui::ColorButton("MyColor##3b", {_newColor[0], _newColor[1], _newColor[2], _newColor[3]}, misc_flags | ImGuiColorEditFlags_NoTooltip,
+                                         {ImGui::GetWindowContentRegionWidth() - _paletteButtonWidth, 0});
+    ImGui::SameLine(0, ImGui::GetStyle().ItemInnerSpacing.x);
+    open_popup |= ImGui::Button("Palette", {_paletteButtonWidth, 0});
+    if (open_popup) {
+        ImGui::OpenPopup("mypicker");
+        backup_color = {_newColor[0], _newColor[1], _newColor[2], _newColor[3]};
+    }
+    if (ImGui::BeginPopup("mypicker")) {
+        ImGui::Text("Color picker");
+        ImGui::Separator();
+        if(ImGui::ColorPicker4("##picker", _newColor, ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_NoSmallPreview)) {
+            _color.r = (unsigned char)(_newColor[0] * 255);
+            _color.g = (unsigned char)(_newColor[1] * 255);
+            _color.b = (unsigned char)(_newColor[2] * 255);
+            _color.a = (unsigned char)(_newColor[3] * 255);
+        }
+
+        ImGui::SameLine();
+
+        ImGui::BeginGroup(); // Lock X position
+            ImGui::Text("Current");
+            ImGui::ColorButton("##current", {_newColor[0], _newColor[1], _newColor[2], _newColor[3]}, ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_AlphaPreviewHalf, ImVec2(60,40));
+            ImGui::Separator();
+            ImGui::Text("Palette");
+            for (int n = 0; n < IM_ARRAYSIZE(saved_palette); n++) {
+                ImGui::PushID(n);
+                if ((n % 8) != 0)
+                    ImGui::SameLine(0.0f, ImGui::GetStyle().ItemSpacing.y);
+                ImGui::ColorButton("##palette", saved_palette[n], ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_NoTooltip, ImVec2(20,20));
+
+                // Allow user to drop colors into each palette entry
+                // (Note that ColorButton is already a drag source by default, unless using ImGuiColorEditFlags_NoDragDrop)
+                if (ImGui::BeginDragDropTarget()) {
+                    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(IMGUI_PAYLOAD_TYPE_COLOR_3F))
+                        memcpy((float*)&saved_palette[n], payload->Data, sizeof(float) * 3);
+                    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(IMGUI_PAYLOAD_TYPE_COLOR_4F))
+                        memcpy((float*)&saved_palette[n], payload->Data, sizeof(float) * 4);
+                    ImGui::EndDragDropTarget();
+                }
+
+                ImGui::PopID();
+            }
+            ImGui::EndGroup();
+        ImGui::EndPopup();
+    }
 }

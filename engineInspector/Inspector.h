@@ -27,6 +27,7 @@ class Inspector : public engine::Layer {
         void imGuiConsole();
         void imGuiMenuBar();
         void imGuiActionButtonsBar();
+        void imGuiColorPicker(engine::Color& _color);
 
     public:
         Inspector();

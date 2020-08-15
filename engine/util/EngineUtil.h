@@ -17,7 +17,7 @@
     =                                                                                               =
     = (*) Size is the representation of the width and height of an Object.                          =
     =                                                                                               =
-	= (*) Color represents the RGBA values of any possible color combination						=
+	= (*) Color represents the RGBA values of any possible color combination, values (0 - 255)		=
     =                                                                                               =
     = (*) Functions will be described on themselves.                                                =
     =                                                                                               =

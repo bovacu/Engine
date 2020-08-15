@@ -22,6 +22,8 @@ namespace engine {
             void setViewportSize(int _width, int _height);
 
             [[nodiscard]] float getOrthographicSize() const { return this->orthographicSize; }
+            [[nodiscard]] float getNear() const { return this->distanceNear; }
+            [[nodiscard]] float getFar() const { return this->distanceFar; }
             void setOrthographicSize(float _orthographicSize) { this->orthographicSize = _orthographicSize; }
     };
 

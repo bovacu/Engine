@@ -177,7 +177,7 @@ namespace engine {
 
         for (size_t _i = 0; _i < _quadVertexCount; _i++) {
             data.quadVertexBufferPtr->position = _transform * data.quadVertexPositions[_i];
-            data.quadVertexBufferPtr->color = {_color.r, _color.g, _color.b, _color.a};
+            data.quadVertexBufferPtr->color = glm::vec4{ (float)_color.r / 255.f, (float)_color.g / 255.f, (float)_color.b / 255.f, (float)_color.a / 255.f };;
             data.quadVertexBufferPtr->texCoord = _textureCoords[_i];
             data.quadVertexBufferPtr->texIndex = _textureIndex;
             data.quadVertexBufferPtr->tilingFactor = _tilingFactor;
@@ -223,7 +223,7 @@ namespace engine {
 
             for (size_t _i = 0; _i < _quadVertexCount; _i++) {
                 data.quadVertexBufferPtr->position = _transform * data.quadVertexPositions[_i];
-                data.quadVertexBufferPtr->color = {_color.r, _color.g, _color.b, _color.a};
+                data.quadVertexBufferPtr->color = glm::vec4{ (float)_color.r / 255.f, (float)_color.g / 255.f, (float)_color.b / 255.f, (float)_color.a / 255.f };;
                 data.quadVertexBufferPtr->texCoord = _textureCoords[_i];
                 data.quadVertexBufferPtr->texIndex = _textureIndex;
                 data.quadVertexBufferPtr->tilingFactor = _tilingFactor;
@@ -249,7 +249,7 @@ namespace engine {
 
         for (size_t _i = 0; _i < _quadVertexCount; _i++) {
             data.quadVertexBufferPtr->position = _transform * data.quadVertexPositions[_i];
-            data.quadVertexBufferPtr->color = glm::vec4{ _color.r, _color.g, _color.b, _color.a };
+            data.quadVertexBufferPtr->color = glm::vec4{ (float)_color.r / 255.f, (float)_color.g / 255.f, (float)_color.b / 255.f, (float)_color.a / 255.f };
             data.quadVertexBufferPtr->texCoord = _textureCoords[_i];
             data.quadVertexBufferPtr->texIndex = _textureIndex;
             data.quadVertexBufferPtr->tilingFactor = _tilingFactor;
@@ -264,7 +264,9 @@ namespace engine {
     }
     void Render2D::drawRect(const Vec2f& _position, const Vec2f& _size, const Color& _color) {
         float _adapter = OrthographicCamera::usingAspectRatio ? ASPECT_RATIO_PIXEL : 1;
-        drawRect({_position.x * _adapter, _position.y * _adapter, 0.0f}, {_size.x * _adapter, _size.y * _adapter}, {_color.r, _color.g, _color.b, _color.a});
+        drawRect({_position.x * _adapter, _position.y * _adapter, 0.0f},
+                 {_size.x * _adapter, _size.y * _adapter},
+                 glm::vec4{ (float)_color.r / 255.f, (float)_color.g / 255.f, (float)_color.b / 255.f, (float)_color.a / 255.f });
     }
     void Render2D::drawRect(const glm::vec3& _position, const glm::vec2& _size, const glm::vec4& _color) {
         constexpr size_t    _quadVertexCount = 4;
@@ -390,7 +392,7 @@ namespace engine {
     void Render2D::drawRotatedRect(const Vec2f& _position, const Vec2f& _size, float _rotation, const Color& _color) {
         float _adapter = OrthographicCamera::usingAspectRatio ? ASPECT_RATIO_PIXEL : 1;
         Render2D::drawRotatedRect({_position.x * _adapter, _position.y * _adapter, 0.0f},
-                {_size.x * _adapter, _size.y * _adapter}, glm::radians(_rotation), {_color.r, _color.g, _color.b, _color.a});
+                {_size.x * _adapter, _size.y * _adapter}, glm::radians(_rotation), glm::vec4{ (float)_color.r / 255.f, (float)_color.g / 255.f, (float)_color.b / 255.f, (float)_color.a / 255.f });
     }
     void Render2D::drawRotatedRect(const glm::vec3& _position, const glm::vec2& _size, float _rotation, const glm::vec4& _color) {
         constexpr size_t        _quadVertexCount = 4;
