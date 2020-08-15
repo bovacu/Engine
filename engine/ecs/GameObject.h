@@ -38,8 +38,8 @@ namespace engine {
                 this->scene->gameObjectsRegistry.remove<T>(this->ref);
             }
 
-            explicit operator uint32_t () { return (uint32_t)this->ref; }
-            explicit operator bool() const { return this->ref != entt::null; }
+            explicit operator uint32_t()    const { return (uint32_t)this->ref; }
+            explicit operator bool()        const { return this->ref != entt::null; }
     };
 
 

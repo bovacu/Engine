@@ -64,7 +64,7 @@ add_executable( Engine engine/main/Application.cpp engine/util/EngineUtil.cpp
 
                 lib/imgui-docking/imgui.cpp lib/imgui-docking/imgui_draw.cpp lib/imgui-docking/imgui_widgets.cpp  lib/imgui-docking/imgui_demo.cpp
                 lib/imgui-docking/examples/imgui_impl_glfw.cpp lib/imgui-docking/examples/imgui_impl_opengl3.cpp engine/api/openGL/OpenGLFrameBuffer.cpp engine/api/openGL/OpenGLFrameBuffer.h
-                engine/render/elements/FrameBuffer.cpp engine/render/elements/FrameBuffer.h tests/stress/Stress.cpp tests/stress/StressTest.cpp tests/stress/StressTest.h engine/ecs/GameObject.cpp engine/ecs/GameObject.h engine/ecs/Scene.cpp engine/ecs/Scene.h engine/ecs/Components.h engine/ecs/ScriptableObject.h engineInspector/InspectorApplication.cpp engineInspector/Inspector.cpp engineInspector/Inspector.h engine/render/camera/Camera.h engine/ecs/SceneCamera.cpp engine/ecs/SceneCamera.h)
+                engine/render/elements/FrameBuffer.cpp engine/render/elements/FrameBuffer.h tests/stress/Stress.cpp tests/stress/StressTest.cpp tests/stress/StressTest.h engine/ecs/GameObject.h engine/ecs/Scene.cpp engine/ecs/Scene.h engine/ecs/Components.h engine/ecs/ScriptableObject.h engineInspector/InspectorApplication.cpp engineInspector/Inspector.cpp engineInspector/Inspector.h engine/render/camera/Camera.h engine/ecs/SceneCamera.cpp engine/ecs/SceneCamera.h engine/ecs/EngineAPI.cpp engine/ecs/EngineAPI.h)
 
 target_link_libraries ( Engine spdlog)
 target_link_libraries ( ${PROJECT_NAME} "glfw" "${GLFW_LIBRARIES}")

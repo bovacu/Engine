@@ -10,6 +10,10 @@
 /// TODO not sure if I still need this, check
 #define ASPECT_RATIO_PIXEL 0.05f
 
+#ifndef USING_INSPECTOR
+    #define USING_INSPECTOR
+#endif
+
 /// Defines the macro ENGINE_DEBUG if needed.
 #ifndef NDEBUG
     #define ENGINE_DEBUG

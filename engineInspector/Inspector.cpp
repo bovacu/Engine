@@ -1,7 +1,11 @@
 #include "Inspector.h"
 
+#if defined(USING_INSPECTOR)
+    Inspector::InspectorLogger Inspector::logger;
+#endif
+
 Inspector::Inspector() : engine::Layer("Inspector"), cameraController(1280.f / 720.f) {
-//    engine::Application::get().setVSync(false);
+
 }
 
 void Inspector::onInit() {
@@ -19,7 +23,9 @@ void Inspector::onInit() {
 
     class CameraController : public engine::ScriptableObject {
         public:
-            void onCreate() {  }
+            void onCreate() {
+                engine::api::Console::log("Camera Controller Script created");
+            }
 
             void onDestroy() {  }
 
@@ -40,7 +46,9 @@ void Inspector::onInit() {
 
     class Dummy : public engine::ScriptableObject {
         public:
-            void onCreate() {  }
+            void onCreate() {
+
+            }
 
             void onDestroy() {  }
 
@@ -169,6 +177,8 @@ void Inspector::imGuiActionButtonsBar() {
     ImGui::SetNextItemWidth(_width);
     ImGui::SetCursorPosX(ImGui::GetWindowWidth() / 2 - _width);
     if(ImGui::Button("Play")) {
+        if(!this->playGame)
+            Inspector::logger.clear();
         this->playGame = !this->playGame;
     }
 
@@ -351,11 +361,15 @@ void Inspector::imGuiConsole() {
     ImGui::PopStyleVar();
             ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, {0, 0});
                 ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1);
-                    ImGui::Button("Clear"); ImGui::SameLine();
+                    if(ImGui::Button("Clear")) { Inspector::logger.clear(); } ImGui::SameLine();
                     ImGui::Button("Stop");
                 ImGui::PopStyleVar();
             ImGui::PopStyleVar();
             ImGui::Separator();
+
+    #if defined(USING_INSPECTOR)
+        Inspector::logger.draw("Console");
+    #endif
 
         ImGui::End();
 }
