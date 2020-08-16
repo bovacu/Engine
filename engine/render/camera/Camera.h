@@ -13,7 +13,7 @@ namespace engine {
 
         public:
             Camera() = default;
-            explicit Camera(const glm::mat4& _projectionMatrix) : projectionMatrix(_projectionMatrix) {  }
+            Camera(const glm::mat4& _projectionMatrix) : projectionMatrix(_projectionMatrix) {  }
             virtual ~Camera() = default;
 
             [[nodiscard]] const glm::mat4& getProjectionMatrix() const { return this->projectionMatrix; }

@@ -4,6 +4,25 @@
 #define ENGINE_INSPECTOR_H
 
 #include <engine/main/Engine.h>
+/// TODO ===============================================================================================================
+/// TODO =                                                   TODO                                                      =
+/// TODO ===============================================================================================================
+/// TODO =                                                                                                             =
+/// TODO =   Add the component window to add components                                                                =
+/// TODO =   Add gizmos                                                                                                =
+/// TODO =   Add textures to sprite renderer                                                                           =
+/// TODO =   Create asset system                                                                                       =
+/// TODO =                                                                                                             =
+/// TODO ===============================================================================================================
+
+
+///     ================================================================================================================
+///     =                                                   NOTES                                                      =
+///     ================================================================================================================
+///     =                                                                                                              =
+///     =   For entt, group if we want to retrieve more than one element, view if just one is needed.                  =
+///     =                                                                                                              =
+///     ================================================================================================================
 
 class Inspector : public engine::Layer {
 
@@ -94,11 +113,12 @@ class Inspector : public engine::Layer {
         engine::Vec2f                           viewportSize    = {0.0f, 0.0f};
 
         engine::ScenePtr                        scene;
-        engine::GameObject                      squareGbj;
+        engine::GameObject                      squareGbj, dummy;
         engine::GameObject                      camera;
 
         bool                                    viewportFocused = false, viewportHovered = false;
         bool                                    playGame = false;
+        bool                                    showGizmos = true;
         entt::entity                            gameObjectSelectedInHierarchy = entt::null;
 
     public:
@@ -115,6 +135,7 @@ class Inspector : public engine::Layer {
         void imGuiMenuBar();
         void imGuiActionButtonsBar();
         void imGuiColorPicker(engine::Color& _color);
+        void imGuiAddComponentWindow();
 
     public:
         Inspector();

@@ -14,6 +14,11 @@ namespace engine {
 
         public:
             template<typename T>
+            T& addComponent() {
+                return this->gameObject.addComponent<T>();
+            }
+
+            template<typename T>
             T& getComponent() {
                 return this->gameObject.getComponent<T>();
             }

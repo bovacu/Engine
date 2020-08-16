@@ -5,7 +5,7 @@
 
 #include <engine/render/RenderAPI.h>
 #include <engine/render/elements/Shader.h>
-#include <engine/render/camera/OrthographicCamera.h>
+//#include <engine/render/camera/OrthographicCamera.h>
 #include <engine/render/elements/Texture.h>
 #include <engine/render/elements/TextureRegion.h>
 #include <engine/render/shapes/Shape.h>
@@ -33,7 +33,7 @@ namespace engine {
 
             static void onWindowResize(uint32_t _width, uint32_t _height);
 
-            static void beginDrawCall(OrthographicCamera& _camera);
+//            static void beginDrawCall(OrthographicCamera& _camera);
             static void beginDrawCall(const Camera& _camera, glm::mat4& _transform);
             static void drawLine(const Vec2f& _p0, const Vec2f& _p1, const Color& _color, float _thickness = 1.0f);
 

@@ -109,18 +109,19 @@ namespace engine {
         delete [] data.quadVertexBufferBase;
     }
 
-    void Render2D::beginDraw(const OrthographicCamera& camera) {
-        data.textureShader->bind();
-        data.textureShader->setMat4("viewProjection_uniform", camera.getViewProjectionMatrix());
-
-        data.quadIndexCount = 0;
-        data.quadVertexBufferPtr = data.quadVertexBufferBase;
-
-        data.textureSlotIndex = 1;
-    }
+//    void Render2D::beginDraw(const OrthographicCamera& camera) {
+//        data.textureShader->bind();
+//        data.textureShader->setMat4("viewProjection_uniform", camera.getViewProjectionMatrix());
+//
+//        data.quadIndexCount = 0;
+//        data.quadVertexBufferPtr = data.quadVertexBufferBase;
+//
+//        data.textureSlotIndex = 1;
+//    }
 
     void Render2D::beginDraw(const Camera& _camera, const glm::mat4& _transform) {
-        auto _viewProjectionMatrix = _camera.getProjectionMatrix() * glm::inverse(_transform);
+        glm::mat4 _viewProjectionMatrix = _camera.getProjectionMatrix() * glm::inverse(_transform);
+
         data.textureShader->bind();
         data.textureShader->setMat4("viewProjection_uniform", _viewProjectionMatrix);
 
@@ -138,6 +139,9 @@ namespace engine {
     }
 
     void Render2D::flush() {
+        if (data.quadIndexCount == 0)
+            return; // Nothing to draw
+
         // Bind textures
         for (uint32_t i = 0; i < data.textureSlotIndex; i++)
             data.textureSlots[i]->bind(i);

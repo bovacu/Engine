@@ -26,9 +26,9 @@ namespace engine {
         renderAPI->clear();
     }
 
-    void Renderer::beginDrawCall(OrthographicCamera& _camera) {
-        Render2D::beginDraw(_camera);
-    }
+//    void Renderer::beginDrawCall(OrthographicCamera& _camera) {
+//        Render2D::beginDraw(_camera);
+//    }
     void Renderer::beginDrawCall(const Camera& _camera, glm::mat4& _transform) {
         Render2D::beginDraw(_camera, _transform);
     }

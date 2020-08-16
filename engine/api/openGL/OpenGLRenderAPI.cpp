@@ -38,14 +38,14 @@ namespace engine {
                 glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr, GL_FALSE);
         #endif
 
-        /// Using this, caused the engine not to render alpha
-//        glEnable(GL_DEPTH_TEST);
-
         /// Enables transparency
         glEnable(GL_BLEND);
 
         /// Most typical blending function
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        /// Using this, caused the engine not to render alpha
+//        glEnable(GL_DEPTH_TEST);
     }
 
     void OpenGLRenderAPI::setViewport(uint32_t _x, uint32_t _y, uint32_t _width, uint32_t _height) {
@@ -71,7 +71,7 @@ namespace engine {
     }
 
     void OpenGLRenderAPI::setClearColor(const Color& _color) {
-        this->setClearColor(glm::vec4{_color.r, _color.g, _color.b, _color.a});
+        this->setClearColor(glm::vec4{(float)_color.r, (float)_color.g, (float)_color.b, (float)_color.a});
     }
 
 }

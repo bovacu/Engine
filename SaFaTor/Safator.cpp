@@ -1,3 +1,4 @@
+#if defined (COMPILE_SAFATOR)
 #include "Safator.h"
 
 #include <fstream>
@@ -100,16 +101,16 @@ void Safator::onRender(engine::Delta _dt) {
     engine::Renderer::setClearColor(this->backgroundColor);
     engine::Renderer::clear();
 
-    engine::Renderer::beginDrawCall(this->cameraController.getCamera());
-        engine::Renderer::drawTexture({0.0f, 0.0f},
-                                      {(float) this->worldTexture->getWidth(), (float) this->worldTexture->getHeight()},
-                                      this->worldTexture);
-
-        engine::Renderer::drawTexture({(float)Input::getMouseX() - this->app.getWindowSize().x / 2.f,
-                                       (float)Input::getMouseY() - this->app.getWindowSize().y / 2.f},
-                                      {(float) this->circleTexture->getWidth(), (float) this->circleTexture->getHeight()},
-                                      this->circleTexture);
-    engine::Renderer::endDrawCall();
+//    engine::Renderer::beginDrawCall(this->cameraController.getCamera());
+//        engine::Renderer::drawTexture({0.0f, 0.0f},
+//                                      {(float) this->worldTexture->getWidth(), (float) this->worldTexture->getHeight()},
+//                                      this->worldTexture);
+//
+//        engine::Renderer::drawTexture({(float)Input::getMouseX() - this->app.getWindowSize().x / 2.f,
+//                                       (float)Input::getMouseY() - this->app.getWindowSize().y / 2.f},
+//                                      {(float) this->circleTexture->getWidth(), (float) this->circleTexture->getHeight()},
+//                                      this->circleTexture);
+//    engine::Renderer::endDrawCall();
 }
 void Safator::onImGuiRender(engine::Delta _dt) {
     this->imGuiAppWindow(_dt);
@@ -2084,3 +2085,4 @@ void Safator::loadWorld(const std::string& _worldName) {
 }
 
 
+#endif

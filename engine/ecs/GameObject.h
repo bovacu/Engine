@@ -18,6 +18,8 @@ namespace engine {
             GameObject(entt::entity _ref, Scene* _scene) : ref(_ref), scene(_scene) {  }
             GameObject(const GameObject& _gameObject) = default;
 
+            [[nodiscard]] uint32_t getRef() const { return (uint32_t)this->ref; }
+
             template<typename T, typename... Args>
             T& addComponent(Args&&... args) {
                 return this->scene->gameObjectsRegistry.emplace<T>(this->ref, std::forward<Args>(args)...);

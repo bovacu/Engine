@@ -3,6 +3,8 @@
 #ifndef ENGINE_ENGINEAPI_H
 #define ENGINE_ENGINEAPI_H
 
+#include "GameObject.h"
+
 namespace engine::api {
 
     class EngineAPI {

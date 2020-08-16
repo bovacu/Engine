@@ -1,7 +1,6 @@
 #include "pch.h"
 #include "Scene.h"
 #include <engine//ecs/Components.h>
-#include <engine/ecs/GameObject.h>
 #include <engine/render/Renderer.h>
 
 namespace engine {
@@ -20,6 +19,7 @@ namespace engine {
 
     GameObject Scene::createGameObject(const std::string& _name) {
         GameObject _gameObject = { this->gameObjectsRegistry.create(), this };
+        _gameObject.addComponent<Active>(true);
         _gameObject.addComponent<Transform>();
         auto& _tag = _gameObject.addComponent<Tag>(_name);
         _tag.tag = _name.empty() ? "GameObject" : _name;
@@ -27,17 +27,19 @@ namespace engine {
     }
 
     void Scene::onUpdate(Delta _dt) {
-        this->gameObjectsRegistry.view<NativeScript>().each([=] (auto _gameObject, auto& _nativeScript) {
-            if(!_nativeScript.scriptableObject) {
-                _nativeScript.instantiate();
-                _nativeScript.scriptableObject->gameObject = GameObject{ _gameObject, this };
+        this->gameObjectsRegistry.view<Active, NativeScript>().each([=] (auto _gameObject, auto& _active, auto& _nativeScript) {
+            if(_active.active) {
+                if(!_nativeScript.scriptableObject) {
+                    _nativeScript.instantiate();
+                    _nativeScript.scriptableObject->gameObject = GameObject{ _gameObject, this };
 
-                if(_nativeScript.onCreate)
-                    _nativeScript.onCreate(_nativeScript.scriptableObject);
+                    if(_nativeScript.onCreate)
+                        _nativeScript.onCreate(_nativeScript.scriptableObject);
+                }
+
+                if(_nativeScript.onUpdate)
+                    _nativeScript.onUpdate(_nativeScript.scriptableObject, _dt);
             }
-
-            if(_nativeScript.onUpdate)
-                _nativeScript.onUpdate(_nativeScript.scriptableObject, _dt);
         });
 
     }
@@ -50,29 +52,34 @@ namespace engine {
         Camera* _camera = nullptr;
         glm::mat4* _cameraTransform = nullptr;
 
-        auto _view = this->gameObjectsRegistry.view<Transform, CameraComponent>();
+        auto _view = this->gameObjectsRegistry.view<Active, Transform, CameraComponent>();
         for(auto _gameObject : _view) {
-            auto& _transform = _view.get<Transform>(_gameObject);
-            auto& _cam = _view.get<CameraComponent>(_gameObject);
+            auto& _active = _view.get<Active>(_gameObject);
 
-            if(_cam.primary) {
-                _camera = &_cam.sceneCamera;
-                _cameraTransform = &_transform.transform;
-                break;
+            if(_active.active) {
+                auto& _transform = _view.get<Transform>(_gameObject);
+                auto& _cam = _view.get<CameraComponent>(_gameObject);
+
+                if(_cam.primary) {
+                    _camera = &_cam.sceneCamera;
+                    _cameraTransform = &_transform.transform;
+                    break;
+                }
             }
         }
 
         if(_camera) {
-            Renderer::beginDrawCall(*_camera, *_cameraTransform);
+            Renderer::beginDrawCall(_camera->getProjectionMatrix(), *_cameraTransform);
+                auto _group = this->gameObjectsRegistry.group<Active, Transform>(entt::get<SpriteRenderer>);
+                for(auto _gameObject : _group) {
+                    auto& _active = _group.get<Active>(_gameObject);
 
-            auto _group = this->gameObjectsRegistry.group<Transform>(entt::get<SpriteRenderer>);
-            for(auto _gameObject : _group) {
-                auto& _transform = _group.get<Transform>(_gameObject);
-                auto& _sprite = _group.get<SpriteRenderer>(_gameObject);
-
-                Renderer::drawRectangle(_transform.transform, _sprite.color);
-            }
-
+                    if(_active.active) {
+                        auto& _transform = _group.get<Transform>(_gameObject);
+                        auto& _sprite = _group.get<SpriteRenderer>(_gameObject);
+                        Renderer::drawRectangle(_transform.transform, _sprite.color);
+                    }
+                }
             Renderer::endDrawCall();
         }
     }

@@ -1,3 +1,4 @@
+#ifdef (COMPILE_SAFATOR)
 #pragma once
 
 #ifndef TEST_GAME_H
@@ -264,3 +265,4 @@ class Safator : public engine::Layer {
 };
 
 #endif //TEST_GAME_H
+#endif
