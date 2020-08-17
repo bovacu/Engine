@@ -53,6 +53,11 @@ void Inspector::onInit() {
                 this->getComponent<engine::Transform>().setX(5);
                 auto& _sr = this->addComponent<engine::SpriteRenderer>();
                 _sr.color = engine::Color::Red;
+
+                auto _newGameObject = this->newGameObject({-4, -2});
+                _newGameObject.addComponent<engine::SpriteRenderer>();
+
+                this->destroyGameObject(_newGameObject);
             }
 
             void onDestroy() {  }
@@ -184,10 +189,10 @@ void Inspector::imGuiActionButtonsBar() {
     if(ImGui::Button("Play")) {
         if(!this->playGame) {
             Inspector::logger.clear();
-//            this->scene->getGameObjectsRegistry().view<engine::NativeScript>().each([=] (auto _gameObject, auto& _nativeScript) {
-//                if(_nativeScript.scriptableObject)
-//                    _nativeScript.destroy();
-//            });
+            this->scene->getGameObjectsRegistry().view<engine::NativeScript>().each([=] (auto _gameObject, auto& _nativeScript) {
+                if(_nativeScript.scriptableObject)
+                    _nativeScript.destroyInstanceFunction(_nativeScript.scriptableObject);
+            });
         }
         this->playGame = !this->playGame;
     }

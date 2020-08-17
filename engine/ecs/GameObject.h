@@ -20,6 +20,16 @@ namespace engine {
 
             [[nodiscard]] uint32_t getRef() const { return (uint32_t)this->ref; }
 
+            GameObject newGameObject() {
+                return this->scene->createGameObject();
+            }
+
+            GameObject newGameObject(const Vec2f& _position);
+
+            void destroyGameObject(const GameObject& _gameObject) {
+                this->scene->gameObjectsRegistry.destroy(_gameObject.ref);
+            }
+
             template<typename T, typename... Args>
             T& addComponent(Args&&... args) {
                 return this->scene->gameObjectsRegistry.emplace<T>(this->ref, std::forward<Args>(args)...);
@@ -42,6 +52,8 @@ namespace engine {
 
             explicit operator uint32_t()    const { return (uint32_t)this->ref; }
             explicit operator bool()        const { return this->ref != entt::null; }
+
+            friend class ScriptableObject;
     };
 
 

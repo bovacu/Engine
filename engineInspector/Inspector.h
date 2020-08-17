@@ -8,10 +8,14 @@
 /// TODO =                                                   TODO                                                      =
 /// TODO ===============================================================================================================
 /// TODO =                                                                                                             =
-/// TODO =   Add the component window to add components                                                                =
+/// TODO =   Add the component window to add components   (DONE: apparently working fine)                              =
 /// TODO =   Add gizmos                                                                                                =
 /// TODO =   Add textures to sprite renderer                                                                           =
 /// TODO =   Create asset system                                                                                       =
+/// TODO =   Instantiate/Destroy system   (DONE, need further testing)                                                 =
+/// TODO =   Scene serialization                                                                                       =
+/// TODO =   New Scene for the play mode, so the current doesn't get modify                                            =
+/// TODO =   Change scene                                                                                              =
 /// TODO =                                                                                                             =
 /// TODO ===============================================================================================================
 

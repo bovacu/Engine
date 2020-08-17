@@ -70,7 +70,7 @@ namespace engine {
     };
 
     struct SpriteRenderer {
-        Color color;
+        Color color = Color::Purple;
 
         SpriteRenderer() = default;
         SpriteRenderer(const SpriteRenderer&) = default;
@@ -111,6 +111,11 @@ namespace engine {
             onCreateFunction = [](ScriptableObject* _instance) { static_cast<T*>(_instance)->onCreate(); };
             onDestroyFunction = [](ScriptableObject* _instance) { static_cast<T*>(_instance)->onDestroy(); };
             onUpdateFunction = [](ScriptableObject* _instance, Delta ts) { static_cast<T*>(_instance)->onUpdate(ts); };
+
+        }
+
+        ~NativeScript() {
+            delete this->scriptableObject;
         }
     };
 

@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "Scene.h"
-#include <engine//ecs/Components.h>
+#include <engine/ecs/Components.h>
 #include <engine/render/Renderer.h>
 
 namespace engine {

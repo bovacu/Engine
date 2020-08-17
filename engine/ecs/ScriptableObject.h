@@ -3,16 +3,32 @@
 #ifndef ENGINE_SCRIPTABLEOBJECT_H
 #define ENGINE_SCRIPTABLEOBJECT_H
 
-
-#include <engine/ecs/GameObject.h>
 #include <engine/ecs/EngineAPI.h>
+#include <engine/ecs/GameObject.h>
 
 namespace engine {
 
     class ScriptableObject {
-        friend class Scene;
+        private:
+            GameObject gameObject;
 
         public:
+            GameObject newGameObject() {
+                return this->gameObject.scene->createGameObject();
+            }
+
+            GameObject newGameObject(const Vec2f& _position) {
+                return this->gameObject.newGameObject(_position);
+            }
+
+            void destroyGameObject(const GameObject& _gameObject) {
+                this->gameObject.destroyGameObject(_gameObject);
+            }
+
+            GameObject& getGameObject() {
+                return this->gameObject;
+            }
+
             template<typename T>
             T& addComponent() {
                 return this->gameObject.addComponent<T>();
@@ -33,8 +49,7 @@ namespace engine {
                 this->gameObject.removeComponent<T>();
             }
 
-        private:
-            GameObject gameObject;
+            friend class Scene;
     };
 
 }
