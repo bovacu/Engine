@@ -45,7 +45,7 @@ namespace engine {
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         /// Using this, caused the engine not to render alpha
-//        glEnable(GL_DEPTH_TEST);
+        glEnable(GL_DEPTH_TEST);
     }
 
     void OpenGLRenderAPI::setViewport(uint32_t _x, uint32_t _y, uint32_t _width, uint32_t _height) {

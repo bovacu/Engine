@@ -92,7 +92,7 @@ namespace engine {
                                               ShaderDataTypeToOpenGLBaseType(_element.type),
                                               _element.normalized ? GL_TRUE : GL_FALSE,
                                               _layout.getStride(),
-                                              (const void*)(sizeof(float) * _count * _i));
+                                              (const void*)(_element.offset + sizeof(float) * _count * _i));
 
                         /// This marks a separation between one row or column of data.
                         glVertexAttribDivisor(this->vertexBufferIndex, 1);

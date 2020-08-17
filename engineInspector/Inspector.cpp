@@ -43,7 +43,6 @@ void Inspector::onInit() {
                     transform[3][1] += speed * _dt;
             }
     };
-
     this->camera.addComponent<engine::NativeScript>().bind<CameraController>();
 
     this->dummy = this->scene->createGameObject("DummyRectangle");
@@ -63,7 +62,7 @@ void Inspector::onInit() {
             }
     };
 
-//    this->dummy.addComponent<engine::NativeScript>().bind<Dummy>();
+    this->dummy.addComponent<engine::NativeScript>().bind<Dummy>();
 }
 
 void Inspector::onEvent(engine::Event& _e) {
@@ -185,9 +184,10 @@ void Inspector::imGuiActionButtonsBar() {
     if(ImGui::Button("Play")) {
         if(!this->playGame) {
             Inspector::logger.clear();
-            this->scene->getGameObjectsRegistry().view<engine::NativeScript>().each([=] (auto _gameObject, auto& _nativeScript) {
-                _nativeScript.destroy();
-            });
+//            this->scene->getGameObjectsRegistry().view<engine::NativeScript>().each([=] (auto _gameObject, auto& _nativeScript) {
+//                if(_nativeScript.scriptableObject)
+//                    _nativeScript.destroy();
+//            });
         }
         this->playGame = !this->playGame;
     }

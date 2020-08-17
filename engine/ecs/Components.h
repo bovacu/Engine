@@ -80,31 +80,37 @@ namespace engine {
     /// --------------------------------- SCRIPTING
 
     struct NativeScript {
-        ScriptableObject* scriptableObject;
+        ScriptableObject* scriptableObject = nullptr;
         std::string className;
 
-        std::function<void()> instantiate;
-        std::function<void()> destroy;
+        /// Function pointers are needed here, with std::function and using the lambdas made any second
+        /// script not to run as scriptableObject is firstly well captured by the this in the lambda, but when a
+        /// new script needs to be created, the this captured passes from one scriptableObject to another, leaving
+        /// the first one as null and not able to work properly.
+        void(* instantiateFunction)(ScriptableObject*&) = nullptr;
+        void(* destroyInstanceFunction)(ScriptableObject*&) = nullptr;
 
-        std::function<void(ScriptableObject*)> onCreate;
-        std::function<void(ScriptableObject*)> onDestroy;
-        std::function<void(ScriptableObject*, float _dt)> onUpdate;
+        void(* onCreateFunction)(ScriptableObject*) = nullptr;
+        void(* onDestroyFunction)(ScriptableObject*) = nullptr;
+        void(* onUpdateFunction)(ScriptableObject*, Delta) = nullptr;
 
         template<typename T>
         void bind() {
+            /// Just to get the name of the script
             std::stringstream _stream(typeid(T).name());
             std::vector<std::string>   _result;
             std::string _line;
             while(std::getline(_stream,_line, ':')) {
                 _result.push_back(_line);
             }
-            this->className     = _result.back();
-            this->instantiate   = [&]() { this->scriptableObject = new T(); };
-            this->destroy       = [&]() { delete (T*)this->scriptableObject; this->scriptableObject = nullptr; };
+            ///======== END
 
-            this->onCreate      = [](ScriptableObject* _so) { ((T*)_so)->onCreate(); };
-            this->onDestroy     = [](ScriptableObject* _so) { ((T*)_so)->onDestroy(); };
-            this->onUpdate      = [](ScriptableObject* _so, float _dt) { ((T*)_so)->onUpdate(_dt); };
+            instantiateFunction = [](ScriptableObject*& _instance) { _instance = new T(); };
+            destroyInstanceFunction = [](ScriptableObject*& _instance) { delete static_cast<T*>(_instance); _instance = nullptr; };
+
+            onCreateFunction = [](ScriptableObject* _instance) { static_cast<T*>(_instance)->onCreate(); };
+            onDestroyFunction = [](ScriptableObject* _instance) { static_cast<T*>(_instance)->onDestroy(); };
+            onUpdateFunction = [](ScriptableObject* _instance, Delta ts) { static_cast<T*>(_instance)->onUpdate(ts); };
         }
     };
 

@@ -27,21 +27,20 @@ namespace engine {
     }
 
     void Scene::onUpdate(Delta _dt) {
-        this->gameObjectsRegistry.view<Active, NativeScript>().each([=] (auto _gameObject, auto& _active, auto& _nativeScript) {
-            if(_active.active) {
-                if(!_nativeScript.scriptableObject) {
-                    _nativeScript.instantiate();
-                    _nativeScript.scriptableObject->gameObject = GameObject{ _gameObject, this };
+        auto _view = this->gameObjectsRegistry.view<NativeScript>();
+        for(auto _gameObject : _view) {
+            auto& _script = _view.get<NativeScript>(_gameObject);
+            if(!_script.scriptableObject) {
+                _script.instantiateFunction(_script.scriptableObject);
+                _script.scriptableObject->gameObject = GameObject{ _gameObject, this };
 
-                    if(_nativeScript.onCreate)
-                        _nativeScript.onCreate(_nativeScript.scriptableObject);
-                }
-
-                if(_nativeScript.onUpdate)
-                    _nativeScript.onUpdate(_nativeScript.scriptableObject, _dt);
+                if(_script.onCreateFunction)
+                    _script.onCreateFunction(_script.scriptableObject);
             }
-        });
 
+            if(_script.onUpdateFunction)
+                _script.onUpdateFunction(_script.scriptableObject, _dt);
+        }
     }
 
     void Scene::onFixUpdate(Delta _fixedDt) {
@@ -57,8 +56,8 @@ namespace engine {
             auto& _active = _view.get<Active>(_gameObject);
 
             if(_active.active) {
-                auto& _transform = _view.get<Transform>(_gameObject);
-                auto& _cam = _view.get<CameraComponent>(_gameObject);
+                auto _transform = _view.get<Transform>(_gameObject);
+                auto _cam = _view.get<CameraComponent>(_gameObject);
 
                 if(_cam.primary) {
                     _camera = &_cam.sceneCamera;

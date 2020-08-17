@@ -1,6 +1,8 @@
-[22:44:30] [warning] Engine: Running in debug mode
-[22:44:30] [info] Engine: Creating window Engine:  (1280, 720)
-[22:44:31] [info] Engine: OpenGL Info:
-[22:44:31] [info] Engine:   Vendor: NVIDIA Corporation
-[22:44:31] [info] Engine:   Renderer: GeForce GTX 1060 6GB/PCIe/SSE2
-[22:44:31] [info] Engine:   Version: 4.6.0 NVIDIA 451.67
+[02:02:22] [warning] Engine: Running in debug mode
+[02:02:22] [info] Engine: Creating window Engine:  (1280, 720)
+[02:02:22] [info] Engine: OpenGL Info:
+[02:02:22] [info] Engine:   Vendor: NVIDIA Corporation
+[02:02:22] [info] Engine:   Renderer: GeForce GTX 1060 6GB/PCIe/SSE2
+[02:02:22] [info] Engine:   Version: 4.6.0 NVIDIA 451.67
+[02:02:24] [info] Engine: For class , scriptableObject is Not Null
+[02:02:24] [info] Engine: For class , scriptableObject is Not Null
