@@ -71,7 +71,7 @@ add_executable( Engine engine/main/Application.cpp engine/util/EngineUtil.cpp
                 engineInspector/InspectorApplication.cpp engineInspector/Inspector.cpp engineInspector/Inspector.h
 
                 lib/imgui-docking/imgui.cpp lib/imgui-docking/imgui_draw.cpp lib/imgui-docking/imgui_widgets.cpp  lib/imgui-docking/imgui_demo.cpp
-                lib/imgui-docking/examples/imgui_impl_glfw.cpp lib/imgui-docking/examples/imgui_impl_opengl3.cpp engine/ecs/GameObject.cpp)
+                lib/imgui-docking/examples/imgui_impl_glfw.cpp lib/imgui-docking/examples/imgui_impl_opengl3.cpp engine/ecs/GameObject.cpp engine/ecs/Physics.cpp engine/ecs/Physics.h engine/ecs/DebugPhysicsDraw.cpp engine/ecs/DebugPhysicsDraw.h)
 
 target_link_libraries ( Engine spdlog)
 target_link_libraries ( ${PROJECT_NAME} "glfw" "${GLFW_LIBRARIES}")

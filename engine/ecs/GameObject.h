@@ -54,6 +54,7 @@ namespace engine {
             explicit operator bool()        const { return this->ref != entt::null; }
 
             friend class ScriptableObject;
+            friend class Scene;
     };
 
 

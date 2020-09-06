@@ -25,6 +25,7 @@ namespace engine {
 
             GameObject createGameObject(const std::string& _name = "");
 
+
         public:
             void onUpdate(Delta _dt);
             void onFixUpdate(Delta _fixedDt);

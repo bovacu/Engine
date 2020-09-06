@@ -13,6 +13,11 @@ namespace engine {
             GameObject gameObject;
 
         public:
+            virtual void onInit() {  }
+            virtual void onUpdate(Delta _dt) {  }
+            virtual void onFixedUpdate(Delta _fixedDt) {  }
+            virtual void onEnd() {  }
+
             GameObject newGameObject() {
                 return this->gameObject.scene->createGameObject();
             }

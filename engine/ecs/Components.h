@@ -9,6 +9,8 @@
 #include <engine/ecs/ScriptableObject.h>
 #include <box2d/box2d.h>
 #include <engine/ecs/SceneCamera.h>
+#include <engine/ecs/Physics.h>
+#include "Physics.h"
 
 namespace engine {
 
@@ -90,10 +92,6 @@ namespace engine {
         void(* instantiateFunction)(ScriptableObject*&) = nullptr;
         void(* destroyInstanceFunction)(ScriptableObject*&) = nullptr;
 
-        void(* onCreateFunction)(ScriptableObject*) = nullptr;
-        void(* onDestroyFunction)(ScriptableObject*) = nullptr;
-        void(* onUpdateFunction)(ScriptableObject*, Delta) = nullptr;
-
         template<typename T>
         void bind() {
             /// Just to get the name of the script
@@ -108,10 +106,6 @@ namespace engine {
             instantiateFunction = [](ScriptableObject*& _instance) { _instance = new T(); };
             destroyInstanceFunction = [](ScriptableObject*& _instance) { delete static_cast<T*>(_instance); _instance = nullptr; };
 
-            onCreateFunction = [](ScriptableObject* _instance) { static_cast<T*>(_instance)->onCreate(); };
-            onDestroyFunction = [](ScriptableObject* _instance) { static_cast<T*>(_instance)->onDestroy(); };
-            onUpdateFunction = [](ScriptableObject* _instance, Delta ts) { static_cast<T*>(_instance)->onUpdate(ts); };
-
         }
 
         ~NativeScript() {
@@ -124,6 +118,38 @@ namespace engine {
     };
 
     /// --------------------------- PHYSICS
+
+    struct PhysicsBody {
+        private:
+            b2Body* body;
+
+        public:
+            PhysicsBody(const Transform& _transform) {
+                b2BodyDef _bodyDef;
+                _bodyDef.position = b2Vec2(_transform.getX(), _transform.getY());
+                _bodyDef.type = b2_dynamicBody;
+                _bodyDef.angle = 0;
+                this->body = Physics::getWorld().CreateBody(&_bodyDef);
+
+                b2PolygonShape boxShape;
+                boxShape.SetAsBox(1,1);
+
+                b2FixtureDef boxFixtureDef;
+                boxFixtureDef.shape = &boxShape;
+                boxFixtureDef.density = 1;
+                this->body->CreateFixture(&boxFixtureDef);
+                this->body->SetLinearVelocity( b2Vec2( -.01f, .01f ) );
+            }
+            PhysicsBody(const PhysicsBody& _physicsBody) = default;
+
+            void destroyBody() {
+                Physics::getWorld().DestroyBody(body);
+            }
+
+            ~PhysicsBody() {
+                this->destroyBody();
+            }
+    };
 
     struct BoxCollider {
 

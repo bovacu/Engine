@@ -23,13 +23,13 @@ void Inspector::onInit() {
 
     class CameraController : public engine::ScriptableObject {
         public:
-            void onCreate() {
+            void onInit() override {
                 engine::api::Console::log("Camera Controller Script created");
             }
 
             void onDestroy() {  }
 
-            void onUpdate(engine::Delta _dt) {
+            void onUpdate(engine::Delta _dt) override {
                 auto& transform = getComponent<engine::Transform>().transform;
                 float speed = 5.0f;
 
@@ -44,30 +44,7 @@ void Inspector::onInit() {
             }
     };
     this->camera.addComponent<engine::NativeScript>().bind<CameraController>();
-
-    this->dummy = this->scene->createGameObject("DummyRectangle");
-
-    class Dummy : public engine::ScriptableObject {
-        public:
-            void onCreate() {
-                this->getComponent<engine::Transform>().setX(5);
-                auto& _sr = this->addComponent<engine::SpriteRenderer>();
-                _sr.color = engine::Color::Red;
-
-                auto _newGameObject = this->newGameObject({-4, -2});
-                _newGameObject.addComponent<engine::SpriteRenderer>();
-
-                this->destroyGameObject(_newGameObject);
-            }
-
-            void onDestroy() {  }
-
-            void onUpdate(engine::Delta _dt) {
-
-            }
-    };
-
-    this->dummy.addComponent<engine::NativeScript>().bind<Dummy>();
+    this->squareGbj.addComponent<engine::PhysicsBody>(this->squareGbj.getComponent<engine::Transform>());
 }
 
 void Inspector::onEvent(engine::Event& _e) {
@@ -255,12 +232,12 @@ void Inspector::imGuiComponents() {
             if(_gameObject == this->gameObjectSelectedInHierarchy) {
                 if(ImGui::CollapsingHeader("Tag")) {
 
-                    auto& _active = _tagView.get<engine::Active>(_gameObject);
+                    auto _active = _tagView.get<engine::Active>(_gameObject);
                     ImGui::PushID(0);
                     ImGui::Checkbox("Active", &_active.active);
                     ImGui::PopID();
 
-                    auto& _tag = _tagView.get<engine::Tag>(_gameObject);
+                    auto _tag = _tagView.get<engine::Tag>(_gameObject);
                     ImGui::Text("Tag: "); ImGui::SameLine();
                     char _myTag[256];
                     strcpy_s(_myTag, _tag.tag.c_str());

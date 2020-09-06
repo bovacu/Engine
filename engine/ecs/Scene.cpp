@@ -27,6 +27,8 @@ namespace engine {
     }
 
     void Scene::onUpdate(Delta _dt) {
+        Physics::step();
+
         auto _view = this->gameObjectsRegistry.view<NativeScript>();
         for(auto _gameObject : _view) {
             auto& _script = _view.get<NativeScript>(_gameObject);
@@ -34,12 +36,10 @@ namespace engine {
                 _script.instantiateFunction(_script.scriptableObject);
                 _script.scriptableObject->gameObject = GameObject{ _gameObject, this };
 
-                if(_script.onCreateFunction)
-                    _script.onCreateFunction(_script.scriptableObject);
+                _script.scriptableObject->onInit();
             }
 
-            if(_script.onUpdateFunction)
-                _script.onUpdateFunction(_script.scriptableObject, _dt);
+            _script.scriptableObject->onUpdate(_dt);
         }
     }
 
@@ -74,11 +74,16 @@ namespace engine {
                     auto& _active = _group.get<Active>(_gameObject);
 
                     if(_active.active) {
-                        auto& _transform = _group.get<Transform>(_gameObject);
-                        auto& _sprite = _group.get<SpriteRenderer>(_gameObject);
+                        /// Here we don't take them as & because a tuple already returns a reference
+                        auto _transform = _group.get<Transform>(_gameObject);
+                        auto _sprite = _group.get<SpriteRenderer>(_gameObject);
                         Renderer::drawRectangle(_transform.transform, _sprite.color);
                     }
                 }
+            Renderer::endDrawCall();
+
+            Renderer::beginDrawCall(_camera->getProjectionMatrix(), *_cameraTransform);
+            Physics::getWorld().DebugDraw();
             Renderer::endDrawCall();
         }
     }

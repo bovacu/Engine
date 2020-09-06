@@ -2,7 +2,6 @@
 #include "OpenGLRenderAPI.h"
 
 #include <glad/glad.h>
-#include <engine/render/Render2D.h>
 
 namespace engine {
 
